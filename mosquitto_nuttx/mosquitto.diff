@@ -1,0 +1,13 @@
+diff --git a/src/conf_includedir.c b/src/conf_includedir.c
+index bbbd65b7..37d3c116 100644
+--- a/src/conf_includedir.c
++++ b/src/conf_includedir.c
+@@ -38,7 +38,7 @@ Contributors:
+ #endif
+ 
+ #if !defined(WIN32) && !defined(__CYGWIN__) && !defined(__QNX__)
+-#  include <sys/syslog.h>
++#  include <syslog.h>
+ #endif
+ 
+ #include "mosquitto_broker_internal.h"
