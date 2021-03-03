@@ -27,17 +27,19 @@ yt = build("youtube", "v3", developerKey=api_key)
 # https://developers.google.com/youtube/v3/docs/videos/list
 op = yt.videos().list(part='statistics', id=video_id)
 
-while True:
-    result = op.execute()
-
+def extract_stats(result):
     # result here is something like
     # {'kind': 'youtube#videoListResponse', 'etag': 'E6-Bzb4X_fDK5xKsNzx6LWpuOdY', 'items': [{'kind': 'youtube#video', 'etag': 'CTSoVMDunhrUb-G04W0MqgsMtFI', 'id': 'drvH4XbZoPs', 'statistics': {'viewCount': '281260', 'likeCount': '2271', 'dislikeCount': '29', 'favoriteCount': '0', 'commentCount': '50'}}], 'pageInfo': {'totalResults': 1, 'resultsPerPage': 1}}
 
-    view_count = result['items'][0]['statistics']['viewCount']
+    return result['items'][0]['statistics']
+
+while True:
+    result = op.execute()
+    stats = extract_stats(result)
 
     now = datetime.datetime.now()
 
-    print("{}, {}".format(now, view_count))
+    print("{}, {}".format(now, stats['viewCount']))
 
     # it seems that the statistics are updated every 5 minutes.
     time.sleep(5 * 60)
