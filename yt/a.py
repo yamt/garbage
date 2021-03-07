@@ -33,13 +33,19 @@ def extract_stats(result):
 
     return result['items'][0]['statistics']
 
+import db
+
+db_conn = db.open()
+
 while True:
     result = op.execute()
     stats = extract_stats(result)
 
-    now = datetime.datetime.now()
+    now = datetime.datetime.now(datetime.timezone.utc)
 
     print("{}, {}".format(now, stats['viewCount']))
+
+    db.put(db_conn, now, video_id, stats)
 
     # it seems that the statistics are updated every 5 minutes.
     time.sleep(5 * 60)
