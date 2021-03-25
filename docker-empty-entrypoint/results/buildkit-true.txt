@@ -1,0 +1,19 @@
+#1 [internal] load build definition from Dockerfile
+#1 sha256:ae1559347d53c3776742a7ed67a74feb8f41b274976b4a3cbb91c46e6c315e2e
+#1 transferring dockerfile: 36B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load .dockerignore
+#2 sha256:d5461f25213b8aa335e825d556bcb837386d99f2390d09ca2e9911ab3203fef8
+#2 transferring context: 2B done
+#2 DONE 0.0s
+
+#3 exporting to image
+#3 sha256:e8c613e07b0b7ff33893b694f7759a10d42e180f2b4dc349fb57dc6b71dcab00
+#3 writing image sha256:a937a463c82dfa7d0e62faf2997780526911d4635ff858b6e1df12052f473ec6 done
+#3 DONE 0.0s
+[
+  "/bin/sh",
+  "-c",
+  ""
+]
