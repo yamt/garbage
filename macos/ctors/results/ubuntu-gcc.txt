@@ -1,0 +1,8 @@
+cc -c -o a.o a.c
+cc -nostartfiles -e _entry -o test_alt_entry a.o
+cc -o test_normal a.o
+./test_normal
+myctor
+main
+./test_alt_entry
+entry
