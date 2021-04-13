@@ -18,3 +18,10 @@ entry(void)
     printf("entry\n");
     exit(0);
 }
+
+int
+main(int argc, char *argv[])
+{
+    printf("main\n");
+    exit(0);
+}
