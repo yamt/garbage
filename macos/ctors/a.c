@@ -9,7 +9,11 @@ myctor(void)
 }
 
 void
+#if defined(__linux__)
+_entry(void)
+#else
 entry(void)
+#endif
 {
     printf("entry\n");
     exit(0);
