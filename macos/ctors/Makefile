@@ -4,4 +4,4 @@ all: test
 	$(CC) -c -o $@ $<
 
 test: a.o
-	$(CC) -e _entry -o $@ $<
+	$(CC) -nostartfiles -e entry -o $@ $<

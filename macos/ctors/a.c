@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 __attribute__((constructor))
 void
@@ -7,9 +8,9 @@ myctor(void)
     printf("myctor\n");
 }
 
-int
-entry()
+void
+entry(void)
 {
     printf("entry\n");
-    return 0;
+    exit(0);
 }
