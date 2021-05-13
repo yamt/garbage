@@ -3,6 +3,9 @@ for general purposes, i guess it's better for you to look at:
     https://github.com/tonistiigi/binfmt
     https://github.com/multiarch/qemu-user-static
 
+qemu source:
+    https://github.com/yamt/qemu/tree/linux-user-for-docker
+
 qemu build memo:
 
 i built it with ../myubuntu image using --platform linux/arm64
@@ -10,4 +13,3 @@ on docker desktop for macos.
 
 from my qemu config.status:
     exec '../configure' '--static' '--target-list=aarch64-linux-user' '--without-default-features' '--enable-linux-user' '--disable-pie' '--disable-vnc' "$@"
-
