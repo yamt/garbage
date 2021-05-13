@@ -7,6 +7,9 @@ load-amd64:
 		-t yamt/ubuntu-amd64:latest \
 		--load \
 		.
+	docker image tag \
+		yamt/ubuntu-amd64:latest \
+		yamt/ubuntu:latest
 
 load-arm64:
 	docker buildx build \
@@ -14,6 +17,9 @@ load-arm64:
 		-t yamt/ubuntu-arm64:latest \
 		--load \
 		.
+	docker image tag \
+		yamt/ubuntu-arm64:latest \
+		yamt/ubuntu:latest
 
 .PHONY: push
 push:
