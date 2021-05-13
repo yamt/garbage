@@ -4,8 +4,7 @@ NAME=yamt/binfmt-install-qemu-aarch64
 # see README about how to prepare the binary.
 QEMU=~/git/qemu/build-static/qemu-aarch64
 
-.PHONY: build install
-
+.PHONY: build
 build:
 	cp ${QEMU} dist/
 	docker build \
