@@ -1,3 +1,7 @@
+this is just for my development convenience.
+for general purposes, i guess it's better for you to look at:
+    https://github.com/tonistiigi/binfmt
+    https://github.com/multiarch/qemu-user-static
 
 qemu build memo:
 
