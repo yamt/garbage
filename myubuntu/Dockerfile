@@ -2,6 +2,7 @@ FROM ubuntu:20.04 as base
 
 ENV DEBIAN_FRONTEND="noninteractive"
 RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
     curl \
     iptables \
     make \
@@ -20,6 +21,7 @@ FROM base as install
 # qemu: Ninja, pkg-config, libglib2.0-dev
 # bsdmailutils includes hexdump
 RUN apt-get update && apt-get install -y \
+    --no-install-recommends \
     git \
     clang-11 \
     ninja-build \
