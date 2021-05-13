@@ -11,6 +11,11 @@ build:
 		-t ${NAME} \
 		.
 
+.PHONY: push
+push:
+	docker push \
+		${NAME}
+
 .PHONY: run
 run:
 	docker run \
