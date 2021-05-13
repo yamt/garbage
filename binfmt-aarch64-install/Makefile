@@ -1,4 +1,4 @@
-NAME=multiarch-qemu-install-aarch64
+NAME=binfmt-install-qemu-aarch64
 
 # XXX my local environment
 QEMU=~/git/qemu/build-static/qemu-aarch64
