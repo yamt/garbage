@@ -12,6 +12,6 @@ build:
 
 run:
 	docker run \
-		-v $(QEMU):/usr/bin/qemu-aarch64 \
+		-v $(QEMU):/yamt/qemu-aarch64 \
 		--privileged \
 		${NAME}
