@@ -1,0 +1,9 @@
+
+qemu build memo:
+
+i built it with ../myubuntu image using --platform linux/arm64
+on docker desktop for macos.
+
+from my qemu config.status:
+    exec '../configure' '--static' '--target-list=aarch64-linux-user' '--without-default-features' '--enable-linux-user' '--disable-pie' '--disable-vnc' "$@"
+
