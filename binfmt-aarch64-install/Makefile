@@ -19,6 +19,7 @@ push:
 .PHONY: run
 run:
 	docker run \
+		--rm \
 		-v $(QEMU):/yamt/qemu-aarch64 \
 		--privileged \
 		${NAME}
@@ -26,6 +27,7 @@ run:
 .PHONY: run-with-default-qemu
 run-with-default-qemu:
 	docker run \
+		--rm \
 		--privileged \
 		${NAME}
 
