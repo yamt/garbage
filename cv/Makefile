@@ -1,5 +1,11 @@
-
 # note: use gnu make >= 4 or bsd make
+
+# brew install opencv
+
+# brew install make
+# or
+# brew install bsdmake
+
 CXXFLAGS != pkg-config --cflags opencv4
 CXXFLAGS+=-std=c++17
 
