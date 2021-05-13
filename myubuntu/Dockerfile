@@ -22,6 +22,9 @@ FROM base as install
 # bsdmailutils includes hexdump
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
+    autoconf \
+    automake \
+    libtool \
     git \
     clang-11 \
     ninja-build \
