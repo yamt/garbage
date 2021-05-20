@@ -2,7 +2,8 @@
 
 set -e
 
-OUR_ENTRY=qemu-aarch64-yamt
+ARCH=aarch64
+OUR_ENTRY=qemu-${ARCH}-yamt
 
 BINFMT_MISC_MOUNT=/proc/sys/fs/binfmt_misc
 REGISTER=${BINFMT_MISC_MOUNT}/register
@@ -17,9 +18,9 @@ echo "Removing possibly conflicting entries..."
 # ours
 ENTRIES=$OUR_ENTRY
 # docker desktop
-ENTRIES="$ENTRIES qemu-aarch64"
+ENTRIES="$ENTRIES qemu-${ARCH}"
 # multiarch/qemu-user-static
-ENTRIES="$ENTRIES qemu-aarch64-static"
+ENTRIES="$ENTRIES qemu-${ARCH}-static"
 for e in $ENTRIES; do
     ENTRY=${BINFMT_MISC_MOUNT}/$e
     if [ -f ${ENTRY} ]; then
@@ -28,7 +29,7 @@ for e in $ENTRIES; do
     fi
 done
 
-DATA=":${OUR_ENTRY}:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/yamt/qemu-aarch64:FPO"
+DATA=":${OUR_ENTRY}:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/yamt/qemu-${ARCH}:FPO"
 echo ${DATA} > ${REGISTER}
 
 echo "Registered entry:"

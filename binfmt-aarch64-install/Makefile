@@ -1,8 +1,9 @@
-NAME=yamt/binfmt-install-qemu-aarch64
+ARCH=aarch64
+NAME=yamt/binfmt-install-qemu-${ARCH}
 
 # XXX my local environment
 # see README about how to prepare the binary.
-QEMU=~/git/qemu/build-static/qemu-aarch64
+QEMU=~/git/qemu/build-static/qemu-${ARCH}
 
 .PHONY: build
 build:
@@ -20,7 +21,7 @@ push:
 run:
 	docker run \
 		--rm \
-		-v $(QEMU):/yamt/qemu-aarch64 \
+		-v $(QEMU):/yamt/qemu-${ARCH} \
 		--privileged \
 		${NAME}
 
