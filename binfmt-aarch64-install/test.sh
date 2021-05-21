@@ -4,7 +4,7 @@ set -e
 
 PLATFORMS="${PLATFORMS} linux/amd64"
 PLATFORMS="${PLATFORMS} linux/arm64"
-# PLATFORMS="${PLATFORMS} linux/arm/v7"
+PLATFORMS="${PLATFORMS} linux/arm/v7"
 
 for P in ${PLATFORMS}; do
 	# good:
