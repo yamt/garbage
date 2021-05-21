@@ -2,9 +2,9 @@
 
 set -e
 
-ARCH=aarch64
-MAGIC=7f454c460201010000000000000000000200b700
-MASK=ffffffffffffff00fffffffffffffffffeffffff
+ARCH=$1
+MAGIC=$2
+MASK=$3
 
 OUR_ENTRY=qemu-${ARCH}-yamt
 
