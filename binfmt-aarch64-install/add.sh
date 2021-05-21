@@ -33,7 +33,10 @@ for e in $ENTRIES; do
 done
 
 conv () {
-	sed -e :a -e 's/\(.*[0-9a-f]\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta' -e 's/\(^\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta'
+    sed \
+    -e :a \
+    -e 's/\(.*[0-9a-f]\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta' \
+    -e 's/\(^\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta'
 }
 MAGIC_BIN="$(echo ${MAGIC} | conv)"
 MASK_BIN="$(echo ${MASK} | conv)"
