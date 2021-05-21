@@ -32,6 +32,10 @@ run-with-default-qemu:
 		--privileged \
 		${NAME}
 
+.PHONY: test
+test:
+	./test.sh
+
 .PHONY: clean
 clean:
 	rm -f dist/*
