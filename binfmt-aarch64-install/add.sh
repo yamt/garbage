@@ -3,6 +3,9 @@
 set -e
 
 ARCH=aarch64
+MAGIC=7f454c460201010000000000000000000200b700
+MASK=ffffffffffffff00fffffffffffffffffeffffff
+
 OUR_ENTRY=qemu-${ARCH}-yamt
 
 BINFMT_MISC_MOUNT=/proc/sys/fs/binfmt_misc
@@ -29,7 +32,13 @@ for e in $ENTRIES; do
     fi
 done
 
-DATA=":${OUR_ENTRY}:M::\x7fELF\x02\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\xb7\x00:\xff\xff\xff\xff\xff\xff\xff\x00\xff\xff\xff\xff\xff\xff\xff\xff\xfe\xff\xff\xff:/yamt/qemu-${ARCH}:FPO"
+conv () {
+	sed -e :a -e 's/\(.*[0-9a-f]\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta' -e 's/\(^\)\([0-9a-f]\{2\}\)/\1\\x\2/;ta'
+}
+MAGIC_BIN="$(echo ${MAGIC} | conv)"
+MASK_BIN="$(echo ${MASK} | conv)"
+
+DATA=":${OUR_ENTRY}:M::${MAGIC_BIN}:${MASK_BIN}:/yamt/qemu-${ARCH}:FPO"
 echo ${DATA} > ${REGISTER}
 
 echo "Registered entry:"
