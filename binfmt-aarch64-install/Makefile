@@ -36,6 +36,7 @@ run-with-default-qemu:
 .PHONY: test
 test:
 	./test.sh
+	./test-dind.sh
 
 .PHONY: clean
 clean:
