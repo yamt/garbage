@@ -35,11 +35,11 @@ main(int argc, char *argv[])
         path = argv[0];
         argv[0] = "step2";
     } else {
-	const char *tmp = "/tmp";
-	ret = chdir(tmp); /* try to confuse qemu */
-	if (ret == -1) {
-	    printf("chdir %s failed with %d, errno=%d\n", tmp, ret, errno);
-	}
+        const char *tmp = "/tmp";
+        ret = chdir(tmp); /* try to confuse qemu */
+        if (ret == -1) {
+            printf("chdir %s failed with %d, errno=%d\n", tmp, ret, errno);
+        }
         path = proc_self_exe;
         argv[0] = "step3";
     }
