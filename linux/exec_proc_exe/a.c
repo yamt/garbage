@@ -21,6 +21,7 @@ main(int argc, char *argv[])
     if (ret == -1) {
         printf("readlink %s failed with %d, errno=%d\n",
            proc_self_exe, ret, errno);
+        exit(1);
     } else {
         printf("readlink %s contents: %.*s\n", proc_self_exe, ret, buf);
     }
@@ -39,6 +40,7 @@ main(int argc, char *argv[])
         ret = chdir(tmp); /* try to confuse qemu */
         if (ret == -1) {
             printf("chdir %s failed with %d, errno=%d\n", tmp, ret, errno);
+            exit(1);
         }
         path = proc_self_exe;
         argv[0] = "step3";
