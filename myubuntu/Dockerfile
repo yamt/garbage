@@ -42,4 +42,5 @@ RUN update-alternatives --install /usr/bin/c++ cc++ /usr/bin/clang++-11 50
 COPY dot-files/tmux.conf /root/.tmux.conf
 COPY dot-files/zshrc /root/.zshrc
 
+WORKDIR /work
 ENTRYPOINT [ "/usr/bin/zsh" ]
