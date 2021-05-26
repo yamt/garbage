@@ -45,6 +45,10 @@ main(int argc, char *argv[])
         path = proc_self_exe;
         argv[0] = "step3";
     }
+    if (fflush(NULL) != 0) {
+        fprintf(stderr, "fflush failed\n");
+        exit(1);
+    }
     ret = execve(path, argv, environ);
     printf("execve %s returned with %d, errno=%d\n", path, ret, errno);
     exit(1);
