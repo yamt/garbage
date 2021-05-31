@@ -8,7 +8,7 @@ qemu source:
 
 qemu build memo:
 
-i built it with ../myubuntu image using --platform linux/arm64
+i built it with ../myubuntu image using --platform linux/amd64
 on docker desktop for macos.
 
 you can find my qemu config in myqemuconfig.sh in this directory.
