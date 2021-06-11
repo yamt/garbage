@@ -4,8 +4,14 @@ COBJS = $(CSRCS:.c=$(OBJEXT))
 CXXOBJS = $(CXXSRCS:.cxx=$(OBJEXT))
 OBJS = $(COBJS) $(CXXOBJS)
 
+UNAME = $(shell uname -s)
+
 BIN = defer-ctors
+ifeq ($(UNAME),Darwin)
 HEADSRC = up_macho_init.c
+else
+HEADSRC = up_sinit_init.c
+endif
 CXXSRCS = a.cxx
 
 all: test
