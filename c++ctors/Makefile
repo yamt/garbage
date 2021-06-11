@@ -19,7 +19,9 @@ all: test
 .SUFFIXES: .cxx
 
 .cxx.o:
-	c++ -c -o $@ $<
+	c++ -g -c -o $@ $<
+.c.o:
+	cc -g -c -o $@ $<
 
 $(BIN): $(HEADOBJ) $(OBJS)
 	c++ -o $@ $(HEADOBJ) $(OBJS)
