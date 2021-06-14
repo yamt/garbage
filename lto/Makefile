@@ -17,6 +17,10 @@ else
 # tested with https://github.com/yamt/garbage/tree/master/myubuntu
 LD_SO = /lib64/ld-linux-x86-64.so.2
 LIB_DIR = /usr/lib/x86_64-linux-gnu
+CRT_START = ${LIB_DIR}/crt1.o
+CRT_PROLOGUE = ${LIB_DIR}/crti.o
+CRT_EPILOGUE = ${LIB_DIR}/crtn.o
+LIBS = -L ${LIB_DIR} -lc
 ifeq ($(USE_GCC),)
 CC = clang-11
 LD = ld.lld-11 -dynamic-linker ${LD_SO}
@@ -30,10 +34,6 @@ ld.gold -dynamic-linker ${LD_SO} \
 -plugin-opt=${GCC_LTO_PLUGIN_DIR}/lto-wrapper \
 -plugin-opt=-fresolution=/tmp/a.res
 endif
-CRT_START = ${LIB_DIR}/crt1.o
-CRT_PROLOGUE = ${LIB_DIR}/crti.o
-CRT_EPILOGUE = ${LIB_DIR}/crtn.o
-LIBS = -L ${LIB_DIR} -lc
 endif
 
 test: $(BIN)
