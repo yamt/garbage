@@ -19,6 +19,7 @@ ifeq ($(USE_GCC),)
 CC = clang-11
 LD = ld.lld-11 -dynamic-linker /lib64/ld-linux-x86-64.so.2
 else
+# http://gcc.gnu.org/wiki/whopr/driver
 CC = gcc
 LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS= \
 ld.gold -dynamic-linker /lib64/ld-linux-x86-64.so.2 \
