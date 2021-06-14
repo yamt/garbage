@@ -45,4 +45,4 @@ COPY dot-files/tmux.conf /root/.tmux.conf
 COPY dot-files/zshrc /root/.zshrc
 
 WORKDIR /work
-ENTRYPOINT [ "/usr/bin/zsh" ]
+CMD [ "/usr/bin/zsh" ]
