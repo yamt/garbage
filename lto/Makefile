@@ -2,12 +2,15 @@ UNAME = $(shell uname -s)
 
 BIN = foo
 OBJS = a.o f.o
+CFLAGS = -Os
 
 ifeq ($(UNAME),Darwin)
 # macos
 # tested on mojave
 CC = cc
 LD = ld -arch x86_64 -macos_version_min 10.14
+LTO_CFLAGS = -flto
+# LTO_CFLAGS = -flto=thin
 CRT_START =
 CRT_PROLOGUE =
 CRT_EPILOGUE =
@@ -24,15 +27,18 @@ LIBS = -L ${LIB_DIR} -lc
 ifeq ($(USE_GCC),)
 CC = clang-11
 LD = ld.lld-11 -dynamic-linker ${LD_SO}
+LTO_CFLAGS = -flto
+# LTO_CFLAGS = -flto=thin
 else
 # http://gcc.gnu.org/wiki/whopr/driver
 GCC_LTO_PLUGIN_DIR = /usr/lib/gcc/x86_64-linux-gnu/9/
 CC = gcc
-LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS= \
+LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS=$(CFLAGS) \
 ld.gold -dynamic-linker ${LD_SO} \
 -plugin ${GCC_LTO_PLUGIN_DIR}/liblto_plugin.so \
 -plugin-opt=${GCC_LTO_PLUGIN_DIR}/lto-wrapper \
 -plugin-opt=-fresolution=/tmp/a.res
+LTO_CFLAGS = -flto
 endif
 endif
 
@@ -51,9 +57,9 @@ $(BIN): $(OBJS)
 
 .c.o:
 	$(CC) -c \
+	$(CFLAGS) \
+	$(LTO_CFLAGS) \
 	-o $@ \
-	-flto \
-	-Os \
 	-g \
 	$<
 
