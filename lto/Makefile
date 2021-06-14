@@ -15,6 +15,7 @@ LIBS = -L /usr/lib/gcc/x86_64-linux-gnu/9 -L /usr/lib/x86_64-linux-gnu -lgcc -lc
 endif
 
 test: $(BIN)
+	./$(BIN)
 	objdump -r -d $(BIN)
 	nm $(BIN)
 
