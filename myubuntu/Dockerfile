@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y \
     git \
     clang-11 \
     lld-11 \
+    gcc \
     ninja-build \
     pkg-config \
     libglib2.0-dev \
