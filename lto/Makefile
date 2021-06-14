@@ -3,10 +3,10 @@ UNAME = $(shell uname -s)
 BIN = foo
 OBJS = a.o f.o
 
-CC = cc
 ifeq ($(UNAME),Darwin)
 # macos
 # tested on mojave
+CC = cc
 LD = ld -arch x86_64 -macos_version_min 10.14
 CRT_START =
 CRT_PROLOGUE =
@@ -15,7 +15,17 @@ LIBS = -lc
 else
 # ubuntu
 # tested with https://github.com/yamt/garbage/tree/master/myubuntu
-LD = ld.lld -dynamic-linker /lib64/ld-linux-x86-64.so.2
+ifeq ($(USE_GCC),)
+CC = clang-11
+LD = ld.lld-11 -dynamic-linker /lib64/ld-linux-x86-64.so.2
+else
+CC = gcc
+LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS= \
+ld.gold -dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+-plugin /usr/lib/gcc/x86_64-linux-gnu/9/liblto_plugin.so \
+-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper \
+-plugin-opt=-fresolution=/tmp/a.res
+endif
 CRT_START = /usr/lib/x86_64-linux-gnu/crt1.o
 CRT_PROLOGUE = /usr/lib/x86_64-linux-gnu/crti.o
 CRT_EPILOGUE = /usr/lib/x86_64-linux-gnu/crtn.o
