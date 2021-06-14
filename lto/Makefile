@@ -5,6 +5,8 @@ OBJS = a.o f.o
 
 CC = cc
 ifeq ($(UNAME),Darwin)
+# macos
+# tested on mojave
 LD = ld -arch x86_64 -macos_version_min 10.14
 CRT_START =
 CRT_PROLOGUE =
