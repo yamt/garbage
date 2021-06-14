@@ -15,22 +15,25 @@ LIBS = -lc
 else
 # ubuntu
 # tested with https://github.com/yamt/garbage/tree/master/myubuntu
+LD_SO = /lib64/ld-linux-x86-64.so.2
+LIB_DIR = /usr/lib/x86_64-linux-gnu
 ifeq ($(USE_GCC),)
 CC = clang-11
-LD = ld.lld-11 -dynamic-linker /lib64/ld-linux-x86-64.so.2
+LD = ld.lld-11 -dynamic-linker ${LD_SO}
 else
 # http://gcc.gnu.org/wiki/whopr/driver
+GCC_LTO_PLUGIN_DIR = /usr/lib/gcc/x86_64-linux-gnu/9/
 CC = gcc
 LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS= \
-ld.gold -dynamic-linker /lib64/ld-linux-x86-64.so.2 \
--plugin /usr/lib/gcc/x86_64-linux-gnu/9/liblto_plugin.so \
--plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/9/lto-wrapper \
+ld.gold -dynamic-linker ${LD_SO} \
+-plugin ${GCC_LTO_PLUGIN_DIR}/liblto_plugin.so \
+-plugin-opt=${GCC_LTO_PLUGIN_DIR}/lto-wrapper \
 -plugin-opt=-fresolution=/tmp/a.res
 endif
-CRT_START = /usr/lib/x86_64-linux-gnu/crt1.o
-CRT_PROLOGUE = /usr/lib/x86_64-linux-gnu/crti.o
-CRT_EPILOGUE = /usr/lib/x86_64-linux-gnu/crtn.o
-LIBS = -L /usr/lib/x86_64-linux-gnu -lc
+CRT_START = ${LIB_DIR}/crt1.o
+CRT_PROLOGUE = ${LIB_DIR}/crti.o
+CRT_EPILOGUE = ${LIB_DIR}/crtn.o
+LIBS = -L ${LIB_DIR} -lc
 endif
 
 test: $(BIN)
