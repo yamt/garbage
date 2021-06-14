@@ -39,7 +39,6 @@ endif
 test: $(BIN)
 	./$(BIN)
 	objdump -r -d $(BIN)
-	nm $(BIN)
 
 $(BIN): $(OBJS)
 	$(LD) \
