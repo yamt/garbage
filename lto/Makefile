@@ -32,12 +32,14 @@ LTO_CFLAGS = -flto
 else
 # http://gcc.gnu.org/wiki/whopr/driver
 GCC_LTO_PLUGIN_DIR = /usr/lib/gcc/x86_64-linux-gnu/9/
+# Revisit: use mktemp
+RESOLUTION_FILE = /tmp/a.res
 CC = gcc
 LD = COLLECT_GCC=$(CC) COLLECT_GCC_OPTIONS=$(CFLAGS) \
 ld.gold -dynamic-linker ${LD_SO} \
 -plugin ${GCC_LTO_PLUGIN_DIR}/liblto_plugin.so \
 -plugin-opt=${GCC_LTO_PLUGIN_DIR}/lto-wrapper \
--plugin-opt=-fresolution=/tmp/a.res
+-plugin-opt=-fresolution=${RESOLUTION_FILE}
 LTO_CFLAGS = -flto
 endif
 endif
