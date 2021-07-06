@@ -36,6 +36,7 @@ RUN apt-get update && apt-get install -y \
     libglib2.0-dev \
     golang \
     bsdmainutils \
+    cmake \
     && rm -rf /var/lib/apt/list/*
 
 FROM install as config
