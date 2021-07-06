@@ -12,6 +12,8 @@ RUN apt-get update && apt-get install -y \
     tmux \
     vim \
     less \
+    iputils-ping \
+    dnsutils \
     && rm -rf /var/lib/apt/list/*
 
 RUN chsh -s /usr/bin/zsh root
