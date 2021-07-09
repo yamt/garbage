@@ -1,3 +1,10 @@
+#! /bin/sh
+
+# - ubuntu 20.10 seems to have an official podman package and
+#   probably does not require the most of the following stuff
+# - tested in a --privileged ubuntu 20.04 docker container on macOS
+# - "podman container stats" didn't work for some reasons
+
 apt-get update
 apt-get install -y gnupg1 ca-certificates crudini
 
