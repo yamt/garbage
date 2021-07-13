@@ -14,6 +14,8 @@ RUN apt-get update && apt-get install -y \
     less \
     iputils-ping \
     dnsutils \
+    iproute2 \
+    net-tools \
     && rm -rf /var/lib/apt/list/*
 
 RUN chsh -s /usr/bin/zsh root
