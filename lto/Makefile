@@ -4,6 +4,9 @@ BIN = foo
 OBJS = a.o f.o
 CFLAGS = -Os
 
+LIBFOO = libfoo.a
+LIBFOO_OBJS = lib1.o
+
 ifeq ($(UNAME),Darwin)
 # macos
 # tested on mojave
@@ -48,13 +51,14 @@ test: $(BIN)
 	./$(BIN)
 	objdump -r -d $(BIN)
 
-$(BIN): $(OBJS)
+$(BIN): $(OBJS) $(LIBFOO)
 	$(LD) \
 	-o $@ \
 	$(CRT_START) \
 	$(CRT_PROLOGUE) \
 	$(OBJS) \
 	$(LIBS) \
+	$(LIBFOO) \
 	$(CRT_EPILOGUE)
 
 .c.o:
@@ -65,6 +69,11 @@ $(BIN): $(OBJS)
 	-g \
 	$<
 
+$(LIBFOO): $(LIBFOO_OBJS)
+	ar rcs $@ $(LIBFOO_OBJS)
+
 clean:
 	rm -f $(BIN)
 	rm -f $(OBJS)
+	rm -f $(LIBFOO)
+	rm -f $(LIBFOO_OBJS)
