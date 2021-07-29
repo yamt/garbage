@@ -1,0 +1,4 @@
+FROM alpine
+WORKDIR /baz
+COPY . .
+CMD find .
