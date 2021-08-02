@@ -1,0 +1,33 @@
+spacetanuki% ./a.sh  
+Deleted Images:
+untagged: bar:latest
+untagged: foo:latest
+deleted: sha256:71de1148337f4d1845be01eb4caf15d78e4eb15a1ab96030809826698a5b7e30
+
+Deleted build cache objects:
+y1k7d4vjl2qd2xv2z32dd6cb2
+jjujkky8tdwd9bi89ih9l8ks9
+
+Total reclaimed space: 9B
+REPOSITORY   TAG       IMAGE ID   CREATED   SIZE
+[+] Building 0.2s (3/3) FINISHED                                                
+ => [internal] load build definition from Dockerfile.foo                   0.0s
+ => => transferring dockerfile: 54B                                        0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => exporting to image                                                     0.0s
+ => => writing image sha256:71de1148337f4d1845be01eb4caf15d78e4eb15a1ab96  0.0s
+ => => naming to docker.io/library/foo                                     0.0s
+[+] Building 0.2s (4/4) FINISHED                                                
+ => [internal] load build definition from Dockerfile.bar                   0.0s
+ => => transferring dockerfile: 50B                                        0.0s
+ => [internal] load .dockerignore                                          0.0s
+ => => transferring context: 2B                                            0.0s
+ => [internal] load metadata for docker.io/library/foo:latest              0.0s
+ => exporting to image                                                     0.0s
+ => => writing image sha256:71de1148337f4d1845be01eb4caf15d78e4eb15a1ab96  0.0s
+ => => naming to docker.io/library/bar                                     0.0s
+REPOSITORY   TAG       IMAGE ID       CREATED   SIZE
+bar          latest    71de1148337f   N/A       0B
+foo          latest    71de1148337f   N/A       0B
+spacetanuki% 
