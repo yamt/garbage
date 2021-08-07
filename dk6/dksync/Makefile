@@ -4,6 +4,11 @@ OBJS += syncer.o
 OBJS += hotplug.o
 CFLAGS = -Os
 
+# darwin
+OBJS += power.o
+LIBS += -framework IOKit
+LIBS += -framework CoreFoundation
+
 LIBUSB = libusb-1.0
 CFLAGS += $(shell pkg-config --cflags $(LIBUSB))
 LIBS += $(shell pkg-config --libs $(LIBUSB))

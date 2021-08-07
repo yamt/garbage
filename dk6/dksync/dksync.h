@@ -7,3 +7,5 @@ void *sync_devices(void *);
 void syncer_update(void);
 
 void watch_hotplug_events(void);
+
+void *watch_power_events(void *vp);

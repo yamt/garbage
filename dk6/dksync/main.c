@@ -16,5 +16,10 @@ main(int argc, char *argv[])
         ret = pthread_create(&syncer_thread, NULL, sync_devices, NULL);
         assert(ret == 0);
 
+        pthread_t power_watch_thread;
+        ret = pthread_create(&power_watch_thread, NULL, watch_power_events,
+                             NULL);
+        assert(ret == 0);
+
         watch_hotplug_events();
 }
