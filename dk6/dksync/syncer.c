@@ -21,6 +21,7 @@
 struct kbd {
         pthread_t t;
         hid_device *dev;
+        char *name;
 };
 
 struct kbd kbds[MAX_DEVICES];
@@ -30,11 +31,12 @@ unsigned int syncer_gen;
 unsigned int syncer_update_gen;
 
 void
-dump_packet(const unsigned char *buf, size_t len, const char *msg)
+dump_packet(const unsigned char *buf, size_t len, const char *name,
+            const char *msg)
 {
         unsigned int i;
 
-        fprintf(stderr, "%s:", msg);
+        fprintf(stderr, "%s: %s:", name, msg);
         for (i = 0; i < len; i++) {
                 fprintf(stderr, " %02x", buf[i]);
         }
@@ -70,6 +72,7 @@ syncer_thread(void *vp)
                 return NULL;
         }
         assert(ret == sizeof(init_cmd));
+        dump_packet(init_cmd, ret, k->name, "init");
         for (;;) {
                 ret = hid_read_timeout(k->dev, buf, sizeof(buf), 500);
                 if (ret < 0) {
@@ -83,7 +86,7 @@ syncer_thread(void *vp)
                         continue;
                 }
                 assert(ret == sizeof(buf));
-                dump_packet(buf, ret, "read");
+                dump_packet(buf, ret, k->name, "read");
                 unsigned char press;
                 if (buf[0] == LAYER_PRESS_CMD) {
                         press = 0x03;
@@ -109,6 +112,7 @@ syncer_thread(void *vp)
                                 continue;
                         }
                         assert(ret == sizeof(sync_cmd));
+                        dump_packet(sync_cmd, ret, k2->name, "sync");
                 }
         }
         return NULL;
@@ -141,6 +145,8 @@ sync_devices(void *vp)
                         struct kbd *k = &kbds[nkbds];
                         k->dev = hid_open_path(info->path);
                         assert(k->dev != NULL);
+                        ret = asprintf(&k->name, "%ls", info->serial_number);
+                        assert(ret > 0);
                         nkbds++;
                 }
                 hid_free_enumeration(infos);
@@ -159,6 +165,7 @@ sync_devices(void *vp)
                 for (i = 0; i < nkbds; i++) {
                         struct kbd *k = &kbds[i];
                         hid_close(k->dev);
+                        free(k->name);
                 }
                 nkbds = 0;
                 while (!syncer_should_reboot()) {
