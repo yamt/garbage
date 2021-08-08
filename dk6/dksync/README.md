@@ -2,7 +2,8 @@
 
 ## What's this
 
-* A program to sync the layer among [DuMang DK6](http://www.beyondq.com/%E8%B6%85%E9%85%B7%E7%A7%91%E6%8A%80-%E4%BA%A7%E5%93%81-%E6%AF%92%E8%9F%92%E9%94%AE%E7%9B%98-%E6%A8%A1%E5%9D%97%E5%8C%96%E9%94%AE%E7%9B%98-dk6-dumang.html) keyboards.
+* A program to sync the layer among [DuMang DK6](http://www.beyondq.com/%E8%B6%85%E9%85%B7%E7%A7%91%E6%8A%80-%E4%BA%A7%E5%93%81-%E6%AF%92%E8%9F%92%E9%94%AE%E7%9B%98-%E6%A8%A1%E5%9D%97%E5%8C%96%E9%94%AE%E7%9B%98-dk6-dumang.html) keyboards
+  connected to a computer.
 
 * Inspired from
   [dumang-sync tool](https://github.com/mayanez/dumang-keyboard-ctrl#sync-tool).
@@ -33,3 +34,16 @@ make
 ```
 
 Maybe it makes more sense to run it with launchd.
+
+## Links
+
+* [DuMang DK6](http://www.beyondq.com/%E8%B6%85%E9%85%B7%E7%A7%91%E6%8A%80-%E4%BA%A7%E5%93%81-%E6%AF%92%E8%9F%92%E9%94%AE%E7%9B%98-%E6%A8%A1%E5%9D%97%E5%8C%96%E9%94%AE%E7%9B%98-dk6-dumang.html)
+
+* [dumang-keyboard-ctrl](https://github.com/mayanez/dumang-keyboard-ctrl)
+
+  Allows to configure these boards without Windows.
+
+* [Karabiner-Elements](https://karabiner-elements.pqrs.org/)
+
+  Somehow essential when using multiple keyboards together on macOS.
+  (Otherwise, e.g. SHIFT on a board + A on another board doesn't work.)
