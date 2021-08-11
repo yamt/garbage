@@ -120,7 +120,6 @@ syncer_thread(void *vp)
                         continue;
                 }
                 unsigned char id = buf[1];
-                unsigned char flag = buf[2];
                 unsigned char layer_info = buf[3];
                 unsigned char sync_cmd[8] = {
                         SYNC_CMD,          0x01, press, 0x00, id, layer_info,
