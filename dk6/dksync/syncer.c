@@ -92,22 +92,22 @@ syncer_thread(void *vp)
                 dump_packet(buf, ret, k->name, "read");
 
                 uint8_t cmd = buf[0];
-                uint32_t keyid;
+                uint32_t serial;
                 const char *cmd_str;
                 unsigned char press;
 
                 switch (cmd) {
                 case KEY_ADDED_CMD:
                 case KEY_REMOVED_CMD:
-                        keyid = (buf[2] << 24) + (buf[3] << 16) +
+                        serial = (buf[2] << 24) + (buf[3] << 16) +
                                 (buf[4] << 8) + (buf[5] << 0);
                         cmd_str = cmd == KEY_ADDED_CMD ? "KEY ADDED"
                                                        : "KEY REMOVED";
                         fprintf(stderr,
                                 "%s: %s: "
-                                "ID=%08" PRIx32 " "
+                                "serial=%08" PRIX32 " "
                                 "layers=%02x/%02x/%02x/%02x\n",
-                                k->name, cmd_str, keyid, buf[7], buf[8],
+                                k->name, cmd_str, serial, buf[7], buf[8],
                                 buf[9], buf[10]);
                         continue;
                 case LAYER_PRESS_CMD:
