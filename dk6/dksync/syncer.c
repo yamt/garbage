@@ -12,8 +12,8 @@
 #include "dksync.h"
 
 #define INIT_CMD 0x30
-#define LAYER_PRESS_CMD 0x3e
-#define LAYER_DEPRESS_CMD 0x3c
+#define LAYER_PRESS_CMD 0x3c
+#define LAYER_DEPRESS_CMD 0x3e
 #define SYNC_CMD 0x46
 #define KEY_ADDED_CMD 0x18
 #define KEY_REMOVED_CMD 0x1a
@@ -94,13 +94,12 @@ syncer_thread(void *vp)
                 uint8_t cmd = buf[0];
                 uint32_t serial;
                 const char *cmd_str;
-                unsigned char press;
 
                 switch (cmd) {
                 case KEY_ADDED_CMD:
                 case KEY_REMOVED_CMD:
                         serial = (buf[2] << 24) + (buf[3] << 16) +
-                                (buf[4] << 8) + (buf[5] << 0);
+                                 (buf[4] << 8) + (buf[5] << 0);
                         cmd_str = cmd == KEY_ADDED_CMD ? "KEY ADDED"
                                                        : "KEY REMOVED";
                         fprintf(stderr,
@@ -111,19 +110,22 @@ syncer_thread(void *vp)
                                 buf[9], buf[10]);
                         continue;
                 case LAYER_PRESS_CMD:
-                        press = 0x03;
                         break;
                 case LAYER_DEPRESS_CMD:
-                        press = 0x02;
                         break;
                 default:
                         continue;
                 }
-                unsigned char id = buf[1];
+                unsigned char key = buf[1];
                 unsigned char layer_info = buf[3];
-                unsigned char sync_cmd[8] = {
-                        SYNC_CMD,          0x01, press, 0x00, id, layer_info,
-                        layer_info & 0x03, 0x00,
+                unsigned char sync_cmd[64] = {
+                        SYNC_CMD,
+                        0x01,
+                        (cmd == LAYER_PRESS_CMD) ? 0x02 : 0x03,
+                        0x02,
+                        key,
+                        layer_info,
+                        (cmd == LAYER_PRESS_CMD) ? (layer_info & 0x03) : 0x00,
                 };
                 for (i = 0; i < nkbds; i++) {
                         struct kbd *k2 = &kbds[i];
