@@ -118,6 +118,13 @@ syncer_thread(void *vp)
                 }
                 unsigned char key = buf[1];
                 unsigned char layer_info = buf[3];
+                fprintf(stderr,
+                        "%s: %s: key=%02x "
+                        "layers_info=%02x\n",
+                        k->name,
+                        (cmd == LAYER_PRESS_CMD) ? "LAYER PRESS"
+                                                 : "LAYER DEPRESS",
+                        key, layer_info);
                 unsigned char sync_cmd[64] = {
                         SYNC_CMD,
                         0x01,
