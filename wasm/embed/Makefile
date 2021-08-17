@@ -6,7 +6,7 @@ CC = clang
 CFLAGS = -Os
 CFLAGS += -I$(WAMR_DIR)/core/iwasm/include
 
-CLINKFLAGS = -L$(WAMR_LIB_DIR) -lvmlib 
+CLINKFLAGS = -L$(WAMR_LIB_DIR) -lvmlib
 
 OBJS = main.o
 BIN = test
