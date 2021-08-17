@@ -4,7 +4,7 @@ WASI_SDK_DIR = /tmp/wasi-sdk/wasi-sdk-12.0
 IWASM = $(WAMR_DIR)/iwasm
 CC = $(WASI_SDK_DIR)/bin/clang
 
-OBJS = a.o
+OBJS = wasm_hello.o
 BIN = test.wasm
 
 .PHONY: run
