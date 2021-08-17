@@ -70,9 +70,18 @@ main(int argc, char *argv[])
         void *p;
         size_t sz;
 
+        char *m_argv[] = {
+                "foo",
+        };
+        int m_argc = 1;
+
         p = read_file(argv[1], &sz);
         module = wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
         assert(module != NULL);
+
+        const char *dirs[] = {"."};
+        wasm_runtime_set_wasi_args(module, dirs, 1, NULL, 0, NULL, 0, m_argv,
+                                   m_argc);
 
         wasm_module_inst_t module_inst;
         uint32_t stack_size = 4000;
@@ -82,10 +91,7 @@ main(int argc, char *argv[])
         assert(module_inst != NULL);
 
 #if 0
-        char *args[] = {
-                "foo",
-        };
-        wasm_application_execute_main(module_inst, 1, args);
+        wasm_application_execute_main(module_inst, argc, argv);
         /* handle exception */
 #else
 #if 0
