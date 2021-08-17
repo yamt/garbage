@@ -8,6 +8,7 @@ NM = $(WASI_SDK_DIR)/bin/nm
 CFLAGS = -Os
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -I../embed
+CFLAGS += -Wall -Werror
 
 OBJS = mod.o
 BIN = test.wasm

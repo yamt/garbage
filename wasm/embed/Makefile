@@ -5,6 +5,7 @@ WASI_SDK_DIR = /tmp/wasi-sdk/wasi-sdk-12.0
 CC = clang
 CFLAGS = -Os
 CFLAGS += -I$(WAMR_DIR)/core/iwasm/include
+CFLAGS += -Wall -Werror
 
 CLINKFLAGS = -L$(WAMR_LIB_DIR) -lvmlib
 
