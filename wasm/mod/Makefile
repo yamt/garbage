@@ -15,10 +15,7 @@ BIN = test.wasm
 $(BIN): $(OBJS)
 	#$(LD) --allow-undefined --no-entry --export entry -o $@ $<
 	$(CC) \
-	-nostartfiles \
 	-Wl,--allow-undefined \
-	-Wl,--no-entry \
-	-Wl,--export,entry \
 	-o $@ $<
 
 .c.o:

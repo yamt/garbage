@@ -90,12 +90,18 @@ main(int argc, char *argv[])
                                                error_buf, sizeof(error_buf));
         assert(module_inst != NULL);
 
-#if 0
+#if 1
         wasm_application_execute_main(module_inst, argc, argv);
         /* handle exception */
 #else
-#if 0
+        /*
+         * XXX
+         * for some reasons, wasi doesn't work well in this case.
+         * maybe needs to call wasi _start?
+         * cf. wasm_runtime_lookup_wasi_start_function
+         */
         wasm_function_inst_t func;
+#if 0
         func = wasm_runtime_lookup_function(module_inst, "entry", NULL);
         assert(func != NULL);
 #else

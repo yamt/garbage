@@ -14,13 +14,13 @@ do_some_file_io(void)
         printf("opening file %s\n", name);
         fp = fopen(name, "w");
         if (fp == NULL) {
-            printf("fopen failed: %s\n", strerror(errno));
+                printf("fopen failed: %s\n", strerror(errno));
         }
         assert(fp != NULL);
 }
 
 int
-entry(void)
+main(void)
 {
         void *p = malloc(100);
         printf("this is a wasm module %p\n", p);
