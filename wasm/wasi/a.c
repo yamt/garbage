@@ -1,7 +1,9 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 int
 main(int argc, char *argv[])
 {
-	printf("hello\n");
+	void *p = malloc(100);
+	printf("hello %p\n", p);
 }
