@@ -26,3 +26,4 @@ $(BIN): $(OBJS)
 clean:
 	rm -f $(BIN)
 	rm -f $(OBJS)
+	rm -f hoge

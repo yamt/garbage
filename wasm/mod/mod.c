@@ -17,6 +17,15 @@ do_some_file_io(void)
                 printf("fopen failed: %s\n", strerror(errno));
         }
         assert(fp != NULL);
+
+        char buf[] = "hello this is data came from a wasm module\n";
+        size_t written;
+        written = fwrite(buf, sizeof(buf) - 1, 1, fp);
+        assert(written == 1);
+
+        int ret;
+        ret = fclose(fp);
+        assert(ret == 0);
 }
 
 int
