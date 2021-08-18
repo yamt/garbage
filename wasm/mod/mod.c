@@ -29,6 +29,13 @@ do_some_file_io(void)
         assert(ret == 0);
 }
 
+void *
+cb(void *vp)
+{
+        printf("cb in wasm: %p\n", vp);
+        return vp;
+}
+
 int
 main(void)
 {
@@ -40,5 +47,11 @@ main(void)
         printf("i = %d\n", i);
 
         do_some_file_io();
+
+#if 0
+        void *p2 = call(cb, p);
+        printf("%p %p\n", p, p2);
+#endif
+
         return 0;
 }
