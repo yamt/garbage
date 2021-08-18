@@ -14,14 +14,15 @@ OBJS = mod.o
 BIN = test.wasm
 
 $(BIN): $(OBJS)
-	#$(LD) --allow-undefined --no-entry --export entry -o $@ $<
 	$(CC) \
 	-Wl,--allow-undefined \
+	-Wl,--export,call_indirect \
 	-o $@ $<
 
 .c.o:
 	$(CC) -c $(CFLAGS) -o $@ $<
 	$(NM) $@
+	$(CC) -S $(CFLAGS) $<
 
 .PHONY: clean
 clean:

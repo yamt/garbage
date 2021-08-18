@@ -29,6 +29,28 @@ do_some_file_io(void)
         assert(ret == 0);
 }
 
+void *
+call_indirect(void *(*fn)(void *), void *vp)
+{
+        return fn(vp);
+}
+
+void *
+cb1(void *vp)
+{
+        printf("this is cb1 %p\n", vp);
+        return vp;
+}
+
+void *
+cb2(void *vp)
+{
+        printf("this is cb2 %p\n", vp);
+        free(vp);
+        vp = strdup("hello from cb2");
+        return vp;
+}
+
 int
 main(void)
 {
@@ -40,5 +62,11 @@ main(void)
         printf("i = %d\n", i);
 
         do_some_file_io();
+
+        void *p2;
+        p2 = call(cb1, p);
+        assert(p == p2);
+        p2 = call(cb2, p);
+        printf("%s\n", (const char *)p2);
         return 0;
 }

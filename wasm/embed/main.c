@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -44,14 +45,33 @@ add3(wasm_exec_env_t exec_env, int a)
         return a + 3;
 }
 
+wasm_function_inst_t call_indirect_fn;
+
 void *
 call(wasm_exec_env_t exec_env, void *cb, void *vp)
 {
         printf("this is a native exported function \"call\", called with %p "
                "%p\n",
                cb, vp);
-        /* XXX is there a sane way to call a wasm function via a pointer? */
-        return vp;
+        /* XXX
+         * is there a sane way to call a wasm function via a pointer
+         * directly?
+         *
+         * this implementation uses a helper in the wasm code itself.
+         * (call_indirect_fn)
+         */
+        wasm_val_t args[2];
+        wasm_val_t results[1];
+        args[0].kind = WASM_I32;
+        args[0].of.i32 = (uint32_t)(uintptr_t)cb;
+        args[1].kind = WASM_I32;
+        args[1].of.i32 = (uint32_t)(uintptr_t)vp;
+        if (!wasm_runtime_call_wasm_a(exec_env, call_indirect_fn, 1, results,
+                                      2, args)) {
+                printf("wasm_runtime_call_wasm_a failed\n");
+                assert(false);
+        }
+        return (void *)(uintptr_t)results[0].of.i32;
 }
 
 NativeSymbol exported_symbols[] = {
@@ -101,6 +121,9 @@ main(int argc, char *argv[])
                                                error_buf, sizeof(error_buf));
         assert(module_inst != NULL);
 
+        call_indirect_fn = wasm_runtime_lookup_function(module_inst,
+                                                        "call_indirect", NULL);
+        assert(call_indirect_fn != NULL);
 #if 1
         if (!wasm_application_execute_main(module_inst, argc, argv)) {
                 /* handle exception */
