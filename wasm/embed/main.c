@@ -91,8 +91,11 @@ main(int argc, char *argv[])
         assert(module_inst != NULL);
 
 #if 1
-        wasm_application_execute_main(module_inst, argc, argv);
-        /* handle exception */
+        if (!wasm_application_execute_main(module_inst, argc, argv)) {
+                /* handle exception */
+                printf("wasm_application_execute_main exception: %s\n",
+                       wasm_runtime_get_exception(module_inst));
+        }
 #else
         /*
          * XXX
