@@ -12,7 +12,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "wasm_c_api.h"
+#include "wasm_export.h"
 
 void *
 read_file(const char *path, size_t *sizep)
@@ -37,16 +37,13 @@ read_file(const char *path, size_t *sizep)
         return p;
 }
 
-wasm_trap_t *
-add3(const wasm_val_t *args, wasm_val_t *results)
+int
+add3(wasm_exec_env_t exec_env, int a)
 {
-        // printf("this is a native exported function, called with %d\n", a);
-        // return a + 3;
-        wasm_val_copy(results, args);
-        return NULL;
+        printf("this is a native exported function, called with %d\n", a);
+        return a + 3;
 }
 
-#if 0
 void *
 call(wasm_exec_env_t exec_env, void *cb, void *vp)
 {
@@ -56,67 +53,74 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
         /* XXX is there a sane way to call a wasm function via a pointer? */
         return vp;
 }
-#endif
+
+NativeSymbol exported_symbols[] = {
+        EXPORT_WASM_API_WITH_SIG(add3, "(i)i"),
+        EXPORT_WASM_API_WITH_SIG(call, "(ii)i"),
+};
 
 int
 main(int argc, char *argv[])
 {
         printf("this is a native binary\n");
 
-        wasm_engine_t *engine = wasm_engine_new();
-        wasm_store_t *store = wasm_store_new(engine);
+#if 1
+        wasm_runtime_init();
+        wasm_runtime_register_natives("env", exported_symbols, 2);
+#else
+        RuntimeInitArgs init_args;
+        memset(&init_args, 0, sizeof(init_args));
+        init_args.native_module_name = "native_test";
+        init_args.n_native_symbols = 1;
+        init_args.native_symbols = exported_symbols;
+        wasm_runtime_full_init(&init_args);
+#endif
 
-        wasm_module_t *module;
+        wasm_module_t module;
+        char error_buf[128];
         void *p;
         size_t sz;
 
-        p = read_file(argv[1], &sz);
-        wasm_byte_vec_t bin;
-        wasm_byte_vec_new_uninitialized(&bin, sz);
-        memcpy(bin.data, p, sz);
+        char *m_argv[] = {
+                "foo",
+        };
+        int m_argc = 1;
 
-        module = wasm_module_new(store, &bin);
+        p = read_file(argv[1], &sz);
+        module = wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
         assert(module != NULL);
 
-#if 0
-		/* XXX */
         const char *dirs[] = {"."};
         wasm_runtime_set_wasi_args(module, dirs, 1, NULL, 0, NULL, 0, m_argv,
                                    m_argc);
-#endif
 
-        wasm_functype_t *add3_type = wasm_functype_new_1_1(
-                wasm_valtype_new_i32(), wasm_valtype_new_i32());
-        wasm_func_t *add3_fn = wasm_func_new(store, add3_type, add3);
-
-        // wasm_func_t *call_fn;
-        const wasm_extern_t *exported_symbols[] = {
-                wasm_func_as_extern(add3_fn),
-#if 0
-                wasm_func_as_extern(call_fn),
-#endif
-                NULL,
-        };
-
-        wasm_instance_t *module_inst;
-        module_inst = wasm_instance_new(store, module, exported_symbols, NULL);
+        wasm_module_inst_t module_inst;
+        uint32_t stack_size = 4000;
+        uint32_t heap_size = 4000;
+        module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
+                                               error_buf, sizeof(error_buf));
         assert(module_inst != NULL);
 
-        wasm_extern_vec_t module_exports;
-        wasm_instance_exports(module_inst, &module_exports);
-
-        wasm_func_t *main_func = wasm_extern_as_func(module_exports.data[0]);
-        wasm_val_t args[] = {
-                WASM_I32_VAL(0),
-        };
-        wasm_val_t results[] = {
-                WASM_INIT_VAL,
-        };
-
-        printf("calling main\n");
-
-        if (wasm_func_call(main_func, args, results)) {
+#if 1
+        if (!wasm_application_execute_main(module_inst, argc, argv)) {
                 /* handle exception */
-                printf("wasm_func_as_extern for main failed\n");
+                printf("wasm_application_execute_main exception: %s\n",
+                       wasm_runtime_get_exception(module_inst));
         }
+#else
+        /*
+         * XXX
+         * for some reasons, wasi doesn't work well in this case.
+         * maybe needs to call wasi _start?
+         * cf. wasm_runtime_lookup_wasi_start_function
+         */
+        wasm_function_inst_t func;
+#if 0
+        func = wasm_runtime_lookup_function(module_inst, "entry", NULL);
+        assert(func != NULL);
+#else
+        wasm_application_execute_func(module_inst, "entry", 0, NULL);
+        /* handle exception */
+#endif
+#endif
 }
