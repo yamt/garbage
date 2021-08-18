@@ -44,8 +44,19 @@ add3(wasm_exec_env_t exec_env, int a)
         return a + 3;
 }
 
+void *
+call(wasm_exec_env_t exec_env, void *cb, void *vp)
+{
+        printf("this is a native exported function \"call\", called with %p "
+               "%p\n",
+               cb, vp);
+        /* XXX is there a sane way to call a wasm function via a pointer? */
+        return vp;
+}
+
 NativeSymbol exported_symbols[] = {
         EXPORT_WASM_API_WITH_SIG(add3, "(i)i"),
+        EXPORT_WASM_API_WITH_SIG(call, "(ii)i"),
 };
 
 int
@@ -55,7 +66,7 @@ main(int argc, char *argv[])
 
 #if 1
         wasm_runtime_init();
-        wasm_runtime_register_natives("env", exported_symbols, 1);
+        wasm_runtime_register_natives("env", exported_symbols, 2);
 #else
         RuntimeInitArgs init_args;
         memset(&init_args, 0, sizeof(init_args));
