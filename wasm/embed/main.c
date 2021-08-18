@@ -53,8 +53,6 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
         printf("this is a native exported function \"call\", called with %p "
                "%p\n",
                cb, vp);
-        void *ret;
-#if 0
         /* XXX
          * is there a sane way to call a wasm function via a pointer
          * directly?
@@ -74,25 +72,6 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
                 assert(false);
         }
         return (void *)(uintptr_t)results[0].of.i32;
-#else
-        wasm_module_inst_t module_inst;
-        module_inst = wasm_runtime_get_module_inst(exec_env);
-        wasm_function_inst_t func;
-        func = wasm_runtime_lookup_function_idx(module_inst,
-                                                (uint32_t)(uintptr_t)cb, NULL);
-        assert(func != NULL);
-        wasm_val_t args[1];
-        wasm_val_t results[1];
-        args[0].kind = WASM_I32;
-        args[0].of.i32 = (uint32_t)(uintptr_t)vp;
-        if (!wasm_runtime_call_wasm_a(exec_env, func, 1, results, 1, args)) {
-                printf("wasm_runtime_call_wasm_a failed\n");
-                assert(false);
-        }
-        ret = (void *)(uintptr_t)results[0].of.i32;
-#endif
-        printf("returning %p\n", ret);
-        return ret;
 }
 
 NativeSymbol exported_symbols[] = {
