@@ -89,7 +89,9 @@ syncer_thread(void *vp)
                         continue;
                 }
                 assert(ret == sizeof(buf));
+#if 0
                 dump_packet(buf, ret, k->name, "read");
+#endif
 
                 uint8_t cmd = buf[0];
                 uint32_t serial;
@@ -114,10 +116,12 @@ syncer_thread(void *vp)
                 case LAYER_DEPRESS_CMD:
                         break;
                 default:
+                        dump_packet(buf, ret, k->name, "read unknown");
                         continue;
                 }
                 unsigned char key = buf[1];
                 unsigned char layer_info = buf[3];
+#if 0
                 fprintf(stderr,
                         "%s: %s: key=%02x "
                         "layer_info=%02x\n",
@@ -125,6 +129,7 @@ syncer_thread(void *vp)
                         (cmd == LAYER_PRESS_CMD) ? "LAYER PRESS"
                                                  : "LAYER DEPRESS",
                         key, layer_info);
+#endif
                 unsigned char sync_cmd[64] = {
                         SYNC_CMD,
                         0x01,
@@ -144,7 +149,9 @@ syncer_thread(void *vp)
                                 continue;
                         }
                         assert(ret == sizeof(sync_cmd));
+#if 0
                         dump_packet(sync_cmd, ret, k2->name, "sync");
+#endif
                 }
         }
         return NULL;
