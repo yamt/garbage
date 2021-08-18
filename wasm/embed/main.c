@@ -15,6 +15,10 @@
 
 #include "wasm_export.h"
 
+bool wasm_runtime_call_indirect(wasm_exec_env_t exec_env,
+                                uint32_t element_indices, uint32_t argc,
+                                uint32_t argv[]);
+
 void *
 read_file(const char *path, size_t *sizep)
 {
@@ -73,23 +77,19 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
                 printf("wasm_runtime_call_wasm_a failed\n");
                 assert(false);
         }
-        return (void *)(uintptr_t)results[0].of.i32;
+        ret = (void *)(uintptr_t)results[0].of.i32;
 #else
-        wasm_module_inst_t module_inst;
-        module_inst = wasm_runtime_get_module_inst(exec_env);
-        wasm_function_inst_t func;
-        func = wasm_runtime_lookup_function_idx(module_inst,
-                                                (uint32_t)(uintptr_t)cb, NULL);
-        assert(func != NULL);
-        wasm_val_t args[1];
-        wasm_val_t results[1];
-        args[0].kind = WASM_I32;
-        args[0].of.i32 = (uint32_t)(uintptr_t)vp;
-        if (!wasm_runtime_call_wasm_a(exec_env, func, 1, results, 1, args)) {
-                printf("wasm_runtime_call_wasm_a failed\n");
+        /*
+         * XXX wasm_runtime_call_indirect is an internal function
+         */
+        uint32_t func = (uint32_t)(uintptr_t)cb;
+        uint32_t args[1];
+        args[0] = (uint32_t)(uintptr_t)vp;
+        if (!wasm_runtime_call_indirect(exec_env, func, 1, args)) {
+                printf("wasm_runtime_call_indirect failed\n");
                 assert(false);
         }
-        ret = (void *)(uintptr_t)results[0].of.i32;
+        ret = (void *)(uintptr_t)args[0];
 #endif
         printf("returning %p\n", ret);
         return ret;
