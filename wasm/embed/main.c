@@ -7,6 +7,7 @@
 
 #include <assert.h>
 #include <fcntl.h>
+#include <pthread.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,55 +108,17 @@ NativeSymbol exported_symbols[] = {
         EXPORT_WASM_API_WITH_SIG(prepare, "($*~)"),
 };
 
-int
-main(int argc, char *argv[])
+void *
+start_app(void *vp)
 {
-        printf("this is a native binary\n");
-
-#if 1
-        wasm_runtime_init();
-        wasm_runtime_register_natives("env", exported_symbols, 3);
-#else
-        RuntimeInitArgs init_args;
-        memset(&init_args, 0, sizeof(init_args));
-        init_args.native_module_name = "native_test";
-        init_args.n_native_symbols = 1;
-        init_args.native_symbols = exported_symbols;
-        wasm_runtime_full_init(&init_args);
-#endif
-
-        wasm_module_t module;
-        char error_buf[128];
-        void *p;
-        size_t sz;
-
-        char *m_argv[] = {
-                "foo",
-        };
-        int m_argc = 1;
-
-        p = read_file(argv[1], &sz);
-        module = wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
-        assert(module != NULL);
-
-        const char *dirs[] = {"."};
-        wasm_runtime_set_wasi_args(module, dirs, 1, NULL, 0, NULL, 0, m_argv,
-                                   m_argc);
-
-        wasm_module_inst_t module_inst;
-        uint32_t stack_size = 4000;
-        uint32_t heap_size = 4000;
-        module_inst = wasm_runtime_instantiate(module, stack_size, heap_size,
-                                               error_buf, sizeof(error_buf));
-        assert(module_inst != NULL);
-
+        wasm_module_inst_t module_inst = vp;
 #if 0
         call_indirect_fn = wasm_runtime_lookup_function(module_inst,
                                                         "call_indirect", NULL);
         assert(call_indirect_fn != NULL);
 #endif
 #if 1
-        if (!wasm_application_execute_main(module_inst, argc, argv)) {
+        if (!wasm_application_execute_main(module_inst, 0, NULL)) {
                 /* handle exception */
                 printf("wasm_application_execute_main exception: %s\n",
                        wasm_runtime_get_exception(module_inst));
@@ -176,4 +139,77 @@ main(int argc, char *argv[])
         /* handle exception */
 #endif
 #endif
+        return NULL;
+}
+
+int
+main(int argc, char *argv[])
+{
+        printf("this is a native binary\n");
+
+#if 1
+        wasm_runtime_init();
+        wasm_runtime_register_natives("env", exported_symbols, 3);
+#else
+        RuntimeInitArgs init_args;
+        memset(&init_args, 0, sizeof(init_args));
+        init_args.native_module_name = "native_test";
+        init_args.n_native_symbols = 1;
+        init_args.native_symbols = exported_symbols;
+        wasm_runtime_full_init(&init_args);
+#endif
+
+        char error_buf[128];
+        void *p;
+        size_t sz;
+
+        char *m_argv[] = {
+                "foo",
+        };
+        int m_argc = 1;
+
+        p = read_file(argv[1], &sz);
+
+        unsigned int ninst = 1;
+        unsigned int i;
+        wasm_module_t modules[ninst];
+        wasm_module_inst_t module_instances[ninst];
+        for (i = 0; i < ninst; i++) {
+                /*
+                 * XXX can module be shared among instances?
+                 */
+                wasm_module_t module;
+                module =
+                        wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
+                assert(module != NULL);
+                modules[i] = module;
+
+                const char *dirs[] = {"."};
+                wasm_runtime_set_wasi_args(module, dirs, 1, NULL, 0, NULL, 0,
+                                           m_argv, m_argc);
+
+                wasm_module_inst_t module_inst;
+                uint32_t stack_size = 4000;
+                uint32_t heap_size = 4000;
+                module_inst =
+                        wasm_runtime_instantiate(module, stack_size, heap_size,
+                                                 error_buf, sizeof(error_buf));
+                assert(module_inst != NULL);
+                module_instances[i] = module_inst;
+        }
+
+        pthread_t t[ninst];
+        int ret;
+        printf("embed: starting apps\n");
+        for (i = 0; i < ninst; i++) {
+                ret = pthread_create(&t[i], NULL, start_app,
+                                     module_instances[i]);
+                assert(ret == 0);
+        }
+        printf("embed: joining apps\n");
+        for (i = 0; i < ninst; i++) {
+                ret = pthread_join(t[i], NULL);
+                assert(ret == 0);
+        }
+        printf("embed: done\n");
 }
