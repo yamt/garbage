@@ -57,7 +57,7 @@ cb2(void *vp)
 void *
 f(void *vp)
 {
-        printf("this is a thread in wasm\n");
+        printf("this is a thread in wasm %p\n", vp);
         return vp;
 }
 
@@ -81,15 +81,15 @@ main(void)
 
         pthread_t t;
         int ret;
-        printf("pthread_create\n");
+        printf("wasm pthread_create\n");
         ret = pthread_create(&t, NULL, f, p);
         assert(ret == 0);
         void *v;
-        printf("pthread_join\n");
+        printf("wasm pthread_join\n");
         ret = pthread_join(t, &v);
         assert(ret == 0);
         assert(v == p);
 
-        printf("done\n");
+        printf("wasm done\n");
         return 0;
 }
