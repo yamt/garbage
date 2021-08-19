@@ -95,9 +95,16 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
         return ret;
 }
 
+void
+prepare(wasm_exec_env_t exec_env, const char *msg, void *buf, size_t sz)
+{
+        snprintf(buf, sz, "<%s>", msg);
+}
+
 NativeSymbol exported_symbols[] = {
         EXPORT_WASM_API_WITH_SIG(add3, "(i)i"),
         EXPORT_WASM_API_WITH_SIG(call, "(ii)i"),
+        EXPORT_WASM_API_WITH_SIG(prepare, "($*~)"),
 };
 
 int
@@ -107,7 +114,7 @@ main(int argc, char *argv[])
 
 #if 1
         wasm_runtime_init();
-        wasm_runtime_register_natives("env", exported_symbols, 2);
+        wasm_runtime_register_natives("env", exported_symbols, 3);
 #else
         RuntimeInitArgs init_args;
         memset(&init_args, 0, sizeof(init_args));

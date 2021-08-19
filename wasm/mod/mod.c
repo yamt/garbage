@@ -68,5 +68,10 @@ main(void)
         assert(p == p2);
         p2 = call(cb2, p);
         printf("%s\n", (const char *)p2);
+
+        char buf[100];
+        prepare(p2, buf, sizeof(buf));
+        printf("%s\n", buf);
+
         return 0;
 }
