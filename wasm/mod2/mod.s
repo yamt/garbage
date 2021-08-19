@@ -168,6 +168,9 @@ cb2:                                    # @cb2
 f:                                      # @f
 	.functype	f (i32) -> (i32)
 # %bb.0:
+	i32.const	.Lstr
+	call	puts
+	drop
 	local.get	0
                                         # fallthrough-return
 	end_function
@@ -192,7 +195,7 @@ __original_main:                        # @__original_main
 	call	malloc
 	local.tee	1
 	i32.store	16
-	i32.const	.L.str.11
+	i32.const	.L.str.12
 	local.get	0
 	i32.const	16
 	i32.add 
@@ -202,7 +205,7 @@ __original_main:                        # @__original_main
 	i32.const	10
 	call	add3
 	i32.store	0
-	i32.const	.L.str.12
+	i32.const	.L.str.13
 	local.get	0
 	call	printf
 	drop
@@ -223,7 +226,7 @@ __original_main:                        # @__original_main
 	call	call
 	call	puts
 	drop
-	i32.const	.Lstr
+	i32.const	.Lstr.19
 	call	puts
 	drop
 	local.get	0
@@ -235,7 +238,7 @@ __original_main:                        # @__original_main
 	call	pthread_create
 	br_if   	1                               # 1: down to label5
 # %bb.2:
-	i32.const	.Lstr.18
+	i32.const	.Lstr.20
 	call	puts
 	drop
 	local.get	0
@@ -260,7 +263,7 @@ __original_main:                        # @__original_main
 	return
 .LBB4_5:
 	end_block                               # label6:
-	i32.const	.L.str.13
+	i32.const	.L.str.14
 	i32.const	.L.str.5
 	i32.const	78
 	i32.const	.L__func__.main
@@ -284,7 +287,7 @@ __original_main:                        # @__original_main
 	unreachable
 .LBB4_8:
 	end_block                               # label3:
-	i32.const	.L.str.17
+	i32.const	.L.str.18
 	i32.const	.L.str.5
 	i32.const	91
 	i32.const	.L__func__.main
@@ -386,23 +389,23 @@ main:                                   # @main
 	.asciz	"hello from cb2"
 	.size	.L.str.10, 15
 
-	.type	.L.str.11,@object               # @.str.11
-	.section	.rodata..L.str.11,"",@
-.L.str.11:
-	.asciz	"this is a wasm module %p\n"
-	.size	.L.str.11, 26
-
 	.type	.L.str.12,@object               # @.str.12
 	.section	.rodata..L.str.12,"",@
 .L.str.12:
-	.asciz	"i = %d\n"
-	.size	.L.str.12, 8
+	.asciz	"this is a wasm module %p\n"
+	.size	.L.str.12, 26
 
 	.type	.L.str.13,@object               # @.str.13
 	.section	.rodata..L.str.13,"",@
 .L.str.13:
-	.asciz	"p == p2"
+	.asciz	"i = %d\n"
 	.size	.L.str.13, 8
+
+	.type	.L.str.14,@object               # @.str.14
+	.section	.rodata..L.str.14,"",@
+.L.str.14:
+	.asciz	"p == p2"
+	.size	.L.str.14, 8
 
 	.type	.L__func__.main,@object         # @__func__.main
 	.section	.rodata..L__func__.main,"",@
@@ -410,23 +413,29 @@ main:                                   # @main
 	.asciz	"main"
 	.size	.L__func__.main, 5
 
-	.type	.L.str.17,@object               # @.str.17
-	.section	.rodata..L.str.17,"",@
-.L.str.17:
+	.type	.L.str.18,@object               # @.str.18
+	.section	.rodata..L.str.18,"",@
+.L.str.18:
 	.asciz	"v == p"
-	.size	.L.str.17, 7
+	.size	.L.str.18, 7
 
 	.type	.Lstr,@object                   # @str
 	.section	.rodata..Lstr,"",@
 .Lstr:
-	.asciz	"pthread_create"
-	.size	.Lstr, 15
+	.asciz	"this is a thread in wasm"
+	.size	.Lstr, 25
 
-	.type	.Lstr.18,@object                # @str.18
-	.section	.rodata..Lstr.18,"",@
-.Lstr.18:
+	.type	.Lstr.19,@object                # @str.19
+	.section	.rodata..Lstr.19,"",@
+.Lstr.19:
+	.asciz	"pthread_create"
+	.size	.Lstr.19, 15
+
+	.type	.Lstr.20,@object                # @str.20
+	.section	.rodata..Lstr.20,"",@
+.Lstr.20:
 	.asciz	"pthread_join"
-	.size	.Lstr.18, 13
+	.size	.Lstr.20, 13
 
 	.no_dead_strip	__main_void
 	.globl	__main_void
@@ -458,10 +467,10 @@ main:                                   # @main
 	.ascii	"clang"
 	.int8	86
 	.ascii	"11.0.0 (https://github.com/llvm/llvm-project 176249bd6732a8044d457092ed932768724a6f06)"
-	.section	.rodata..Lstr.18,"",@
+	.section	.rodata..Lstr.20,"",@
 	.section	.custom_section.target_features,"",@
 	.int8	1
 	.int8	45
 	.int8	10
 	.ascii	"shared-mem"
-	.section	.rodata..Lstr.18,"",@
+	.section	.rodata..Lstr.20,"",@

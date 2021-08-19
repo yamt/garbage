@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <errno.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -29,11 +30,13 @@ do_some_file_io(void)
         assert(ret == 0);
 }
 
+#if 0
 void *
 call_indirect(void *(*fn)(void *), void *vp)
 {
         return fn(vp);
 }
+#endif
 
 void *
 cb1(void *vp)
@@ -48,6 +51,13 @@ cb2(void *vp)
         printf("this is cb2 %p\n", vp);
         free(vp);
         vp = strdup("hello from cb2");
+        return vp;
+}
+
+void *
+f(void *vp)
+{
+        printf("this is a thread in wasm\n");
         return vp;
 }
 
@@ -68,5 +78,17 @@ main(void)
         assert(p == p2);
         p2 = call(cb2, p);
         printf("%s\n", (const char *)p2);
+
+        pthread_t t;
+        int ret;
+        printf("pthread_create\n");
+        ret = pthread_create(&t, NULL, f, p);
+        assert(ret == 0);
+        void *v;
+        printf("pthread_join\n");
+        ret = pthread_join(t, &v);
+        assert(ret == 0);
+        assert(v == p);
+
         return 0;
 }
