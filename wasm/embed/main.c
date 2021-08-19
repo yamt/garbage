@@ -142,9 +142,11 @@ main(int argc, char *argv[])
                                                error_buf, sizeof(error_buf));
         assert(module_inst != NULL);
 
+#if 0
         call_indirect_fn = wasm_runtime_lookup_function(module_inst,
                                                         "call_indirect", NULL);
         assert(call_indirect_fn != NULL);
+#endif
 #if 1
         if (!wasm_application_execute_main(module_inst, argc, argv)) {
                 /* handle exception */
