@@ -90,5 +90,6 @@ main(void)
         assert(ret == 0);
         assert(v == p);
 
+        printf("done\n");
         return 0;
 }
