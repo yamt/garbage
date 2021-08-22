@@ -37,8 +37,8 @@ watch_hotplug_events(void)
                 ctx,
                 LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                         LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT,
-                LIBUSB_HOTPLUG_ENUMERATE, VENDOR_ID, PRODUCT_ID,
-                LIBUSB_HOTPLUG_MATCH_ANY, hotplug_cb, NULL, NULL);
+                0, VENDOR_ID, PRODUCT_ID, LIBUSB_HOTPLUG_MATCH_ANY, hotplug_cb,
+                NULL, NULL);
         assert(ret == LIBUSB_SUCCESS);
         for (;;) {
                 ret = libusb_handle_events_completed(ctx, NULL);
