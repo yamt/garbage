@@ -10,6 +10,7 @@
 #include "hidapi.h"
 
 #include "dksync.h"
+#include "xlog.h"
 
 #define INIT_CMD 0x30
 #define LAYER_PRESS_CMD 0x3c
@@ -39,7 +40,7 @@ dump_packet(const unsigned char *buf, size_t len, const char *name,
 {
         unsigned int i;
 
-        fprintf(stderr, "%s: %s:", name, msg);
+        xlog_printf("%s: %s:", name, msg);
         for (i = 0; i < len; i++) {
                 fprintf(stderr, " %02x", buf[i]);
         }
@@ -55,7 +56,7 @@ syncer_should_reboot(void)
 void
 syncer_update(void)
 {
-        fprintf(stderr, "syncer_update\n");
+        xlog_printf("syncer_update\n");
         syncer_update_gen++;
 }
 
@@ -79,7 +80,7 @@ syncer_thread(void *vp)
         for (;;) {
                 ret = hid_read_timeout(k->dev, buf, sizeof(buf), 500);
                 if (ret < 0) {
-                        fprintf(stderr, "hid_read_timeout failed\n");
+                        xlog_printf("hid_read_timeout failed\n");
                         break;
                 }
                 if (syncer_should_reboot()) {
@@ -104,12 +105,11 @@ syncer_thread(void *vp)
                                  (buf[4] << 8) + (buf[5] << 0);
                         cmd_str = cmd == KEY_ADDED_CMD ? "KEY ADDED"
                                                        : "KEY REMOVED";
-                        fprintf(stderr,
-                                "%s: %s: "
-                                "serial=%08" PRIX32 " "
-                                "layers=%02x/%02x/%02x/%02x\n",
-                                k->name, cmd_str, serial, buf[7], buf[8],
-                                buf[9], buf[10]);
+                        xlog_printf("%s: %s: "
+                                    "serial=%08" PRIX32 " "
+                                    "layers=%02x/%02x/%02x/%02x\n",
+                                    k->name, cmd_str, serial, buf[7], buf[8],
+                                    buf[9], buf[10]);
                         continue;
                 case LAYER_PRESS_CMD:
                         break;
@@ -122,8 +122,7 @@ syncer_thread(void *vp)
                 unsigned char key = buf[1];
                 unsigned char layer_info = buf[3];
 #if 0
-                fprintf(stderr,
-                        "%s: %s: key=%02x "
+                xlog_printf("%s: %s: key=%02x "
                         "layer_info=%02x\n",
                         k->name,
                         (cmd == LAYER_PRESS_CMD) ? "LAYER PRESS"
@@ -173,12 +172,11 @@ sync_devices(void *vp)
                                              interfaces */
                         }
 
-                        printf("serial %ls interface_number %d path %s\n",
-                               info->serial_number, info->interface_number,
-                               info->path);
+                        xlog_printf("serial %ls interface_number %d path %s\n",
+                                    info->serial_number,
+                                    info->interface_number, info->path);
                         if (nkbds >= MAX_DEVICES) {
-                                fprintf(stderr,
-                                        "ignoring >MAX_DEVICES devices\n");
+                                xlog_printf("ignoring >MAX_DEVICES devices\n");
                                 continue;
                         }
                         struct kbd *k = &kbds[nkbds];

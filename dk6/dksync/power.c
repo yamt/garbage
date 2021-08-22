@@ -9,16 +9,17 @@
 #include <IOKit/pwr_mgt/IOPMLib.h>
 
 #include "dksync.h"
+#include "xlog.h"
 
 void
 cb(void *vp, io_service_t s, UInt32 msg_type, void *msg_arg)
 {
-        fprintf(stderr, "cb %p type %x arg %p\n", vp, (unsigned int)msg_type,
-                msg_arg);
+        xlog_printf("cb %p type %x arg %p\n", vp, (unsigned int)msg_type,
+                    msg_arg);
 
         switch (msg_type) {
         case kIOMessageSystemHasPoweredOn:
-                fprintf(stderr, "kIOMessageSystemHasPoweredOn\n");
+                xlog_printf("kIOMessageSystemHasPoweredOn\n");
                 syncer_update();
                 break;
         }

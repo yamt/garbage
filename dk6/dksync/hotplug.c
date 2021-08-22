@@ -5,6 +5,7 @@
 #include "libusb.h"
 
 #include "dksync.h"
+#include "xlog.h"
 
 int
 hotplug_cb(libusb_context *ctx, libusb_device *device,
@@ -15,8 +16,8 @@ hotplug_cb(libusb_context *ctx, libusb_device *device,
 
         ret = libusb_get_device_descriptor(device, &desc);
         assert(ret == 0);
-        fprintf(stderr, "hotplug: %p event %u: %04x:%04x\n", device,
-                (unsigned int)event, desc.idVendor, desc.idProduct);
+        xlog_printf("hotplug: %p event %u: %04x:%04x\n", device,
+                    (unsigned int)event, desc.idVendor, desc.idProduct);
         if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED) {
                 syncer_update();
         }
