@@ -26,9 +26,20 @@ get color response?
 0040   a1 06 00 01 00 00 00 00 00 00 00 3b 55 01 08 ce
 0050   7f 01 08 00 00 00 81 cc a1 06 00
 
+set macro?
+40
+
+get macro?
+42
+
+get macro response?
+43
 
 INIT_CMD
 30 00 00 00 00
+
+init done?
+31 00 41 01 3c 01 2c 0b 3c 00 00 00 00 00 00 00 23 36 01 08 00 e0 01 08 f9 ff ff ff 01 00 00 00 00 01 00 00 ff ff ff ff 00 00 00 00 03 00 00 00 3b 55 01 08 b4 7f 01 08 00 00 00 81 ff ff ff ff
 
 KEY_REPORT_RESPONSE_CMD
 05 08 5d aa c4 04 09 2a // [1] = key, [2-5] = serial, [7] = layer 1
