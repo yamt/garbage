@@ -208,7 +208,7 @@ sync_devices(void *vp)
                 while (!syncer_should_reboot()) {
                         sleep(1);
                 }
-                syncer_gen++;
+                syncer_gen = syncer_update_gen;
         }
         return NULL;
 }
