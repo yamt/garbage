@@ -31,6 +31,7 @@ struct kbd {
 struct kbd kbds[MAX_DEVICES];
 unsigned int nkbds;
 
+pthread_mutex_t syncer_lock = PTHREAD_MUTEX_INITIALIZER;
 unsigned int syncer_gen;
 unsigned int syncer_update_gen;
 
@@ -50,14 +51,21 @@ dump_packet(const unsigned char *buf, size_t len, const char *name,
 bool
 syncer_should_reboot(void)
 {
-        return syncer_gen != syncer_update_gen;
+        bool ret;
+
+        pthread_mutex_lock(&syncer_lock);
+        ret = syncer_gen != syncer_update_gen;
+        pthread_mutex_unlock(&syncer_lock);
+        return ret;
 }
 
 void
 syncer_update(void)
 {
         xlog_printf("syncer_update\n");
+        pthread_mutex_lock(&syncer_lock);
         syncer_update_gen++;
+        pthread_mutex_unlock(&syncer_lock);
 }
 
 void *
@@ -208,7 +216,9 @@ sync_devices(void *vp)
                 while (!syncer_should_reboot()) {
                         sleep(1);
                 }
+                pthread_mutex_lock(&syncer_lock);
                 syncer_gen = syncer_update_gen;
+                pthread_mutex_unlock(&syncer_lock);
         }
         return NULL;
 }
