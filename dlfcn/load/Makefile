@@ -24,3 +24,4 @@ $(BIN): $(OBJS)
 clean:
 	rm -f $(BIN)
 	rm -f $(OBJS)
+	$(MAKE) -C ../so clean
