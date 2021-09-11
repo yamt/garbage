@@ -11,7 +11,7 @@ run: $(BIN) $(MOD)
 	./$(BIN) $(MOD)
 
 $(MOD):
-	make -C ../so
+	$(MAKE) -C ../so
 
 .c.o:
 	$(CC) -c $(CFLAGS) -o $@ $<
