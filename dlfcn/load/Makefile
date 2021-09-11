@@ -5,6 +5,7 @@ CFLAGS += -Wall -Werror
 OBJS = main.o
 BIN = test
 MOD = ../so/test.so
+LIBS = -ldl
 
 .PHONY: run
 run: $(BIN) $(MOD)
@@ -17,7 +18,7 @@ $(MOD):
 	$(CC) -c $(CFLAGS) -o $@ $<
 
 $(BIN): $(OBJS)
-	$(CC) $(CLINKFLAGS) -o $@ $<
+	$(CC) $(CLINKFLAGS) -o $@ $< $(LIBS)
 
 .PHONY: clean
 clean:
