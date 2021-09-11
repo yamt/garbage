@@ -1,6 +1,7 @@
 CC = cc
 CFLAGS = -Os
 CFLAGS += -Wall -Werror
+CLINKFLAGS = -rdynamic
 
 OBJS = main.o
 BIN = test
