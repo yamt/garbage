@@ -1,12 +1,18 @@
 CC = cc
+
+UNAME = $(shell uname -s)
 CFLAGS = -Os
 CFLAGS += -Wall -Werror
+LIBS =
+
+ifneq ($(UNAME),Darwin)
 CLINKFLAGS = -rdynamic
+LIBS += -ldl
+endif
 
 OBJS = main.o
 BIN = test
 MOD = ../so/test.so
-LIBS = -ldl
 
 .PHONY: run
 run: $(BIN) $(MOD)

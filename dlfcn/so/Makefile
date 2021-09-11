@@ -1,9 +1,15 @@
 CC = cc
 LD = ld
 
+UNAME = $(shell uname -s)
 CFLAGS = -Os
 CFLAGS += -Wall -Werror
 CFLAGS += -fPIC
+CLINKFLAGS = -shared
+
+ifeq ($(UNAME),Darwin)
+CLINKFLAGS += -Wl,-undefined,dynamic_lookup
+endif
 
 OBJS = test.o
 BIN = test.so
@@ -12,8 +18,7 @@ BIN = test.so
 
 $(BIN): $(OBJS)
 	$(CC) \
-	-shared \
-	-Wl,-undefined,dynamic_lookup \
+	$(CLINKFLAGS) \
 	-o $@ \
 	$<
 
