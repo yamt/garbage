@@ -13,6 +13,8 @@ main(int argc, char *argv[])
 {
         const char *name = argv[1];
         void *h = dlopen(name, RTLD_NOW);
+        assert(h != NULL);
         void (*module_func)(const char *) = dlsym(h, "module_func");
+        assert(module_func != NULL);
         module_func("hey");
 }
