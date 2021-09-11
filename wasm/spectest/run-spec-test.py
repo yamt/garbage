@@ -287,40 +287,181 @@ class Wasm3():
         self.p.wait(timeout=1.0)
         self.p = None
 
+class Wamr():
+    def __init__(self, exe):
+        self.exe = exe
+        self.p = None
+        self.loaded = None
+        self.timeout = args.timeout
+        self.autorestart = True
+        self.prompt = "webassembly> "
+        self.name = "wamr"
+
+        #self.run()
+
+    def run(self, *args):
+        if self.p:
+            self.terminate()
+
+        cmd = shlex.split(self.exe)
+        cmd += args
+
+        print(f"{self.name}: Starting {' '.join(cmd)}")
+
+        self.q = Queue()
+        self.p = Popen(cmd, bufsize=0, stdin=PIPE, stdout=PIPE, stderr=STDOUT)
+
+        def _read_output(out, queue):
+            for data in iter(lambda: out.read(1024), b''):
+                #print(f"hey {data}")
+                queue.put(data)
+            queue.put(None)
+
+        self.t = Thread(target=_read_output, args=(self.p.stdout, self.q))
+        self.t.daemon = True
+        self.t.start()
+
+        try:
+            self._read_until(self.prompt)
+        except Exception as e:
+            print(f"{self.name}: Could not start: {e}")
+
+    def restart(self):
+        print(f"{self.name}: Restarting")
+        for i in range(10):
+            try:
+                self.run()
+                try:
+                    if self.loaded:
+                        self.load(self.loaded)
+                except Exception as e:
+                    pass
+                break
+            except Exception as e:
+                print(f"{self.name}: {e} => retry")
+                time.sleep(0.1)
+
+    def init(self):
+        return "init dummy"
+
+    def version(self):
+        return "version dummy"
+
+    def load(self, fn):
+        self.loaded = None
+        self.run("--repl", "--unbuffered", fn)
+        self.loaded = fn
+        return "load dummy"
+
+    def invoke(self, cmd):
+        result = self._run_cmd(" ".join(map(str, cmd)) + "\n")
+        print(f"{self.name}: invoke result {result}")
+
+        # Convert to wasm3 style output. This shouldn't be here.
+        re_result = re.findall(r'Exception: (.*?)$', result)
+        if len(re_result) > 0:
+            return f"Error: [trap] {re_result[-1]} ("
+        p = result.split(":")
+        if p[-1] == "i32":
+            result = f"{int(p[0], 0)}"
+        if p[-1] == "i64":
+            result = f"{int(p[0], 0)}"
+        elif p[-1] == "f32":
+            v = float(p[0])
+            result = struct.unpack('!L', struct.pack('!f', v))[0]
+        elif p[-1] == "f64":
+            v = float(p[0])
+            result = struct.unpack('!Q', struct.pack('!d', v))[0]
+        print(f"{self.name}: invoke converted result {result}")
+        return f"Result: {result}"
+
+    def _run_cmd(self, cmd):
+        if self.autorestart and not self._is_running():
+            self.restart()
+        self._flush_input()
+
+        print(f"{self.name}: _run_cmd {cmd.strip()}")
+        self._write(cmd)
+        return self._read_until(self.prompt)
+
+    def _read_until(self, token):
+        buff = ""
+        tout = time.time() + self.timeout
+        error = None
+
+        while time.time() < tout:
+            try:
+                data = self.q.get(timeout=0.1)
+                if data == None:
+                    error = "Crashed"
+                    break
+                buff = buff + data.decode("utf-8")
+                idx = buff.rfind(token)
+                if idx >= 0:
+                    return buff[0:idx].strip()
+            except Empty:
+                pass
+        else:
+            error = "Timeout"
+
+        self.terminate()
+        raise Exception(error)
+
+    def _write(self, data):
+        self.p.stdin.write(data.encode("utf-8"))
+        self.p.stdin.flush()
+
+    def _is_running(self):
+        return self.p and (self.p.poll() == None)
+
+    def _flush_input(self):
+        while not self.q.empty():
+            self.q.get()
+
+    def terminate(self):
+        self.p.stdin.close()
+        self.p.terminate()
+        self.p.wait(timeout=1.0)
+        self.p = None
+
 #
 # Actual test
 #
 
-wasm3 = Wasm3(args.exec)
+if False:
+    wasm3 = Wasm3(args.exec)
 
-wasm3_ver = wasm3.version()
-print(wasm3_ver)
+    wasm3_ver = wasm3.version()
+    print(wasm3_ver)
 
-blacklist = Blacklist([
-  "float_exprs.wast:* f32.nonarithmetic_nan_bitpattern*",
-  "imports.wast:*",
-  "names.wast:* *.wasm \\x00*", # names that start with '\0'
-])
+    blacklist = Blacklist([
+      "float_exprs.wast:* f32.nonarithmetic_nan_bitpattern*",
+      "imports.wast:*",
+      "names.wast:* *.wasm \\x00*", # names that start with '\0'
+    ])
 
-if wasm3_ver in Blacklist(["* on i386* MSVC *", "* on i386* Clang * for Windows"]):
-    warning("Win32 x86 has i64->f32 conversion precision issues, skipping some tests", True)
-    # See: https://docs.microsoft.com/en-us/cpp/c-runtime-library/floating-point-support
-    blacklist.add([
-      "conversions.wast:* f32.convert_i64_u(9007199791611905)",
-      "conversions.wast:* f32.convert_i64_u(9223371761976868863)",
-      "conversions.wast:* f32.convert_i64_u(9223372586610589697)",
-    ])
-elif wasm3_ver in Blacklist(["* on mips* GCC *"]):
-    warning("MIPS has NaN representation issues, skipping some tests", True)
-    blacklist.add([
-      "float_exprs.wast:* *_nan_bitpattern(*",
-      "float_exprs.wast:* *no_fold_*",
-    ])
-elif wasm3_ver in Blacklist(["* on sparc* GCC *"]):
-    warning("SPARC has NaN representation issues, skipping some tests", True)
-    blacklist.add([
-      "float_exprs.wast:* *.canonical_nan_bitpattern(0, 0)",
-    ])
+    if wasm3_ver in Blacklist(["* on i386* MSVC *", "* on i386* Clang * for Windows"]):
+        warning("Win32 x86 has i64->f32 conversion precision issues, skipping some tests", True)
+        # See: https://docs.microsoft.com/en-us/cpp/c-runtime-library/floating-point-support
+        blacklist.add([
+          "conversions.wast:* f32.convert_i64_u(9007199791611905)",
+          "conversions.wast:* f32.convert_i64_u(9223371761976868863)",
+          "conversions.wast:* f32.convert_i64_u(9223372586610589697)",
+        ])
+    elif wasm3_ver in Blacklist(["* on mips* GCC *"]):
+        warning("MIPS has NaN representation issues, skipping some tests", True)
+        blacklist.add([
+          "float_exprs.wast:* *_nan_bitpattern(*",
+          "float_exprs.wast:* *no_fold_*",
+        ])
+    elif wasm3_ver in Blacklist(["* on sparc* GCC *"]):
+        warning("SPARC has NaN representation issues, skipping some tests", True)
+        blacklist.add([
+          "float_exprs.wast:* *.canonical_nan_bitpattern(0, 0)",
+        ])
+else:
+    engine = Wamr("iwasm")
+    blacklist = Blacklist(["DO NOT MATCH"])
 
 stats = dotdict(total_run=0, skipped=0, failed=0, crashed=0, timeout=0,  success=0, missing=0)
 
@@ -354,7 +495,7 @@ def runInvoke(test):
     force_fail = False
 
     try:
-        output = wasm3.invoke(test.cmd)
+        output = engine.invoke(test.cmd)
     except Exception as e:
         actual = f"<{e}>"
         force_fail = True
@@ -465,7 +606,7 @@ for fn in jsonFiles:
 
     print(f"Running {fn}")
 
-    wasm3.init()
+    engine.init()
 
     for cmd in data["commands"]:
         test = dotdict()
@@ -482,7 +623,7 @@ for fn in jsonFiles:
 
             try:
                 wasm_fn = os.path.join(pathname(fn), wasm_module)
-                wasm3.load(wasm_fn)
+                engine.load(wasm_fn)
             except Exception as e:
                 pass #fatal(str(e))
 
