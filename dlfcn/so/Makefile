@@ -1,4 +1,4 @@
-CC = clang
+CC = cc
 LD = ld
 
 CFLAGS = -Os

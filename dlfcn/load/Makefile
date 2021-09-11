@@ -1,4 +1,4 @@
-CC = clang
+CC = cc
 CFLAGS = -Os
 CFLAGS += -Wall -Werror
 
