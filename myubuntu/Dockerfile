@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
     dnsutils \
     iproute2 \
     net-tools \
+    ca-certificates \
     && rm -rf /var/lib/apt/list/*
 
 RUN chsh -s /usr/bin/zsh root
