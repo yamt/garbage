@@ -1,4 +1,6 @@
 NAME=ubuntu
+BUILDER=mybuilder
+BUILDER_NODE=mybuilder-node
 
 .PHONY: load load-amd64 load-arm64 load-armv7
 load: load-amd64 load-arm64 load-armv7
@@ -35,8 +37,13 @@ load-armv7:
 
 .PHONY: push
 push:
+	docker buildx create \
+		--name $(BUILDER) \
+		--node $(BUILDER_NODE) \
+		--driver docker-container
 	docker buildx build \
 		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--builder $(BUILDER) \
 		-t yamt/$(NAME):latest \
 		--push \
 		.
