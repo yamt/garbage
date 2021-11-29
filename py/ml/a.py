@@ -126,8 +126,8 @@ def sgd(n, data, rate):
 from keras.datasets import mnist
 
 (train_data, train_answers), (test_data, test_answers) = mnist.load_data()
-train_data = [np.array(d).reshape(28 * 28, 1) for d in train_data]
-test_data = [np.array(d).reshape(28 * 28, 1) for d in test_data]
+train_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in train_data]
+test_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in test_data]
 
 from matplotlib import pyplot as plt
 
