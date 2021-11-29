@@ -102,15 +102,6 @@ def back_propagation(n, d, desired):
     return (n_w, n_b)
 
 
-from matplotlib import pyplot as plt
-
-
-def plot(d):
-    c = d.copy().reshape(28, 28)
-    plt.imshow(c, cmap=plt.get_cmap("gray"))
-    plt.show()
-
-
 def sgd(n, data, rate):
     n_w = [np.zeros(x.shape) for x in n.weights]
     n_b = [np.zeros(x.shape) for x in n.biases]
@@ -157,17 +148,44 @@ train_answers_a = [targets[x] for x in train_answers]
 
 learning_rate = 3.0
 batch_size = 10
+epoches = 30
 
 data = list(zip(train_data, train_answers_a))
-for e in range(0, 30):
+for e in range(0, epoches):
     print(f"epoch {e} start")
     random.shuffle(data)
     for ch in chunk(data, batch_size):
         sgd(n, ch, learning_rate / batch_size)
     r = test(n, test_data, test_answers)
-    print(f"epoch {e} end, r {r}")
-    # r = test(n, train_data, train_answers)
-    # print(f"epoch {e} end, r {r} (train)")
+    print(f"epoch {e} end, {r}/{len(test_data)} (data)")
+    r = test(n, train_data, train_answers)
+    print(f"epoch {e} end, {r}/{len(train_data)} (train)")
     for i in range(0, 2):
         print(feed_forward(n, test_data[i]))
         print(test_answers[i])
+
+
+from matplotlib import pyplot as plt
+
+
+def plot(ax, d, desired, actual):
+    c = d.copy().reshape(28, 28)
+    ax.imshow(c, cmap=plt.get_cmap("gray"))
+    ax.set_title(f"correct {desired}\ninferred {actual}")
+
+
+data = list(zip(test_data, test_answers))
+random.shuffle(data)
+rows = 5
+cols = 5
+fig, axes = plt.subplots(rows, cols, squeeze=False, tight_layout=True)
+x = y = 0
+for d, desired in itertools.islice(data, rows * cols):
+    ax = axes[y, x]
+    actual = np.argmax(feed_forward(n, d))
+    plot(ax, d, desired, actual)
+    x += 1
+    if x >= cols:
+        x = 0
+        y += 1
+plt.show()
