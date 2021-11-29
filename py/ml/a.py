@@ -182,12 +182,16 @@ rows = 5
 cols = 10
 fig, axes = plt.subplots(rows, cols, squeeze=False, tight_layout=True)
 x = y = 0
-for d, desired in itertools.islice(data, rows * cols):
+for d, desired in data:
     ax = axes[y, x]
     actual = np.argmax(feed_forward(n, d))
+    if desired == actual:
+        continue
     plot(ax, d, desired, actual)
     x += 1
     if x >= cols:
         x = 0
         y += 1
+        if y >= rows:
+            break
 plt.show()
