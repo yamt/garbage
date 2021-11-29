@@ -173,13 +173,13 @@ from matplotlib import pyplot as plt
 def plot(ax, d, desired, actual):
     c = d.copy().reshape(28, 28)
     ax.imshow(c, cmap=plt.get_cmap("gray"))
-    ax.set_title(f"correct {desired}\ninferred {actual}")
+    ax.set_title(f"label {desired}\ninferred {actual}")
 
 
 data = list(zip(test_data, test_answers))
 random.shuffle(data)
 rows = 5
-cols = 5
+cols = 10
 fig, axes = plt.subplots(rows, cols, squeeze=False, tight_layout=True)
 x = y = 0
 for d, desired in itertools.islice(data, rows * cols):
