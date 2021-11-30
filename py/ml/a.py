@@ -150,10 +150,10 @@ for e in range(0, epoches):
         sgd(n, ch, learning_rate / batch_size)
     r = test(n, test_data, test_answers)
     print(f"epoch {e} end, {r}/{len(test_data)} (data)")
-    for ch in chunk(data, 10000):
-        a, b = zip(*ch)
-        r = test(n, a, [np.argmax(c) for c in b])
-        print(f"epoch {e} end, {r} (train)")
+    # for ch in chunk(data, 10000):
+    #     a, b = zip(*ch)
+    #     r = test(n, a, [np.argmax(c) for c in b])
+    #     print(f"epoch {e} end, {r} (train)")
     for i in range(0, 2):
         print(feed_forward(n, test_data[i]))
         print(test_answers[i])
