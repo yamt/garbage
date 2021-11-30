@@ -120,14 +120,6 @@ from keras.datasets import mnist
 train_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in train_data]
 test_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in test_data]
 
-from matplotlib import pyplot as plt
-
-
-def plot(d):
-    c = d.copy().reshape(28, 28)
-    plt.imshow(c, cmap=plt.get_cmap("gray"))
-    plt.show()
-
 
 n = Network([28 * 28, 30, 10])
 # r = test(n, test_data, test_answers)
