@@ -124,7 +124,7 @@ test_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in test_data]
 n = Network([28 * 28, 30, 10])
 # r = test(n, test_data, test_answers)
 # print(r)  # expected to be 10% or so
-print(feed_forward(n, test_data[0]))
+# print(feed_forward(n, test_data[0]))
 
 
 def chunk(it, n):
