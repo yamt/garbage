@@ -15,6 +15,8 @@ def sigmoid_prime(x):
 
 
 def dot(a, b):
+    assert a.ndim == 2
+    assert b.ndim == 2
     assert a.shape[1] == b.shape[0]
     return np.dot(a, b)
 
