@@ -15,9 +15,6 @@ def sigmoid_prime(x):
 
 
 def dot(a, b):
-    assert a.ndim == 2
-    assert b.ndim == 2
-    assert a.shape[1] == b.shape[0]
     return np.dot(a, b)
 
 
@@ -28,6 +25,7 @@ class Network:
 
 
 def feed_forward_full(n, d):
+    assert d.ndim == 2
     acts = []
     zs = []
     a = d
@@ -81,15 +79,16 @@ def sub_list_rate(a, b, rate):
 
 def cost_derivative(output, desired):
     # partial derivative of quadratic cost function
-    assert_same_shape(output, desired)
     return output - desired
 
 
 def back_propagation(n, d, desired):
-    n_w = [None] * len(n.weights)
-    n_b = [None] * len(n.biases)
+    assert d.shape[1] == desired.shape[1]
 
     acts, zs = feed_forward_full(n, d)
+
+    n_w = [None] * len(n.weights)
+    n_b = [None] * len(n.biases)
     assert len(acts) - 1 == len(zs) == len(n_w) == len(n_b)
 
     # note: "*" here is a hadamard product
@@ -104,13 +103,13 @@ def back_propagation(n, d, desired):
     return (n_w, n_b)
 
 
-def sgd(n, data, rate):
-    n_w = [np.zeros(x.shape) for x in n.weights]
-    n_b = [np.zeros(x.shape) for x in n.biases]
-    for d, a in data:
-        delta_n_w, delta_n_b = back_propagation(n, d, a)
-        n_w = add_list(n_w, delta_n_w)
-        n_b = add_list(n_b, delta_n_b)
+def sgd(n, data, answers, rate):
+    assert data.ndim == 2
+    assert answers.ndim == 2
+    assert data.shape[1] == answers.shape[1]
+    delta_n_w, delta_n_b = back_propagation(n, data, answers)
+    n_w = delta_n_w
+    n_b = [np.sum(a, axis=1).reshape(-1, 1) for a in delta_n_b]
     n.weights = sub_list_rate(n.weights, n_w, rate)
     n.biases = sub_list_rate(n.biases, n_b, rate)
 
@@ -119,7 +118,7 @@ def sgd(n, data, rate):
 from keras.datasets import mnist
 
 (train_data, train_answers), (test_data, test_answers) = mnist.load_data()
-train_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in train_data]
+train_data = train_data.reshape(-1, 28 * 28).T / 255.0
 test_data = [np.array(d).reshape(28 * 28, 1) / 255.0 for d in test_data]
 
 
@@ -134,22 +133,21 @@ def chunk(it, n):
     return iter(lambda: list(itertools.islice(i, n)), [])
 
 
-targets = {}
-for i in range(0, 10):
-    targets[i] = np.zeros((10, 1))
-    targets[i][i] = 1.0
-train_answers_a = [targets[x] for x in train_answers]
+def onehot(a):
+	return np.identity(10)[a].T
+
+train_answers_a = onehot(train_answers)
 
 learning_rate = 3.0
 batch_size = 10
 epoches = 30
 
-data = list(zip(train_data, train_answers_a))
+ix = list(range(0, train_data.shape[1]))
 for e in range(0, epoches):
     print(f"epoch {e} start")
-    random.shuffle(data)
-    for ch in chunk(data, batch_size):
-        sgd(n, ch, learning_rate / batch_size)
+    random.shuffle(ix)
+    for ch in chunk(ix, batch_size):
+        sgd(n, train_data.T[ch].T, train_answers_a.T[ch].T, learning_rate / batch_size)
     r = test(n, test_data, test_answers)
     print(f"epoch {e} end, {r}/{len(test_data)} (data)")
     # for ch in chunk(data, 10000):
