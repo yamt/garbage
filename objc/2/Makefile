@@ -1,17 +1,18 @@
-SRCS = a.c
+SRCS = a.m
+SRCS += app_delegate.m
 BIN = test
 
-OBJS = $(SRCS:.c=.o)
+OBJS = $(SRCS:.m=.o)
 
 .PHONY: run
 run: $(BIN)
 	./$(BIN)
 
 $(BIN): $(OBJS)
-	$(CC) -framework Foundation -o $@ $<
+	$(CC) -framework Foundation -framework Cocoa -o $@ $(OBJS)
 
 .m.o:
-	$(CC) -c -o $@ $<
+	$(CC) -c -Wall -o $@ $<
 
 .PHONY: clean
 clean:
