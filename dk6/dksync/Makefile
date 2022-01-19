@@ -2,6 +2,7 @@ BIN = dksync
 OBJS = main.o
 OBJS += syncer.o
 OBJS += hotplug.o
+OBJS += keysym.o
 OBJS += xlog.o
 CFLAGS = -Os
 

@@ -10,6 +10,7 @@
 #include "hidapi.h"
 
 #include "dksync.h"
+#include "keysym.h"
 #include "xlog.h"
 
 #define INIT_CMD 0x30
@@ -113,11 +114,14 @@ syncer_thread(void *vp)
                                  (buf[4] << 8) + (buf[5] << 0);
                         cmd_str = cmd == KEY_ADDED_CMD ? "KEY ADDED"
                                                        : "KEY REMOVED";
-                        xlog_printf("%s: %s: "
-                                    "serial=%08" PRIX32 " "
-                                    "layers=%02x/%02x/%02x/%02x\n",
-                                    k->name, cmd_str, serial, buf[7], buf[8],
-                                    buf[9], buf[10]);
+                        xlog_printf(
+                                "%s: %s: "
+                                "serial=%08" PRIX32 " "
+                                "layers=%02x(%s)/%02x(%s)/%02x(%s)/%02x(%s)\n",
+                                k->name, cmd_str, serial, buf[7],
+                                keysymstr(buf[7]), buf[8], keysymstr(buf[8]),
+                                buf[9], keysymstr(buf[9]), buf[10],
+                                keysymstr(buf[10]));
                         continue;
                 case LAYER_PRESS_CMD:
                         break;
