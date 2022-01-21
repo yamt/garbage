@@ -19,8 +19,10 @@ xlog_printf(const char *fmt, ...)
         strftime(buf, sizeof(buf), "%F %T", localtime_r(&clock, &tm));
 
         va_start(ap, fmt);
+        flockfile(stderr);
         fprintf(stderr, "%s (%ju.%09ld): ", buf, (uintmax_t)ts.tv_sec,
                 ts.tv_nsec);
         vfprintf(stderr, fmt, ap);
+        funlockfile(stderr);
         va_end(ap);
 }

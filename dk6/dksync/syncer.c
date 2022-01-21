@@ -42,11 +42,13 @@ dump_packet(const unsigned char *buf, size_t len, const char *name,
 {
         unsigned int i;
 
+        flockfile(stderr);
         xlog_printf("%s: %s:", name, msg);
         for (i = 0; i < len; i++) {
                 fprintf(stderr, " %02x", buf[i]);
         }
         fprintf(stderr, "\n");
+        funlockfile(stderr);
 }
 
 bool
