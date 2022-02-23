@@ -4,6 +4,7 @@ REPOS += moby/moby
 REPOS += moby/vpnkit
 REPOS += thingsboard/thingsboard
 REPOS += bytecodealliance/wasm-micro-runtime
+REPOS += dvidelabs/flatcc
 REPOS += kubernetes/kubernetes
 
 all:
