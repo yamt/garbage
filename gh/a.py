@@ -13,6 +13,7 @@ import itertools
 
 from ghapi.all import GhApi
 from ghapi.all import paged
+from ghapi.all import print_summary
 import dateutil.parser
 import matplotlib.pyplot as plot
 from matplotlib.ticker import MultipleLocator
@@ -22,6 +23,7 @@ owner = os.environ.get("OWNER", "yamt")
 repo = os.environ.get("REPO", "garbage")
 
 api = GhApi(owner=owner, repo=repo)
+api.debug = print_summary
 
 # default: sort=created, direction=desc
 # XXX should filter on target branch
