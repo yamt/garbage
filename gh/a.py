@@ -30,7 +30,9 @@ api.debug = print_summary
 # XXX esp-idf often uses an awkward way to merge PRs.
 #     how can i deal with it?
 #     eg. https://github.com/espressif/esp-idf/pull/8248
-pgs = paged(api.pulls.list, state="closed", per_page=100)
+# XXX for some reasons, state=closed often causes 502
+#     for kubernetes/kubernetes.
+pgs = paged(api.pulls.list, state="all", per_page=100)
 l = itertools.chain.from_iterable(pgs)
 l = filter(lambda p: p.merged_at is not None, l)
 l = itertools.islice(l, 500)
