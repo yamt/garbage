@@ -5,6 +5,7 @@
 # input environment variables:
 #   OWNER
 #   REPO
+#   OUTPUT
 #   GITHUB_TOKEN  (for a private repo)
 
 import os
@@ -60,4 +61,9 @@ labels = list(itertools.islice(x.keys(), 16))
 plot.legend(labels)
 # plot.legend(labels, loc='upper left', bbox_to_anchor=(1, 1))
 plot.tight_layout()
-plot.show()
+
+output = os.environ.get("OUTPUT")
+if output is None:
+    plot.show()
+else:
+    plot.savefig(output)
