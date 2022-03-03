@@ -7,7 +7,7 @@ import sys
 from littlefs import LittleFS
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--img-filename', default='littels.img')
+parser.add_argument('--img-filename', default='littlefs.img')
 parser.add_argument('--img-size', type=int, default=1*1024*1024)
 parser.add_argument('--block-size', type=int, default=4096)
 parser.add_argument('--read-size', type=int, default=256)
