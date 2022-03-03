@@ -47,8 +47,8 @@ for root, dirs, files in os.walk(source_dir):
         path = os.path.join(root, f)
         relpath = os.path.relpath(path, start=source_dir)
         print(f"Copying {path} to {relpath}")
-        with open(path, "r") as infile:
-            with fs.open(relpath, "w") as outfile:
+        with open(path, "rb") as infile:
+            with fs.open(relpath, "wb") as outfile:
                 outfile.write(infile.read())
 
 with open(img_filename, "wb") as f:
