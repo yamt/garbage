@@ -7,11 +7,11 @@ import sys
 from littlefs import LittleFS
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--img-filename', default='littlefs.img')
-parser.add_argument('--img-size', type=int, default=1*1024*1024)
-parser.add_argument('--block-size', type=int, default=4096)
-parser.add_argument('--read-size', type=int, default=256)
-parser.add_argument('--prog-size', type=int, default=256)
+parser.add_argument("--img-filename", default="littlefs.img")
+parser.add_argument("--img-size", type=int, default=1 * 1024 * 1024)
+parser.add_argument("--block-size", type=int, default=4096)
+parser.add_argument("--read-size", type=int, default=256)
+parser.add_argument("--prog-size", type=int, default=256)
 args = parser.parse_args()
 
 img_filename = args.img_filename
@@ -33,7 +33,7 @@ fs = LittleFS(
 )
 
 with open(img_filename, "rb") as f:
-	data = f.read()
+    data = f.read()
 fs.context.buffer = bytearray(data)
 
 for root, dirs, files in fs.walk("."):
