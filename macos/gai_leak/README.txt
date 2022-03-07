@@ -5,3 +5,5 @@ when querying about certain host names.
 
 to me, it seems host names which don't have any
 ipv6 addresses are affected. but i'm not sure about it.
+
+https://feedbackassistant.apple.com/feedback/9947074
