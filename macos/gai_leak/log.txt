@@ -1,3 +1,6 @@
+ProductName:	macOS
+ProductVersion:	12.2.1
+BuildVersion:	21D62
 Darwin spacetanuki.lan 21.3.0 Darwin Kernel Version 21.3.0: Wed Jan  5 21:37:58 PST 2022; root:xnu-8019.80.24~20/RELEASE_X86_64 x86_64
 Homebrew clang version 12.0.1
 Target: x86_64-apple-darwin21.3.0
@@ -7,10 +10,10 @@ target: ipv4.google.com:https
 family 2 socktype 1, protocol 6
 
 =================================================================
-==90070==ERROR: LeakSanitizer: detected memory leaks
+==90139==ERROR: LeakSanitizer: detected memory leaks
 
 Direct leak of 320 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff819dacbe6 in nw_hash_table_create+0x56 (libnetwork.dylib:x86_64+0x8be6)
     #2 0x7ff819dad21b in nw_context_initialize_globals+0x1ab (libnetwork.dylib:x86_64+0x921b)
     #3 0x7ff819dab76b in nw_context_activate+0x2cb (libnetwork.dylib:x86_64+0x776b)
@@ -22,12 +25,12 @@ Direct leak of 320 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Direct leak of 136 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff819df9033 in nw_context_get_globals_for_path+0x93 (libnetwork.dylib:x86_64+0x55033)
     #2 0x7ff819df8afe in nw_path_shared_necp_fd+0x4e (libnetwork.dylib:x86_64+0x54afe)
     #3 0x7ff819dcab98 in nw_path_evaluator_evaluate+0x268 (libnetwork.dylib:x86_64+0x26b98)
@@ -35,12 +38,12 @@ Direct leak of 136 byte(s) in 1 object(s) allocated from:
     #5 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #6 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #7 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #8 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #9 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #10 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #8 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #9 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #10 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 1168 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815b6ff1d in dispatch_data_create_alloc+0x2a (libdispatch.dylib:x86_64+0x2df1d)
@@ -55,12 +58,12 @@ Indirect leak of 1168 byte(s) in 3 object(s) allocated from:
     #12 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #13 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #14 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #15 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #16 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #17 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #15 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #16 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #17 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 288 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -73,12 +76,12 @@ Indirect leak of 288 byte(s) in 3 object(s) allocated from:
     #10 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #11 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #12 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #13 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #14 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #15 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #13 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #14 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #15 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 231 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff819eb74f8 in nw_path_copy_dictionary_for_agent_with_generation+0x478 (libnetwork.dylib:x86_64+0x1134f8)
@@ -89,12 +92,12 @@ Indirect leak of 231 byte(s) in 3 object(s) allocated from:
     #8 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #9 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #10 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #11 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #12 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #13 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #11 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #12 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #13 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 231 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff815a395ab in xpc_dictionary_set_uint64+0x28 (libxpc.dylib:x86_64+0x65ab)
@@ -106,12 +109,12 @@ Indirect leak of 231 byte(s) in 3 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 192 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a36274 in xpc_data_create_with_dispatch_data+0x1d (libxpc.dylib:x86_64+0x3274)
@@ -126,12 +129,12 @@ Indirect leak of 192 byte(s) in 3 object(s) allocated from:
     #12 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #13 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #14 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #15 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #16 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #17 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #15 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #16 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #17 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 153 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff815a395ab in xpc_dictionary_set_uint64+0x28 (libxpc.dylib:x86_64+0x65ab)
@@ -143,12 +146,12 @@ Indirect leak of 153 byte(s) in 3 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 135 byte(s) in 3 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff815a3c2ac in xpc_dictionary_set_data+0x2b (libxpc.dylib:x86_64+0x92ac)
@@ -161,12 +164,12 @@ Indirect leak of 135 byte(s) in 3 object(s) allocated from:
     #10 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #11 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #12 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #13 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #14 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #15 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #13 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #14 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #15 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 128 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b949a5 in _objc_rootAllocWithZone+0x31 (libobjc.A.dylib:x86_64h+0xb9a5)
     #2 0x7ff815baf577 in objc_alloc_init+0x42 (libobjc.A.dylib:x86_64h+0x26577)
     #3 0x7ff819dfe3fa in nw_interface_create_from_necp+0xea (libnetwork.dylib:x86_64+0x5a3fa)
@@ -177,12 +180,12 @@ Indirect leak of 128 byte(s) in 1 object(s) allocated from:
     #8 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #9 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #10 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #11 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #12 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #13 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #11 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #12 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #13 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 96 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -194,12 +197,12 @@ Indirect leak of 96 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 96 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -211,12 +214,12 @@ Indirect leak of 96 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 96 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -227,12 +230,12 @@ Indirect leak of 96 byte(s) in 1 object(s) allocated from:
     #8 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #9 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #10 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #11 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #12 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #13 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #11 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #12 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #13 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 96 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -245,12 +248,12 @@ Indirect leak of 96 byte(s) in 1 object(s) allocated from:
     #10 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #11 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #12 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #13 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #14 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #15 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #13 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #14 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #15 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 96 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a3565b in xpc_dictionary_create+0x27 (libxpc.dylib:x86_64+0x265b)
@@ -262,12 +265,12 @@ Indirect leak of 96 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 43 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff815a46767 in xpc_dictionary_set_pointer+0x3a (libxpc.dylib:x86_64+0x13767)
@@ -279,12 +282,12 @@ Indirect leak of 43 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 43 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815a4ce41 in _xpc_alloc+0x16 (libxpc.dylib:x86_64+0x19e41)
     #2 0x7ff815a358f1 in _xpc_dictionary_insert+0x192 (libxpc.dylib:x86_64+0x28f1)
     #3 0x7ff815a395ab in xpc_dictionary_set_uint64+0x28 (libxpc.dylib:x86_64+0x65ab)
@@ -295,12 +298,12 @@ Indirect leak of 43 byte(s) in 1 object(s) allocated from:
     #8 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #9 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #10 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #11 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #12 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #13 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #11 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #12 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #13 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 32 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b44423 in _os_object_alloc+0x2c (libdispatch.dylib:x86_64+0x2423)
     #3 0x7ff819dfd977 in nw_dictionary_create+0x37 (libnetwork.dylib:x86_64+0x59977)
@@ -312,12 +315,12 @@ Indirect leak of 32 byte(s) in 1 object(s) allocated from:
     #9 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #10 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #11 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #12 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #13 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #14 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #12 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #13 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #14 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 32 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b443e2 in _os_object_alloc_realized+0x18 (libdispatch.dylib:x86_64+0x23e2)
     #3 0x7ff815a4679d in xpc_pointer_create+0x19 (libxpc.dylib:x86_64+0x1379d)
@@ -330,12 +333,12 @@ Indirect leak of 32 byte(s) in 1 object(s) allocated from:
     #10 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #11 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #12 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #13 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #14 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #15 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #13 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #14 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #15 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 Indirect leak of 32 byte(s) in 1 object(s) allocated from:
-    #0 0x10ab7aa95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
+    #0 0x102592a95 in wrap_calloc+0xa5 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x45a95)
     #1 0x7ff815b8ee10 in class_createInstance+0x40 (libobjc.A.dylib:x86_64h+0x5e10)
     #2 0x7ff815b44423 in _os_object_alloc+0x2c (libdispatch.dylib:x86_64+0x2423)
     #3 0x7ff819dfd977 in nw_dictionary_create+0x37 (libnetwork.dylib:x86_64+0x59977)
@@ -346,8 +349,8 @@ Indirect leak of 32 byte(s) in 1 object(s) allocated from:
     #8 0x7ff81a4344cb in nw_nat64_v4_address_requires_synthesis+0xdb (libnetwork.dylib:x86_64+0x6904cb)
     #9 0x7ff815d1c9d6 in si_addrinfo+0x7c8 (libsystem_info.dylib:x86_64+0x59d6)
     #10 0x7ff815d1c165 in getaddrinfo+0xaf (libsystem_info.dylib:x86_64+0x5165)
-    #11 0x10ab5bce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
-    #12 0x10a83298f in main+0x25f (a.out:x86_64+0x10000398f)
-    #13 0x112cf04fd in start+0x1cd (dyld:x86_64+0x54fd)
+    #11 0x102573ce9 in wrap_getaddrinfo+0x529 (libclang_rt.asan_osx_dynamic.dylib:x86_64+0x26ce9)
+    #12 0x10202398f in main+0x25f (a.out:x86_64+0x10000398f)
+    #13 0x1022a44fd in start+0x1cd (dyld:x86_64+0x54fd)
 
 SUMMARY: AddressSanitizer: 3644 byte(s) leaked in 34 allocation(s).
