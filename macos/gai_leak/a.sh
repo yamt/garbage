@@ -1,4 +1,5 @@
 
+sw_vers
 uname -a
 
 # homebrew-installed llvm
