@@ -1,0 +1,23 @@
+cc -o access access.c
+rm -rf testfile
+./access testfile
+F_OK -1
+R_OK -1
+W_OK -1
+X_OK -1
+R_OK|W_OK|X_OK -1
+touch testfile
+chmod 777 testfile
+./access testfile
+F_OK 0
+R_OK 0
+W_OK 0
+X_OK 0
+R_OK|W_OK|X_OK 0
+chmod 000 testfile
+./access testfile
+F_OK 0
+R_OK 0
+W_OK 0
+X_OK 0
+R_OK|W_OK|X_OK 0
