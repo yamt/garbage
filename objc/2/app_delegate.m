@@ -17,4 +17,10 @@
         [window makeKeyAndOrderFront:self];
 }
 
+- (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
+{
+        NSLog(@"applicationShouldTerminateAfterLastWindowClosed");
+        return TRUE;
+}
+
 @end
