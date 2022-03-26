@@ -16,7 +16,7 @@
         [window setTitle:@"Hello"];
         [window makeKeyAndOrderFront:self];
 
-        CGRect buttonFrame = CGRectMake(20, 20, 100, 100);
+        NSRect buttonFrame = NSMakeRect(20, 20, 100, 100);
         NSButton *button = [NSButton alloc];
         [button initWithFrame:buttonFrame];
         [button setButtonType:NSButtonTypeMomentaryLight];
