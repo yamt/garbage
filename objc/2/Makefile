@@ -1,4 +1,4 @@
-SRCS = a.m
+SRCS = main.m
 SRCS += app_delegate.m
 BIN = test
 
