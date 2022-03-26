@@ -20,7 +20,7 @@
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
 {
         NSLog(@"applicationShouldTerminateAfterLastWindowClosed");
-        return TRUE;
+        return YES;
 }
 
 @end
