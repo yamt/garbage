@@ -21,6 +21,8 @@
         [button initWithFrame:buttonFrame];
         [button setButtonType:NSButtonTypeMomentaryLight];
         [button setTitle:@"Hello"];
+        [button setTarget:self];
+        [button setAction:@selector(myButtonAction:)];
         [window.contentView addSubview:button];
 }
 
@@ -28,6 +30,11 @@
 {
         NSLog(@"applicationShouldTerminateAfterLastWindowClosed");
         return YES;
+}
+
+- (void)myButtonAction:(NSButton *)button
+{
+        NSLog(@"myButtonAction");
 }
 
 @end
