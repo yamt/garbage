@@ -11,6 +11,9 @@ main(int argc, const char **argv)
         NSApplication *app = [NSApplication sharedApplication];
         AppDelegate *delegate = [AppDelegate alloc];
 
+        ProcessSerialNumber psn = {0, kCurrentProcess};
+        TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+
         [app setDelegate:delegate];
         [app run];
 
