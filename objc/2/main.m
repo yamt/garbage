@@ -13,9 +13,9 @@ main(int argc, const char **argv)
 
         ProcessSerialNumber psn = {0, kCurrentProcess};
         TransformProcessType(&psn, kProcessTransformToForegroundApplication);
-        SetFrontProcess(&psn);
 
         [app setDelegate:delegate];
+        [app activateIgnoringOtherApps:YES];
         [app run];
 
         NSLog(@"End");
