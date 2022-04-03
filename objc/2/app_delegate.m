@@ -1,4 +1,5 @@
 #import "app_delegate.h"
+#import "view.h"
 
 @implementation AppDelegate
 
@@ -24,6 +25,10 @@
         [button setTarget:self];
         [button setAction:@selector(myButtonAction:)];
         [window.contentView addSubview:button];
+
+        NSView *view = [MyView alloc];
+        [window.contentView addSubview:view];
+        [window makeFirstResponder:view];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app

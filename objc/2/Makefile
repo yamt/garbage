@@ -1,5 +1,6 @@
 SRCS = main.m
 SRCS += app_delegate.m
+SRCS += view.m
 BIN = test
 
 OBJS = $(SRCS:.m=.o)
