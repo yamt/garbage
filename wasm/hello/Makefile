@@ -38,7 +38,7 @@ $(BIN).aot-xip: $(BIN)
 .c.o:
 	$(CC) -c $(CFLAGS) -o $@ $<
 	$(NM) $@
-	# $(CC) -S $(CFLAGS) $<
+	$(CC) -S $(CFLAGS) $<
 
 .PHONY: clean
 clean:
