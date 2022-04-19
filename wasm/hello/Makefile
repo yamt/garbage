@@ -13,10 +13,26 @@ CFLAGS += -Wall -Werror
 OBJS = hello.o
 BIN = test.wasm
 
+BINS = $(BIN)
+BINS += $(BIN).aot-default
+BINS += $(BIN).aot-xip
+
+all: $(BINS)
+
 $(BIN): $(OBJS)
 	$(CC) \
 	-Wl,--allow-undefined \
 	-Wl,--export,call_indirect \
+	-o $@ $<
+
+$(BIN).aot-default: $(BIN)
+	wamrc \
+	-o $@ $<
+
+$(BIN).aot-xip: $(BIN)
+	wamrc \
+	--enable-indirect-mode \
+	--disable-llvm-intrinsics \
 	-o $@ $<
 
 .c.o:
@@ -26,5 +42,5 @@ $(BIN): $(OBJS)
 
 .PHONY: clean
 clean:
-	rm -f $(BIN)
+	rm -f $(BINS)
 	rm -f $(OBJS)
