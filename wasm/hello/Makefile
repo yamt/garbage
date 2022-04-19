@@ -6,6 +6,7 @@ LD = $(WASI_SDK_DIR)/bin/wasm-ld
 NM = $(WASI_SDK_DIR)/bin/nm
 
 CFLAGS = -Os
+CFLAGS += -fno-builtin-printf
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
@@ -16,13 +17,13 @@ BIN = test.wasm
 BINS = $(BIN)
 BINS += $(BIN).aot-default
 BINS += $(BIN).aot-xip
+BINS += $(BIN).aot-xip.obj
 
 all: $(BINS)
 
 $(BIN): $(OBJS)
 	$(CC) \
 	-Wl,--allow-undefined \
-	-Wl,--export,call_indirect \
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
@@ -33,6 +34,13 @@ $(BIN).aot-xip: $(BIN)
 	wamrc \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
+	-o $@ $<
+
+$(BIN).aot-xip.obj: $(BIN)
+	wamrc \
+	--enable-indirect-mode \
+	--disable-llvm-intrinsics \
+	--format=object \
 	-o $@ $<
 
 .c.o:
