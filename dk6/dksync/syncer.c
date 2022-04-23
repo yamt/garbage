@@ -195,7 +195,11 @@ sync_devices(void *vp)
                         }
                         struct kbd *k = &kbds[nkbds];
                         k->dev = hid_open_path(info->path);
-                        assert(k->dev != NULL);
+                        if (k->dev == NULL) {
+                                xlog_printf("hid_open_path failed: %s\n",
+                                            info->path);
+                                continue;
+                        }
                         ret = asprintf(&k->name, "%ls", info->serial_number);
                         assert(ret > 0);
                         nkbds++;
