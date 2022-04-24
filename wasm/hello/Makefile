@@ -6,7 +6,7 @@ LD = $(WASI_SDK_DIR)/bin/wasm-ld
 NM = $(WASI_SDK_DIR)/bin/nm
 
 CFLAGS = -Os
-CFLAGS += -fno-builtin-printf
+#CFLAGS += -fno-builtin-printf
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
@@ -17,7 +17,9 @@ BIN = test.wasm
 BINS = $(BIN)
 BINS += $(BIN).aot-default
 BINS += $(BIN).aot-xip
+BINS += $(BIN).aot-xip.xtensa
 BINS += $(BIN).aot-xip.obj
+BINS += $(BIN).aot-xip.obj.xtensa
 
 all: $(BINS)
 
@@ -36,10 +38,25 @@ $(BIN).aot-xip: $(BIN)
 	--disable-llvm-intrinsics \
 	-o $@ $<
 
+$(BIN).aot-xip.xtensa: $(BIN)
+	wamrc \
+	--enable-indirect-mode \
+	--disable-llvm-intrinsics \
+	--target=xtensa \
+	-o $@ $<
+
 $(BIN).aot-xip.obj: $(BIN)
 	wamrc \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
+	--format=object \
+	-o $@ $<
+
+$(BIN).aot-xip.obj.xtensa: $(BIN)
+	wamrc \
+	--enable-indirect-mode \
+	--disable-llvm-intrinsics \
+	--target=xtensa \
 	--format=object \
 	-o $@ $<
 
