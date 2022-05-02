@@ -26,9 +26,12 @@
         [button setAction:@selector(myButtonAction:)];
         [window.contentView addSubview:button];
 
-        NSView *view = [MyView alloc];
-        [window.contentView addSubview:view];
-        [window makeFirstResponder:view];
+        NSRect textFieldFrame = NSMakeRect(20, 200, 200, 100);
+        NSTextField *textField = [NSTextField alloc];
+        [textField initWithFrame:textFieldFrame];
+        [window.contentView addSubview:textField];
+
+        [window makeFirstResponder:textField];
 }
 
 - (BOOL)applicationShouldTerminateAfterLastWindowClosed:(NSApplication *)app
