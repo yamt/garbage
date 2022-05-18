@@ -11,6 +11,8 @@ CFLAGS = -Os
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 
+WAMRC_FLAGS += --enable-perf-profiling
+
 OBJS = hello.o
 BIN = test.wasm
 
@@ -30,16 +32,19 @@ $(BIN): $(OBJS)
 
 $(BIN).aot-default: $(BIN)
 	wamrc \
+	$(WAMRC_FLAGS) \
 	-o $@ $<
 
 $(BIN).aot-xip: $(BIN)
 	wamrc \
+	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
 	-o $@ $<
 
 $(BIN).aot-xip.xtensa: $(BIN)
 	wamrc \
+	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
 	--target=xtensa \
@@ -47,6 +52,7 @@ $(BIN).aot-xip.xtensa: $(BIN)
 
 $(BIN).aot-xip.obj: $(BIN)
 	wamrc \
+	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
 	--format=object \
@@ -54,6 +60,7 @@ $(BIN).aot-xip.obj: $(BIN)
 
 $(BIN).aot-xip.obj.xtensa: $(BIN)
 	wamrc \
+	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
 	--target=xtensa \
