@@ -32,6 +32,8 @@ all: $(BINS)
 $(BIN): $(OBJS)
 	$(CC) \
 	-Wl,--allow-undefined \
+	-z stack-size=8192 \
+	-Wl,--initial-memory=65536 \
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
