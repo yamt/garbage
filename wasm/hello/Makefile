@@ -11,6 +11,9 @@ CFLAGS = -Os
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 
+WAMRC = wamrc
+WAMRC.xtensa = wamrc.xtensa
+
 WAMRC_FLAGS += --enable-perf-profiling
 
 OBJS = hello.o
@@ -18,6 +21,7 @@ BIN = test.wasm
 
 BINS = $(BIN)
 BINS += $(BIN).aot-default
+BINS += $(BIN).aot-default.xtensa
 BINS += $(BIN).aot-xip
 BINS += $(BIN).aot-xip.xtensa
 BINS += $(BIN).aot-xip.obj
@@ -31,19 +35,25 @@ $(BIN): $(OBJS)
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
-	wamrc \
+	$(WAMRC) \
 	$(WAMRC_FLAGS) \
 	-o $@ $<
 
+$(BIN).aot-default.xtensa: $(BIN)
+	$(WAMRC.xtensa) \
+	$(WAMRC_FLAGS) \
+	--target=xtensa \
+	-o $@ $<
+
 $(BIN).aot-xip: $(BIN)
-	wamrc \
+	$(WAMRC) \
 	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
 	-o $@ $<
 
 $(BIN).aot-xip.xtensa: $(BIN)
-	wamrc \
+	$(WAMRC.xtensa) \
 	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
@@ -51,7 +61,7 @@ $(BIN).aot-xip.xtensa: $(BIN)
 	-o $@ $<
 
 $(BIN).aot-xip.obj: $(BIN)
-	wamrc \
+	$(WAMRC) \
 	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
@@ -59,7 +69,7 @@ $(BIN).aot-xip.obj: $(BIN)
 	-o $@ $<
 
 $(BIN).aot-xip.obj.xtensa: $(BIN)
-	wamrc \
+	$(WAMRC.xtensa) \
 	$(WAMRC_FLAGS) \
 	--enable-indirect-mode \
 	--disable-llvm-intrinsics \
