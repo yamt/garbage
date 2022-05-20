@@ -34,6 +34,7 @@ $(BIN): $(OBJS)
 	-Wl,--allow-undefined \
 	-z stack-size=8192 \
 	-Wl,--initial-memory=65536 \
+	-Wl,--export=__data_end -Wl,--export=__heap_base \
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
