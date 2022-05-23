@@ -8,19 +8,11 @@ run:
 
 test:
 	mkdir -p out
-	curl -o out/https.txt \
-	--proxy http://localhost:3128 \
-	--proxy-basic \
-	--proxy-user aaa:bbb \
-	https://raw.githubusercontent.com/yamt/garbage/master/squid/testfile.txt
+	curl -o out/https.txt --proxy http://localhost:3128 https://raw.githubusercontent.com/yamt/garbage/master/squid/testfile.txt
 	diff -u testfile.txt out/https.txt
 
 	# Note: github redirects http to https
-	curl -L -o out/http.txt \
-	--proxy http://localhost:3128 \
-	--proxy-basic \
-	--proxy-user aaa:bbb \
-	http://raw.githubusercontent.com/yamt/garbage/master/squid/testfile.txt
+	curl -L -o out/http.txt --proxy http://localhost:3128 http://raw.githubusercontent.com/yamt/garbage/master/squid/testfile.txt
 	diff -u testfile.txt out/http.txt
 
 	curl -L -o out/http-tunnel.txt \
