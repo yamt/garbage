@@ -4,7 +4,8 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     squid apache2-utils && \
     rm -rf /var/lib/apt/lists/*
-COPY squid.conf /etc/squid/squid.conf
+COPY squid-allowall.conf .
+COPY squid-basicauth.conf .
+COPY entry.sh .
 RUN usermod -a -G tty proxy
-RUN htpasswd -c -bm /etc/squid/htpasswd aaa bbb
-CMD ["squid","-Nd1"]
+CMD ["./entry.sh"]
