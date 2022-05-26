@@ -1,6 +1,3 @@
-from itertools import chain
-
-
 def f(a):
     yield a[0:1] + a[4 : 4 + 2] + a[1 : 1 + 3]
     yield a[1 : 1 + 3] + a[0:1] + a[4 : 4 + 2]
