@@ -1,11 +1,10 @@
 def f(a):
-    yield a[0:1] + a[4 : 4 + 2] + a[1 : 1 + 3]
-    yield a[1 : 1 + 3] + a[0:1] + a[4 : 4 + 2]
-    yield a[0:2] + a[5 : 5 + 1] + a[2 : 2 + 3]
-    yield a[2 : 2 + 3] + a[0:2] + a[5 : 5 + 1]
-    yield a[3 : 3 + 3] + a[0:3]
-    yield a
-
+    n = len(a)
+    for i in range(0, n - 3):
+        sub = a[i : i + 3]
+        rest = a[:i] + a[i + 3:]
+        yield sub + rest
+        yield rest + sub
 
 def g(l):
     for a in l:
@@ -13,9 +12,10 @@ def g(l):
             yield a + [n]
 
 
-l = [["123456"]]
+s = "123456"
+l = [[s]]
 for x in range(1, 6):
     l = g(l)
 # l = [a for a in l if a[1] == "126345"]
-l = [a for a in l if a[-1] == "654321"]
+l = [a for a in l if a[-1] == s[::-1]]
 print(list(l))
