@@ -16,6 +16,6 @@ def g(l):
 l = [["123456"]]
 for x in range(1, 6):
     l = g(l)
-# l = [a for a in l if a[2] == "126345"]
+# l = [a for a in l if a[1] == "126345"]
 l = [a for a in l if a[-1] == "654321"]
 print(list(l))
