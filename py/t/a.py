@@ -4,6 +4,7 @@ def f(a):
     yield a[0:2] + a[5 : 5 + 1] + a[2 : 2 + 3]
     yield a[2 : 2 + 3] + a[0:2] + a[5 : 5 + 1]
     yield a[3 : 3 + 3] + a[0:3]
+    yield a
 
 
 def g(l):
