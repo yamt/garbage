@@ -14,8 +14,15 @@ def g(l):
 
 
 s = "123456"
+srev = s[::-1]
 l = [[s]]
-for x in range(1, 6):
+n = 0
+while True:
     l = g(l)
-l = [a for a in l if a[-1] == s[::-1]]
-print(list(l))
+    l = list(l)
+    n += 1
+    l2 = [a for a in l if a[-1] == srev]
+    print(n)
+    if l2:
+        print(list(l2))
+        break
