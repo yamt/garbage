@@ -1,8 +1,9 @@
 def f(a):
     n = len(a)
-    for i in range(0, n - 3):
-        sub = a[i : i + 3]
-        rest = a[:i] + a[i + 3:]
+    m = 3
+    for i in range(0, n - m):
+        sub = a[i : i + m]
+        rest = a[:i] + a[i + m:]
         yield sub + rest
         yield rest + sub
 
