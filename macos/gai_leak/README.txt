@@ -6,8 +6,9 @@ when querying about certain host names.
 Mojave didn't have the issue.
 Monterey has the issue.
 
-to me, it seems host names which don't have any
-ipv6 addresses are affected. but i'm not sure about it.
+"nw_hash_table_create" leak:
+    to me, it seems host names which don't have any
+    ipv6 addresses are affected. but i'm not sure about it.
 
 https://feedbackassistant.apple.com/feedback/9947074
 
