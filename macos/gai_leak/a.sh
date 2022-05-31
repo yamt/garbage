@@ -9,11 +9,6 @@ ${CC} --version
 ${CC} -fsanitize=address a.c
 export ASAN_OPTIONS=detect_leaks=1
 
-# leak
 ./a.out ipv4.google.com https
-
-# no leak
-#./a.out www.google.com https
-
-# no leak
-#./a.out ipv6.google.com https
+./a.out www.google.com https
+./a.out ipv6.google.com https
