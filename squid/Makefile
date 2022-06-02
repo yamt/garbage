@@ -7,6 +7,9 @@ endif
 build:
 	docker build -t $(NAME) .
 
+push:
+	docker push $(NAME)
+
 run:
 	docker container run -i -t -p 3128:3128 \
 	-e PROXY_USER \
