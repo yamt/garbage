@@ -3,14 +3,14 @@
 import sys
 import plistlib
 
-device_io_object_class = sys.argv[1]
+name = sys.argv[1]
 device_b_interface_number = int(sys.argv[2])
 
 
 def visit(o):
     for c in o.get("IORegistryEntryChildren", []):
         if (
-            o.get("IOObjectClass") == device_io_object_class
+            o.get("IORegistryEntryName") == name
             and o.get("bInterfaceNumber") == device_b_interface_number
         ):
             if c.get("IOObjectClass") == "IOSerialBSDClient":
