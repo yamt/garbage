@@ -1,11 +1,17 @@
 NAME = yamt/squid
 
+CONF = squid-allowall.conf squid-basicauth.conf
+
 ifneq ($(PROXY_USER),)
 PROXY_AUTH_OPTIONS = --proxy-basic --proxy-user $(PROXY_USER):$(PROXY_PASS)
 endif
 
-build:
+build: $(CONF)
 	docker build -t $(NAME) .
+
+%.conf: m4/%.conf m4/common.conf
+	m4 -I m4 $< > $@.tmp
+	mv $@.tmp $@
 
 push:
 	docker push $(NAME)
@@ -39,4 +45,6 @@ test:
 	diff -u testfile.txt out/http-tunnel.txt
 
 clean:
+	rm -rf $(CONF)
 	rm -rf out
+
