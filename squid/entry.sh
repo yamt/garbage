@@ -7,4 +7,4 @@ if [ -n "${PROXY_USER}" ]; then
 else
 	CONF=squid-allowall.conf
 fi
-exec squid -Nd1 -f ${CONF}
+exec squid --foreground -d1 -f ${CONF}
