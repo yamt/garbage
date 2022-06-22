@@ -1,4 +1,5 @@
 NAME = yamt/squid
+TS = $(shell TZ=UTC date "+%Y-%m-%d-%H-%M-%S")
 
 CONF = squid-allowall.conf squid-basicauth.conf
 
@@ -14,6 +15,8 @@ build: $(CONF)
 	mv $@.tmp $@
 
 push:
+	docker tag $(NAME) $(NAME):$(TS)
+	docker push $(NAME):$(TS)
 	docker push $(NAME)
 
 run:
