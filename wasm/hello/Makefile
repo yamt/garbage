@@ -31,8 +31,6 @@ all: $(BINS)
 
 $(BIN): $(OBJS)
 	$(CC) \
-	-mexec-model=reactor \
-	-emain \
 	-Wl,--allow-undefined \
 	-z stack-size=8192 \
 	-Wl,--initial-memory=65536 \
