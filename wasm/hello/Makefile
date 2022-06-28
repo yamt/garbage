@@ -36,6 +36,7 @@ $(BIN): $(OBJS)
 	-Wl,--initial-memory=65536 \
 	-Wl,--export=__data_end -Wl,--export=__heap_base \
 	-Wl,--export=malloc -Wl,--export=free \
+	-Wl,--export=__wasm_call_ctors \
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
