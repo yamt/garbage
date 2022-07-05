@@ -90,7 +90,9 @@ call(wasm_exec_env_t exec_env, void *cb, void *vp)
         uint32_t args[1];
         args[0] = (uint32_t)(uintptr_t)vp;
         if (!wasm_runtime_call_indirect(exec_env, func, 1, args)) {
-                printf("wasm_runtime_call_indirect failed\n");
+                printf("wasm_runtime_call_indirect failed %s\n",
+                       wasm_runtime_get_exception(
+                               wasm_runtime_get_module_inst(exec_env)));
                 assert(false);
         }
         ret = (void *)(uintptr_t)args[0];
@@ -212,12 +214,15 @@ main(int argc, char *argv[])
                                            m_argv, m_argc);
 
                 wasm_module_inst_t module_inst;
-                uint32_t stack_size = 4000;
+                uint32_t stack_size = 8000;
                 uint32_t heap_size = 4000;
                 module_inst =
                         wasm_runtime_instantiate(module, stack_size, heap_size,
                                                  error_buf, sizeof(error_buf));
-                assert(module_inst != NULL);
+                if (module == NULL) {
+                        printf("instantiate [%u]: %s\n", i, error_buf);
+                        exit(1);
+                }
                 module_instances[i] = module_inst;
         }
 
