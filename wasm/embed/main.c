@@ -173,10 +173,11 @@ main(int argc, char *argv[])
 
         p = read_file(argv[1], &sz);
 
-        unsigned int ninst = 4;
+        unsigned int ninst = 1;
         unsigned int i;
 
-#if 1
+#define SHARE_MODULE 0
+#if SHARE_MODULE
         /*
          * XXX a can module be shared among instances?
          */
@@ -192,7 +193,7 @@ main(int argc, char *argv[])
 
         wasm_module_inst_t module_instances[ninst];
         for (i = 0; i < ninst; i++) {
-#if 0
+#if !SHARE_MODULE
                 /*
                  * XXX a can module be shared among instances?
                  */
