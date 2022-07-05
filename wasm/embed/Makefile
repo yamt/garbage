@@ -1,6 +1,6 @@
 WAMR_DIR = $(HOME)/git/wasm-micro-runtime
 WAMR_LIB_DIR = $(WAMR_DIR)/product-mini/platforms/darwin/b
-WASI_SDK_DIR = /tmp/wasi-sdk/wasi-sdk-12.0
+WASI_SDK_DIR = /tmp/wasi-sdk-12.0
 
 CC = clang
 CFLAGS = -Os

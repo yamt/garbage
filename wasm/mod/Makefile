@@ -1,4 +1,4 @@
-WASI_SDK_DIR = /tmp/wasi-sdk/wasi-sdk-12.0
+WASI_SDK_DIR = /tmp/wasi-sdk-12.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang

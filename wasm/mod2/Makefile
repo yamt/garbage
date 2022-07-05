@@ -1,6 +1,6 @@
 WAMR_DIR = $(HOME)/git/wasm-micro-runtime
 # https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-12/wasi-sdk-12.0-macos.tar.gz
-WASI_SDK_DIR = /tmp/wasi-sdk/wasi-sdk-12.0
+WASI_SDK_DIR = /tmp/wasi-sdk-12.0
 
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 SYSROOT_PTHREAD = /tmp/wasi-sysroot-pthread
