@@ -10,6 +10,7 @@ CFLAGS = -Os
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
+CFLAGS += -g
 
 WAMRC = wamrc
 WAMRC.xtensa = wamrc.xtensa
