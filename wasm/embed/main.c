@@ -46,7 +46,9 @@ read_file(const char *path, size_t *sizep)
 int
 add3(wasm_exec_env_t exec_env, int a)
 {
-        printf("this is a native exported function, called with %d\n", a);
+        printf("this is a native exported function \"add3\", called with env "
+               "%p arsg %d\n",
+               exec_env, a);
         return a + 3;
 }
 
@@ -55,9 +57,10 @@ wasm_function_inst_t call_indirect_fn;
 void *
 call(wasm_exec_env_t exec_env, void *cb, void *vp)
 {
-        printf("this is a native exported function \"call\", called with %p "
+        printf("this is a native exported function \"call\", called with env "
+               "%p args %p "
                "%p\n",
-               cb, vp);
+               exec_env, cb, vp);
         void *ret;
 #if 0
         /* XXX
@@ -170,19 +173,38 @@ main(int argc, char *argv[])
 
         p = read_file(argv[1], &sz);
 
-        unsigned int ninst = 1;
+        unsigned int ninst = 4;
         unsigned int i;
+
+#if 1
+        /*
+         * XXX a can module be shared among instances?
+         */
+        wasm_module_t module;
+        module = wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
+        if (module == NULL) {
+                printf("load: %s\n", error_buf);
+                exit(1);
+        }
+#else
         wasm_module_t modules[ninst];
+#endif
+
         wasm_module_inst_t module_instances[ninst];
         for (i = 0; i < ninst; i++) {
+#if 0
                 /*
-                 * XXX can module be shared among instances?
+                 * XXX a can module be shared among instances?
                  */
                 wasm_module_t module;
                 module =
                         wasm_runtime_load(p, sz, error_buf, sizeof(error_buf));
-                assert(module != NULL);
+                if (module == NULL) {
+                        printf("load [%u]: %s\n", i, error_buf);
+                        exit(1);
+                }
                 modules[i] = module;
+#endif
 
                 const char *dirs[] = {"."};
                 wasm_runtime_set_wasi_args(module, dirs, 1, NULL, 0, NULL, 0,
