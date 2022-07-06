@@ -175,10 +175,10 @@ main(int argc, char *argv[])
 
         p = read_file(argv[1], &sz);
 
-        unsigned int ninst = 1;
+        unsigned int ninst = 16;
         unsigned int i;
 
-#define SHARE_MODULE 0
+#define SHARE_MODULE 1
 #if SHARE_MODULE
         /*
          * XXX a can module be shared among instances?
@@ -197,7 +197,8 @@ main(int argc, char *argv[])
         for (i = 0; i < ninst; i++) {
 #if !SHARE_MODULE
                 /*
-                 * XXX a can module be shared among instances?
+                 * XXX this is not safe as the loader modifies
+                 * the buffer (p)
                  */
                 wasm_module_t module;
                 module =
