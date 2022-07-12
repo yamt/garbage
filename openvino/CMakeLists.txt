@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.10)
+project(openvino-test)
+find_package(OpenVINO REQUIRED)
+set(TARGET_NAME test)
+add_executable(${TARGET_NAME} src/main.c)
+target_link_libraries(${TARGET_NAME} PRIVATE openvino::runtime)
+target_link_libraries(${TARGET_NAME} PRIVATE openvino::runtime::c)
