@@ -109,6 +109,8 @@ main(int argc, char **argv)
         ie_blob_t *blob_weights = NULL;
         ie_blob_t *blob_tensor = NULL;
         ie_infer_request_t *req = NULL;
+        char *in_name = NULL;
+        char *out_name = NULL;
 
         ret = read_file("../testfiles/model.xml", false, &graph_xml,
                         &graph_xml_size);
@@ -174,6 +176,7 @@ main(int argc, char **argv)
                         goto fail;
                 }
                 status = ie_network_set_input_layout(net, name, NHWC);
+                ie_network_name_free(&name);
                 if (status != OK) {
                         fprintf(stderr,
                                 "ie_network_set_input_layout failed\n");
@@ -227,13 +230,12 @@ main(int argc, char **argv)
                 fprintf(stderr, "make_blob (tensor) failed\n");
                 goto fail;
         }
-        char *name;
-        status = ie_network_get_input_name(net, 0, &name);
+        status = ie_network_get_input_name(net, 0, &in_name);
         if (status != OK) {
                 fprintf(stderr, "ie_network_get_input_name failed\n");
                 goto fail;
         }
-        status = ie_infer_request_set_blob(req, name, blob_tensor);
+        status = ie_infer_request_set_blob(req, in_name, blob_tensor);
         if (status != OK) {
                 fprintf(stderr, "ie_infer_request_set_blob failed\n");
                 goto fail;
@@ -249,13 +251,13 @@ main(int argc, char **argv)
         fprintf(stderr, "compute succeeded\n");
 
         /* get_output */
-        status = ie_network_get_output_name(net, 0, &name);
+        status = ie_network_get_output_name(net, 0, &out_name);
         if (status != OK) {
                 fprintf(stderr, "ie_network_get_output_name failed\n");
                 goto fail;
         }
         ie_blob_t *blob_result = NULL;
-        status = ie_infer_request_get_blob(req, name, &blob_result);
+        status = ie_infer_request_get_blob(req, out_name, &blob_result);
         if (status != OK) {
                 fprintf(stderr, "ie_infer_request_get_blob failed\n");
                 goto fail;
@@ -277,9 +279,16 @@ main(int argc, char **argv)
         }
         float *f = (float *)buffer.buffer;
         print_result(f + 1, buffer_size / sizeof(*f) - 1);
+        ie_blob_free(&blob_result);
 
         exit_status = 0;
 fail:
+        if (in_name != NULL) {
+                ie_network_name_free(&in_name);
+        }
+        if (out_name != NULL) {
+                ie_network_name_free(&out_name);
+        }
         if (req != NULL) {
                 ie_infer_request_free(&req);
         }
