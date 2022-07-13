@@ -127,10 +127,11 @@ main(int argc, char **argv)
 
         /* load */
 
-        const char *plugins_xml = "/opt/intel/openvino_2022/runtime/lib/"
-                                  "intel64/Debug/plugins.xml";
-        // const char *plugins_xml =
-        // "/opt/intel/openvino_2022/runtime/lib/intel64/Release/plugins.xml";
+        const char *plugins_xml = "";
+#if 0
+        "/opt/intel/openvino_2022/runtime/lib/intel64/Debug/plugins.xml";
+        "/opt/intel/openvino_2022/runtime/lib/intel64/Release/plugins.xml";
+#endif
         status = ie_core_create(plugins_xml, &core);
         if (status != OK) {
                 fprintf(stderr, "ie_core_create failed\n");
