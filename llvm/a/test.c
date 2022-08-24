@@ -44,6 +44,7 @@ main(int argc, char **argv)
         ret = LLVMGetTargetFromTriple(triple, &target, &errormsg);
         if (ret) {
                 printf("LLVMGetTargetFromTriple failed: %s\n", errormsg);
+                LLVMDisposeMessage(errormsg);
                 exit(1);
         }
 
@@ -56,6 +57,7 @@ main(int argc, char **argv)
                                           LLVMAssemblyFile, &errormsg);
         if (ret) {
                 printf("LLVMTargetMachineEmitToFile failed: %s\n", errormsg);
+                LLVMDisposeMessage(errormsg);
                 exit(1);
         }
 
