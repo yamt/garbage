@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <llvm-c/Analysis.h>
 #include <llvm-c/Core.h>
 #include <llvm-c/TargetMachine.h>
 
@@ -31,6 +32,15 @@ main(int argc, char **argv)
 
         LLVMDumpModule(m);
 
+        char *errormsg;
+        LLVMBool ret;
+        ret = LLVMVerifyModule(m, LLVMAbortProcessAction, &errormsg);
+        if (ret) {
+                printf("LLVMVerifyModule failed: %s\n", errormsg);
+                LLVMDisposeMessage(errormsg);
+                exit(1);
+        }
+
         char *triple = LLVMGetDefaultTargetTriple();
         printf("triple: %s\n", triple);
         LLVMInitializeAllTargetInfos();
@@ -39,8 +49,6 @@ main(int argc, char **argv)
         LLVMInitializeAllAsmPrinters();
 
         LLVMTargetRef target;
-        char *errormsg;
-        LLVMBool ret;
         ret = LLVMGetTargetFromTriple(triple, &target, &errormsg);
         if (ret) {
                 printf("LLVMGetTargetFromTriple failed: %s\n", errormsg);
