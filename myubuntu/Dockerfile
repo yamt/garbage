@@ -50,6 +50,7 @@ RUN update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-11 50
 
 COPY dot-files/tmux.conf /root/.tmux.conf
 COPY dot-files/zshrc /root/.zshrc
+COPY apt/sources.list /etc/apt/sources.list
 
 WORKDIR /work
 CMD [ "/usr/bin/zsh" ]
