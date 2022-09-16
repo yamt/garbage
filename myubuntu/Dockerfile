@@ -45,7 +45,7 @@ RUN apt-get update && apt-get install -y \
 FROM install as config
 
 RUN update-alternatives --install /usr/bin/cc cc /usr/bin/clang-11 50
-RUN update-alternatives --install /usr/bin/c++ cc++ /usr/bin/clang++-11 50
+RUN update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-11 50
 RUN update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-11 50
 
 COPY dot-files/tmux.conf /root/.tmux.conf
