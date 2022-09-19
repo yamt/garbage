@@ -1,5 +1,6 @@
 #import "app_delegate.h"
 #import "view.h"
+#import "window.h"
 
 @implementation AppDelegate
 
@@ -8,8 +9,8 @@
         NSLog(@"applicationDidFinishLaunching");
 
         NSRect rect = NSMakeRect(0, 0, 500, 500);
-        NSUInteger style = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable;
-        NSWindow *window = [NSWindow alloc];
+        NSUInteger style = NSWindowStyleMaskBorderless;
+        NSWindow *window = [MyWindow alloc];
         [window initWithContentRect:rect
                           styleMask:style
                             backing:NSBackingStoreBuffered
