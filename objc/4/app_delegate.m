@@ -9,6 +9,14 @@
         NSLog(@"applicationDidFinishLaunching");
 
         NSRect rect = NSMakeRect(0, 0, 500, 500);
+        /*
+         * Note: a window with NSWindowStyleMaskBorderless
+         * can't be main or key by default. As we want to make our view
+         * receive key events, MyWindow has canBecomeKeyWindow and
+         * canBecomeMainWindow overridden.
+         *
+         * https://developer.apple.com/documentation/appkit/nswindowstylemask/nswindowstylemaskborderless
+         */
         NSUInteger style = NSWindowStyleMaskBorderless;
         NSWindow *window = [MyWindow alloc];
         [window initWithContentRect:rect
