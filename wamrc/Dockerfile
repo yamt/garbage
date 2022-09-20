@@ -7,18 +7,18 @@ RUN git -C wasm-micro-runtime log -1 > wamr-version.txt
 FROM base as build
 
 WORKDIR wasm-micro-runtime/wamr-compiler
-RUN ./build_llvm.sh --project clang lldb
+RUN ./build_llvm.sh
 WORKDIR b
-RUN cmake -DWAMR_BUILD_DEBUG_AOT=1 ..
+RUN cmake ..
 RUN make
 RUN install wamrc /usr/local/bin
 
 FROM base as build-xtensa
 
 WORKDIR wasm-micro-runtime/wamr-compiler
-RUN ./build_llvm_xtensa.sh --project clang lldb
+RUN ./build_llvm_xtensa.sh
 WORKDIR b
-RUN cmake -DWAMR_BUILD_DEBUG_AOT=1 ..
+RUN cmake ..
 RUN make
 RUN install wamrc /usr/local/bin/wamrc-xtensa
 
