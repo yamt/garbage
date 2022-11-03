@@ -1,6 +1,9 @@
 FROM ubuntu:20.04 as base
 
 ENV DEBIAN_FRONTEND="noninteractive"
+
+# net-tools: netstat, ifconfig
+# iputils-ping: ping
 RUN apt-get update && apt-get install -y \
     --no-install-recommends \
     curl \
