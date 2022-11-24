@@ -20,8 +20,10 @@ RUN apt-get update && apt-get install -y \
     iproute2 \
     net-tools \
     ca-certificates \
+    locales \
     && rm -rf /var/lib/apt/list/*
-
+RUN sed -i -e '/en_US.UTF-8/s/^# *//' /etc/locale.gen
+RUN dpkg-reconfigure locales
 RUN chsh -s /usr/bin/zsh root
 
 FROM base as install
