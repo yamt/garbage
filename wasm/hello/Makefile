@@ -1,4 +1,4 @@
-WASI_SDK_DIR = /tmp/wasi-sdk-14.0
+WASI_SDK_DIR = /opt/wasi-sdk-16.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
@@ -12,27 +12,41 @@ CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 CFLAGS += -g
 
+# make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
+SYSROOT = /Users/yamamoto/git/wasi-libc/sysroot
+CFLAGS += --sysroot $(SYSROOT)
+CFLAGS += -pthread
+#CFLAGS += -mbulk-memory
+#CFLAGS += -matomics
+CLINKFLAGS += -pthread
+CLINKFLAGS += --sysroot $(SYSROOT)
+
+#CLINKFLAGS += -Wl,--allow-undefined
+
 WAMRC = wamrc
 WAMRC.xtensa = wamrc.xtensa
 
-WAMRC_FLAGS += --enable-perf-profiling
+#WAMRC_FLAGS += --enable-perf-profiling
 
 OBJS = hello.o
-BIN = test.wasm
+BIN = hello.wasm
 
 BINS = $(BIN)
-BINS += $(BIN).aot-default
-BINS += $(BIN).aot-default.xtensa
-BINS += $(BIN).aot-xip
-BINS += $(BIN).aot-xip.xtensa
-BINS += $(BIN).aot-xip.obj
-BINS += $(BIN).aot-xip.obj.xtensa
+WAMR_AOT_BINS += $(BIN).aot-default
+WAMR_AOT_BINS += $(BIN).aot-default.xtensa
+WAMR_AOT_BINS += $(BIN).aot-xip
+WAMR_AOT_BINS += $(BIN).aot-xip.xtensa
+WAMR_AOT_BINS += $(BIN).aot-xip.obj
+WAMR_AOT_BINS += $(BIN).aot-xip.obj.xtensa
 
 all: $(BINS)
 
+aot: $(WAMR_AOT_BINS)
+
 $(BIN): $(OBJS)
 	$(CC) \
-	-Wl,--allow-undefined \
+	$(CLINKFLAGS) \
+	-v \
 	-z stack-size=8192 \
 	-Wl,--initial-memory=65536 \
 	-Wl,--export=__data_end -Wl,--export=__heap_base \
@@ -89,5 +103,6 @@ $(BIN).aot-xip.obj.xtensa: $(BIN)
 
 .PHONY: clean
 clean:
+	rm -f $(WAMR_AOT_BINS)
 	rm -f $(BINS)
 	rm -f $(OBJS)
