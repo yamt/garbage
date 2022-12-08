@@ -12,6 +12,7 @@ CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 CFLAGS += -g
 
+ifeq ($(THREAD),1)
 # make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
 SYSROOT = /Users/yamamoto/git/wasi-libc/sysroot
 CFLAGS += --sysroot $(SYSROOT)
@@ -20,6 +21,7 @@ CFLAGS += -pthread
 #CFLAGS += -matomics
 CLINKFLAGS += -pthread
 CLINKFLAGS += --sysroot $(SYSROOT)
+endif
 
 #CLINKFLAGS += -Wl,--allow-undefined
 

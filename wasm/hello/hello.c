@@ -6,6 +6,10 @@
         extern unsigned char a;                                               \
         printf(#a " %p\n", &a)
 
+#define PRINT_GLOBAL(a)                                                       \
+        extern uint32_t a __attribute__((address_space(1)));                  \
+        printf(#a " %" PRIx32 "\n", a)
+
 int
 main(void)
 {
@@ -32,10 +36,10 @@ main(void)
 
         /* https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md
          */
-        extern uint32_t __memory_base __attribute__((address_space(1)));
-        extern uint32_t __table_base __attribute__((address_space(1)));
-        printf("__memory_base %" PRIx32 "\n", __memory_base);
-        printf("__table_base %" PRIx32 "\n", __table_base);
+        PRINT_GLOBAL(__memory_base);
+        PRINT_GLOBAL(__table_base);
+
+        PRINT_GLOBAL(__tls_base);
 
         printf("shadow stack size %zu\n", &__heap_base - &__data_end);
 
