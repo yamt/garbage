@@ -17,10 +17,22 @@
         extern uint32_t a __attribute__((address_space(1)));                  \
         printf(#a " %" PRIx32 "\n", a)
 
+static int
+tid(pthread_t t)
+{
+        /*
+         * XXX specific to a particular version of wasi-libc.
+         * works for 16.0 and the latest main as of writing this.
+         */
+        const int *p = (const void *)t;
+        return p[5];
+}
+
 void
 print_env(void)
 {
         printf("pthread_self %ju\n", (uintmax_t)pthread_self());
+        printf("tid %u\n", tid(pthread_self()));
         printf("__builtin_frame_address %p\n", __builtin_frame_address(0));
         printf("__builtin_wasm_tls_base %p\n", __builtin_wasm_tls_base());
         printf("__builtin_wasm_tls_size %zu\n", __builtin_wasm_tls_size());
