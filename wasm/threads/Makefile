@@ -23,12 +23,16 @@ CLINKFLAGS += --sysroot $(SYSROOT)
 
 #CLINKFLAGS += -Wl,--allow-undefined
 
+CLINKFLAGS += -Wl,--gc-sections
+#CLINKFLAGS += -Wl,--relocatable
+
 NAME = threads
 OBJS = $(NAME).o
 BIN = $(NAME).wasm
 
-STACK_SIZE = 65536
-INITIAL_MEMORY = 655360
+STACK_SIZE = 8192
+INITIAL_MEMORY = 65536
+MAX_MEMORY = 6553600
 
 BINS = $(BIN)
 
@@ -40,6 +44,7 @@ $(BIN): $(OBJS)
 	-v \
 	-z stack-size=$(STACK_SIZE) \
 	-Wl,--initial-memory=$(INITIAL_MEMORY) \
+	-Wl,--max-memory=$(MAX_MEMORY) \
 	-Wl,--export=__data_end -Wl,--export=__heap_base \
 	-Wl,--export=malloc -Wl,--export=free \
 	-o $@ $<

@@ -2,8 +2,10 @@
 #include <errno.h>
 #include <inttypes.h>
 #include <pthread.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define PRINT_SYM(a)                                                          \
         extern unsigned char a;                                               \
@@ -16,6 +18,37 @@
 #define PRINT_GLOBAL(a)                                                       \
         extern uint32_t a __attribute__((address_space(1)));                  \
         printf(#a " %" PRIx32 "\n", a)
+
+pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
+
+#undef USE_MUTEX
+#undef USE_FLOCKFILE
+
+static void
+lock(void)
+{
+#if defined(USE_MUTEX)
+        int ret = pthread_mutex_lock(&g_lock);
+        assert(ret == 0);
+#else
+#if defined(USE_FLOCKFILE)
+        flockfile(stdout);
+#endif
+#endif
+}
+
+static void
+unlock(void)
+{
+#if defined(USE_MUTEX)
+        int ret = pthread_mutex_unlock(&g_lock);
+        assert(ret == 0);
+#else
+#if defined(USE_FLOCKFILE)
+        funlockfile(stdout);
+#endif
+#endif
+}
 
 static int
 tid(pthread_t t)
@@ -68,30 +101,59 @@ print_env(void)
 void *
 start(void *vp)
 {
+        lock();
         printf("%s: hello %p\n", __func__, vp);
         print_env();
+        unlock();
         return (void *)0x123;
 }
 
 int
 main(void)
 {
+        bool failed = false;
+        setvbuf(stdout, NULL, _IONBF, 0);
         printf("%s: hello\n", __func__);
         print_env();
 
-        pthread_t t;
+        unsigned int n = 16;
+        pthread_t t[n];
         int ret;
-        ret = pthread_create(&t, NULL, start, (void *)0x321);
-        if (ret != 0) {
-                printf("pthread_create failed with %d\n", ret);
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+                lock();
+                printf("%s: spawning thread %u/%u\n", __func__, i, n);
+                unlock();
+                ret = pthread_create(&t[i], NULL, start, (void *)(0x321 + i));
+                if (ret != 0) {
+                        printf("pthread_create failed with %d\n", ret);
+                        failed = true;
+                        break;
+                }
+                lock();
+                printf("%s: spawned thread %u/%u\n", __func__, i, n);
+                unlock();
         }
-        assert(ret == 0);
-        void *value;
-        printf("%s: join\n", __func__);
-        ret = pthread_join(t, &value);
-        assert(ret == 0);
-        printf("%s: joined %p\n", __func__, value);
+        //_Exit(0);
+        // exit(0);
+        n = i;
+        for (i = 0; i < n; i++) {
+                void *value;
+                lock();
+                printf("%s: joining thread %u/%u\n", __func__, i, n);
+                unlock();
+                ret = pthread_join(t[i], &value);
+                assert(ret == 0);
+                lock();
+                printf("%s: joined thread %u/%u %p\n", __func__, i, n, value);
+                unlock();
+        }
 
         print_env();
+        if (failed) {
+                printf("failed\n");
+                return 1;
+        }
+        printf("succeeded\n");
         return 0;
 }
