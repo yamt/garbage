@@ -108,6 +108,32 @@ start(void *vp)
         return (void *)0x123;
 }
 
+void
+test_cv_timeout(void)
+{
+        pthread_mutex_t lock;
+        pthread_cond_t cv;
+        int ret;
+        ret = pthread_mutex_init(&lock, NULL);
+        assert(ret == 0);
+        ret = pthread_cond_init(&cv, NULL);
+        assert(ret == 0);
+
+        ret = pthread_mutex_lock(&lock);
+        assert(ret == 0);
+        int i;
+        for (i = 0; i < 16; i++) {
+                struct timespec tv;
+                ret = clock_gettime(CLOCK_REALTIME, &tv);
+                assert(ret == 0);
+                tv.tv_sec += 1;
+                printf("waiting for cond\n");
+                ret = pthread_cond_timedwait(&cv, &lock, &tv);
+                assert(ret == ETIMEDOUT);
+                printf("timedout\n");
+        }
+}
+
 int
 main(void)
 {
@@ -150,6 +176,9 @@ main(void)
         }
 
         print_env();
+
+        test_cv_timeout();
+
         if (failed) {
                 printf("failed\n");
                 return 1;
