@@ -13,7 +13,7 @@ CFLAGS += -Wall -Werror
 CFLAGS += -g
 
 # make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
-SYSROOT = /Users/yamamoto/git/wasi-libc/sysroot
+SYSROOT = ${HOME}/git/wasi-libc/sysroot
 CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
 #CFLAGS += -mbulk-memory
