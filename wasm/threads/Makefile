@@ -21,6 +21,9 @@ CFLAGS += -pthread
 CLINKFLAGS += -pthread
 CLINKFLAGS += --sysroot $(SYSROOT)
 
+CFLAGS += --target=wasm32-wasi-pthread
+CLINKFLAGS += --target=wasm32-wasi-pthread
+
 #CLINKFLAGS += -Wl,--allow-undefined
 
 CLINKFLAGS += -Wl,--gc-sections
