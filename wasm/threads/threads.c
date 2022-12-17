@@ -1,11 +1,13 @@
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
+#include <poll.h>
 #include <pthread.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #define PRINT_SYM(a)                                                          \
         extern unsigned char a;                                               \
@@ -20,6 +22,9 @@
         printf(#a " %" PRIx32 "\n", a)
 
 pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
+
+pthread_attr_t attr;
+pthread_attr_t *g_attr = &attr;
 
 #undef USE_MUTEX
 #undef USE_FLOCKFILE
@@ -105,6 +110,13 @@ start(void *vp)
         printf("%s: hello %p\n", __func__, vp);
         print_env();
         unlock();
+#if 0
+        if ((int)vp == 0x32f) {
+                printf("%s: EXIT", __func__);
+                fflush(NULL);
+                exit(2);
+        }
+#endif
         return (void *)0x123;
 }
 
@@ -122,7 +134,7 @@ test_cv_timeout(void)
         ret = pthread_mutex_lock(&lock);
         assert(ret == 0);
         int i;
-        for (i = 0; i < 16; i++) {
+        for (i = 0; i < 3; i++) {
                 struct timespec tv;
                 ret = clock_gettime(CLOCK_REALTIME, &tv);
                 assert(ret == 0);
@@ -134,23 +146,58 @@ test_cv_timeout(void)
         }
 }
 
+void *
+poller(void *vp)
+{
+        struct pollfd pfd;
+        int ret;
+        pfd.fd = STDIN_FILENO;
+        pfd.events = POLLIN;
+        ret = poll(&pfd, 1, -1);
+        assert(ret == 0);
+        assert(0);
+}
+
+void
+create_poll_thread(void)
+{
+        pthread_t t;
+        int ret;
+        ret = pthread_create(&t, g_attr, poller, NULL);
+        assert(ret == 0);
+        ret = pthread_detach(t);
+        assert(ret == 0);
+}
+
 int
 main(void)
 {
+        int ret;
         bool failed = false;
         setvbuf(stdout, NULL, _IONBF, 0);
         printf("%s: hello\n", __func__);
         print_env();
 
+        ret = pthread_attr_init(&attr);
+        assert(ret == 0);
+        ret = pthread_attr_setstacksize(&attr, 4096);
+        assert(ret == 0);
+#if 0
+        ret = pthread_attr_setguardsize(&attr, 0);
+        assert(ret == 0);
+#endif
+
+        create_poll_thread();
+
         unsigned int n = 16;
         pthread_t t[n];
-        int ret;
         unsigned int i;
         for (i = 0; i < n; i++) {
                 lock();
                 printf("%s: spawning thread %u/%u\n", __func__, i, n);
                 unlock();
-                ret = pthread_create(&t[i], NULL, start, (void *)(0x321 + i));
+                ret = pthread_create(&t[i], g_attr, start,
+                                     (void *)(0x321 + i));
                 if (ret != 0) {
                         printf("pthread_create failed with %d\n", ret);
                         failed = true;
@@ -160,8 +207,7 @@ main(void)
                 printf("%s: spawned thread %u/%u\n", __func__, i, n);
                 unlock();
         }
-        //_Exit(0);
-        // exit(0);
+        // pthread_exit(NULL);
         n = i;
         for (i = 0; i < n; i++) {
                 void *value;
@@ -184,5 +230,6 @@ main(void)
                 return 1;
         }
         printf("succeeded\n");
+        //__wasi_proc_exit(0);
         return 0;
 }
