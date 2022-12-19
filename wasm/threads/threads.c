@@ -199,6 +199,9 @@ main(void)
                 ret = pthread_create(&t[i], g_attr, start,
                                      (void *)(0x321 + i));
                 if (ret != 0) {
+                        if (i > 0 || errno == ENOMEM || errno == EAGAIN) {
+                                break;
+                        }
                         printf("pthread_create failed with %d\n", ret);
                         failed = true;
                         break;
@@ -229,7 +232,7 @@ main(void)
                 printf("failed\n");
                 return 1;
         }
-        printf("succeeded\n");
+        printf("succeeded (threads=%u)\n", n);
         //__wasi_proc_exit(0);
         return 0;
 }

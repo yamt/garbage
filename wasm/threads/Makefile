@@ -16,6 +16,7 @@ CFLAGS += -g
 SYSROOT = ${HOME}/git/wasi-libc/sysroot
 CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
+CFLAGS += -ftls-model=local-exec
 #CFLAGS += -mbulk-memory
 #CFLAGS += -matomics
 CLINKFLAGS += -pthread
@@ -35,7 +36,7 @@ BIN = $(NAME).wasm
 
 STACK_SIZE = 8192
 INITIAL_MEMORY = 65536
-MAX_MEMORY = 131072
+MAX_MEMORY = 65536
 
 BINS = $(BIN)
 
