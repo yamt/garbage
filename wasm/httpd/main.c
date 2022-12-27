@@ -248,11 +248,11 @@ send_response(struct state *state)
 void
 reset(struct state *state)
 {
-    free(state->path);
-	free(state->buf);
-    int fd = state->fd;
-    memset(state, 0, sizeof(*state));
-    state->fd = fd;
+        free(state->path);
+        free(state->buf);
+        int fd = state->fd;
+        memset(state, 0, sizeof(*state));
+        state->fd = fd;
 }
 
 int
@@ -370,7 +370,7 @@ do_loop(int listenfd)
         while (true) {
                 ret = do_accept(listenfd);
                 if (ret == ECONNRESET) {
-                    continue;
+                        continue;
                 }
                 if (ret != 0) {
                         break;
@@ -418,20 +418,21 @@ main(int argc, char **argv)
 #if defined(THREADS)
         int n = 8;
         pthread_t t[n];
-		pthread_attr_t a;
+        pthread_attr_t a;
         ret = pthread_attr_init(&a);
         if (ret != 0) {
-            goto fail;
+                goto fail;
         }
         ret = pthread_attr_setstacksize(&a, 4096);
         if (ret != 0) {
-            goto fail;
+                goto fail;
         }
         int i;
         for (i = 0; i < n; i++) {
                 ret = pthread_create(&t[i], &a, thread_start, NULL);
                 if (ret != 0) {
-                        printf("pthread_create failed ret=%d (%s)\n", ret, strerror(ret));
+                        printf("pthread_create failed ret=%d (%s)\n", ret,
+                               strerror(ret));
                         break;
                 }
         }
@@ -449,7 +450,7 @@ main(int argc, char **argv)
                 }
         }
         if (ret1 != 0) {
-            ret = ret1;
+                ret = ret1;
         }
 fail:;
 #else
