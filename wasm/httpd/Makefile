@@ -68,3 +68,7 @@ $(BIN): $(OBJS)
 clean:
 	rm -f $(BINS)
 	rm -f $(OBJS)
+
+.PHONY: style
+style:
+	clang-format-12 -i *.[ch]
