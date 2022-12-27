@@ -14,6 +14,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <limits.h>
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +29,8 @@
 
 char working_dir_store[PATH_MAX + 1];
 const char *working_dir;
+atomic_int count;
+int nrequests = -1;
 
 struct state {
         int fd;
@@ -306,6 +309,19 @@ do_io(int fd)
                 break;
         }
         reset(state);
+
+        int n = atomic_fetch_add(&count, 1) + 1;
+        if (nrequests != -1 && n == nrequests) {
+                printf("processed %u/%u requests\n", n, nrequests);
+                exit(0);
+        }
+        if ((n % 200) == 0) {
+                if (nrequests == -1) {
+                        printf("processed %u requests\n", n);
+                } else {
+                        printf("processed %u/%u requests\n", n, nrequests);
+                }
+        }
         return ret;
 }
 
@@ -376,8 +392,18 @@ thread_start(void *vp)
 #endif
 
 int
-main()
+main(int argc, char **argv)
 {
+        int ch;
+        while ((ch = getopt(argc, argv, "n:")) != -1) {
+                switch (ch) {
+                case 'n':
+                        nrequests = atoi(optarg);
+                        break;
+                }
+        }
+        atomic_init(&count, 0);
+
         int ret;
         working_dir = getcwd(working_dir_store, sizeof(working_dir_store));
         if (working_dir == NULL) {
