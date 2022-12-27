@@ -342,6 +342,7 @@ do_accept(int listenfd)
                 return ret;
         }
         assert(fd >= 0);
+#if 0
         /* Note: wasi-libc fills the peer address with a dummy */
         if (sa->sa_family == AF_INET) {
                 const struct sockaddr_in *sin = (const void *)sa;
@@ -358,6 +359,7 @@ do_accept(int listenfd)
         } else {
                 printf("accepted\n");
         }
+#endif
         return do_io(fd);
 }
 
