@@ -21,6 +21,7 @@ CFLAGS += -ftls-model=local-exec
 #CFLAGS += -matomics
 CLINKFLAGS += -pthread
 CLINKFLAGS += --sysroot $(SYSROOT)
+CLINKFLAGS += -Wl,--import-memory
 
 CFLAGS += --target=wasm32-wasi-pthread
 CLINKFLAGS += --target=wasm32-wasi-pthread
