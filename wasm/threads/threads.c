@@ -26,6 +26,10 @@ pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_attr_t attr;
 pthread_attr_t *g_attr = &attr;
 
+_Thread_local int tls_a = 123;
+
+char shared[100];
+
 #undef USE_MUTEX
 #undef USE_FLOCKFILE
 
@@ -55,7 +59,7 @@ unlock(void)
 #endif
 }
 
-static int
+static unsigned int
 tid(pthread_t t)
 {
         /*
@@ -75,6 +79,8 @@ print_env(void)
         printf("__builtin_wasm_tls_base %p\n", __builtin_wasm_tls_base());
         printf("__builtin_wasm_tls_size %zu\n", __builtin_wasm_tls_size());
         printf("__builtin_wasm_tls_align %zu\n", __builtin_wasm_tls_align());
+
+        printf("tls_a = %u, &tls_a = %p\n", tls_a, &tls_a);
 
         extern void *__stack_pointer __attribute__((address_space(1)));
         printf("__stack_pointer %p\n", __stack_pointer);
@@ -110,6 +116,10 @@ start(void *vp)
         printf("%s: hello %p\n", __func__, vp);
         print_env();
         unlock();
+        unsigned int id = tid(pthread_self());
+        if (id < sizeof(shared)) {
+                shared[id] = 1;
+        }
 #if 0
         if ((int)vp == 0x32f) {
                 printf("%s: EXIT", __func__);
@@ -117,7 +127,7 @@ start(void *vp)
                 exit(2);
         }
 #endif
-        return (void *)0x123;
+        return (void *)id;
 }
 
 void
@@ -170,7 +180,7 @@ create_poll_thread(void)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
         int ret;
         bool failed = false;
@@ -189,8 +199,16 @@ main(void)
 
         create_poll_thread();
 
-        unsigned int n = 16;
-        pthread_t t[n];
+        unsigned int n = 1;
+        if (argc == 2) {
+                n = atoi(argv[1]);
+        }
+
+        pthread_t *t;
+        if (n > 0) {
+                t = malloc(n * sizeof(*t));
+                assert(t != NULL);
+        }
         unsigned int i;
         for (i = 0; i < n; i++) {
                 lock();
@@ -219,6 +237,11 @@ main(void)
                 unlock();
                 ret = pthread_join(t[i], &value);
                 assert(ret == 0);
+                unsigned int id = (unsigned int)value;
+                if (id < sizeof(shared)) {
+                        printf("checkind shared[%u]\n", id);
+                        assert(shared[id] == 1);
+                }
                 lock();
                 printf("%s: joined thread %u/%u %p\n", __func__, i, n, value);
                 unlock();
