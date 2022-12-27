@@ -7,7 +7,7 @@ LD = $(WASI_SDK_DIR)/bin/wasm-ld
 NM = $(WASI_SDK_DIR)/bin/nm
 
 CFLAGS = -Os
-CFLAGS = -std=c99
+CFLAGS = -std=c11
 #CFLAGS += -fno-builtin-printf
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -I../embed
