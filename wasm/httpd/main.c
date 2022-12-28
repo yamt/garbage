@@ -255,6 +255,23 @@ reset(struct state *state)
         state->fd = fd;
 }
 
+void
+done()
+{
+        int n = atomic_fetch_add(&count, 1) + 1;
+        if (nrequests != -1 && n == nrequests) {
+                printf("processed %u/%u requests\n", n, nrequests);
+                exit(0);
+        }
+        if ((n % 200) == 0) {
+                if (nrequests == -1) {
+                        printf("processed %u requests\n", n);
+                } else {
+                        printf("processed %u/%u requests\n", n, nrequests);
+                }
+        }
+}
+
 int
 do_io(int fd)
 {
@@ -310,18 +327,7 @@ do_io(int fd)
         }
         reset(state);
 
-        int n = atomic_fetch_add(&count, 1) + 1;
-        if (nrequests != -1 && n == nrequests) {
-                printf("processed %u/%u requests\n", n, nrequests);
-                exit(0);
-        }
-        if ((n % 200) == 0) {
-                if (nrequests == -1) {
-                        printf("processed %u requests\n", n);
-                } else {
-                        printf("processed %u/%u requests\n", n, nrequests);
-                }
-        }
+        done();
         return ret;
 }
 
