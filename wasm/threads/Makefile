@@ -31,6 +31,12 @@ CLINKFLAGS += --target=wasm32-wasi-pthread
 CLINKFLAGS += -Wl,--gc-sections
 #CLINKFLAGS += -Wl,--relocatable
 
+CLINKFLAGS += -z stack-size=$(STACK_SIZE)
+CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
+CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
+#CLINKFLAGS += -Wl,--export=__data_end -Wl,--export=__heap_base
+#CLINKFLAGS += -Wl,--export=malloc -Wl,--export=free
+
 NAME = threads
 OBJS = $(NAME).o
 BIN = $(NAME).wasm
@@ -47,11 +53,6 @@ $(BIN): $(OBJS)
 	$(CC) \
 	$(CLINKFLAGS) \
 	-v \
-	-z stack-size=$(STACK_SIZE) \
-	-Wl,--initial-memory=$(INITIAL_MEMORY) \
-	-Wl,--max-memory=$(MAX_MEMORY) \
-	-Wl,--export=__data_end -Wl,--export=__heap_base \
-	-Wl,--export=malloc -Wl,--export=free \
 	-o $@ $<
 
 .c.o:
