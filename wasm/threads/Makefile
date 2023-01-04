@@ -22,6 +22,8 @@ CFLAGS += -ftls-model=local-exec
 CLINKFLAGS += -pthread
 CLINKFLAGS += --sysroot $(SYSROOT)
 CLINKFLAGS += -Wl,--import-memory
+# Note: --import-memory implicitly disables the "memory" export.
+# Revisit when https://reviews.llvm.org/D135898 is available.
 
 CFLAGS += --target=wasm32-wasi-pthread
 CLINKFLAGS += --target=wasm32-wasi-pthread
