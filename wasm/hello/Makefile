@@ -25,6 +25,16 @@ endif
 
 #CLINKFLAGS += -Wl,--allow-undefined
 
+CLINKFLAGS += -z stack-size=$(STACK_SIZE)
+CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
+#CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
+#CLINKFLAGS += -Wl,--export=__data_end -Wl,--export=__heap_base
+#CLINKFLAGS += -Wl,--export=malloc -Wl,--export=free
+
+STACK_SIZE = 8192
+INITIAL_MEMORY = 65536
+#MAX_MEMORY = 65536
+
 WAMRC = wamrc
 WAMRC.xtensa = wamrc.xtensa
 
@@ -49,10 +59,6 @@ $(BIN): $(OBJS)
 	$(CC) \
 	$(CLINKFLAGS) \
 	-v \
-	-z stack-size=8192 \
-	-Wl,--initial-memory=65536 \
-	-Wl,--export=__data_end -Wl,--export=__heap_base \
-	-Wl,--export=malloc -Wl,--export=free \
 	-o $@ $<
 
 $(BIN).aot-default: $(BIN)
