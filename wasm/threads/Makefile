@@ -1,4 +1,6 @@
-WASI_SDK_DIR = /opt/wasi-sdk-16.0
+# Note: llvm >= 15 is necessary for tls
+# https://reviews.llvm.org/D126107
+WASI_SDK_DIR = /opt/wasi-sdk-19.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
