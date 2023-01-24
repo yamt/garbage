@@ -87,6 +87,7 @@ create_module(void)
         args[1] = n;
         LLVMValueRef retval =
                 LLVMBuildCall2(b, type_func, func, args, 2, "call");
+        LLVMSetTailCall(retval, true);
 
         LLVMBuildBr(b, block3);
 
