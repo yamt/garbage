@@ -2,9 +2,18 @@ WAMR_DIR = $(HOME)/git/wasm-micro-runtime
 WAMR_LIB_DIR = $(WAMR_DIR)/product-mini/platforms/darwin/b
 
 V8_DIR = ${HOME}/git/v8/v8
+
+# wasmer location.
+# extract a wasmer release tarball
+# eg. https://github.com/wasmerio/wasmer/releases/download/v3.1.1/wasmer-darwin-amd64.tar.gz
+# and specify the path.
+# Note: homebrew wasmer only contains the cli binary.
 WASMER_DIR= /tmp/wasmer
 
-CC = clang
+#CC = clang
+CC = /usr/local/opt/llvm@15/bin/clang
+CXX = /usr/local/opt/llvm@15/bin/clang++
+
 #CC = ${V8_DIR}/third_party/llvm-build/Release+Asserts/bin/clang
 #CXX = clang++
 #CXX = ${V8_DIR}/third_party/llvm-build/Release+Asserts/bin/clang++
@@ -25,6 +34,9 @@ CLINKFLAGS += -Xlinker -rpath -Xlinker $(WASMER_DIR)/lib
 
 #CFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/
 #CLINKFLAGS += -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/
+
+CFLAGS += -fsanitize=leak
+CLINKFLAGS += -fsanitize=leak
 
 OBJS = test.o
 OBJS += fileio.o

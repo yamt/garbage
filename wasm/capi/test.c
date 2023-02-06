@@ -46,10 +46,11 @@ print_module(wasm_module_t *mod)
                        (int)module_name->size, module_name->data,
                        (int)name->size, name->data, (int)kind);
         }
+        wasm_importtype_vec_delete(&imports);
 }
 
 int
-compare_name_and_cstr(wasm_name_t *name, const char *cstr)
+compare_name_and_cstr(const wasm_name_t *name, const char *cstr)
 {
         if (name->size != strlen(cstr)) {
                 return 1;
@@ -58,7 +59,7 @@ compare_name_and_cstr(wasm_name_t *name, const char *cstr)
 }
 
 int
-compare_names(wasm_name_t *a, wasm_name_t *b)
+compare_names(const wasm_name_t *a, const wasm_name_t *b)
 {
         if (a->size != b->size) {
                 return 1;
@@ -66,8 +67,20 @@ compare_names(wasm_name_t *a, wasm_name_t *b)
         return memcmp(a->data, b->data, a->size);
 }
 
+int
+compare_externtype(const wasm_externtype_t *extype,
+                   const wasm_externtype_t *imtype)
+{
+        wasm_externkind_t kind = wasm_externtype_kind(imtype);
+        if (kind != wasm_externtype_kind(extype)) {
+                return 1;
+        }
+        /* TODO: implement */
+        return 0;
+}
+
 struct module {
-        wasm_byte_vec_t bins;
+        wasm_byte_vec_t bin;
         const char *module_name;
         wasm_module_t *module;
         wasm_instance_t *instance;
@@ -75,38 +88,58 @@ struct module {
 };
 
 unsigned int
-resolve_imports(wasm_module_t *importer, unsigned int nexporters,
-                const struct module *exporters, wasm_extern_vec_t *extern)
+resolve_imports(wasm_importtype_vec_t *imports, unsigned int nexporters,
+                const struct module *exporters, wasm_extern_vec_t *externs)
 {
         unsigned int nresolved = 0;
 
-        wasm_importtype_vec_t imports;
-        wasm_module_imports(importer, &imports);
-
-        wasm_exporttype_vec_t exports;
-        wasm_module_exports(exporter, &exports);
-
-        assert(extern->size == imports.size);
+        assert(externs->size == imports->size);
         size_t i;
-        for (i = 0; i < imports.size; i++) {
-                wasm_importtype_t *im = imports.data[i];
+        for (i = 0; i < imports->size; i++) {
+                wasm_importtype_t *im = imports->data[i];
                 const wasm_name_t *im_module_name = wasm_importtype_module(im);
-                if (compare_name_and_cstr(im_module_name,
-                                          exporter_module_name)) {
+                size_t j;
+                for (j = 0; j < nexporters; j++) {
+                        if (!compare_name_and_cstr(im_module_name,
+                                                   exporters[j].module_name)) {
+                                break;
+                        }
+                }
+                if (j == nexporters) {
+                        printf("module %.*s not found\n",
+                               (int)im_module_name->size,
+                               (const char *)im_module_name->data);
                         continue;
                 }
+                wasm_exporttype_vec_t exports;
+                wasm_module_exports(exporters[j].module, &exports);
+                wasm_extern_vec_t mod_externs;
+                wasm_instance_exports(exporters[j].instance, &mod_externs);
+                assert(exports.size == mod_externs.size);
                 const wasm_name_t *im_name = wasm_importtype_name(im);
-                const wasm_externtype_t *type = wasm_importtype_type(im);
-                wasm_externkind_t kind = wasm_externtype_kind(type);
-                size_t j;
+                const wasm_externtype_t *imtype = wasm_importtype_type(im);
+                printf("resolving %.*s:%.*s\n", (int)im_module_name->size,
+                       (const char *)im_module_name->data, (int)im_name->size,
+                       (const char *)im_name->data);
                 for (j = 0; j < exports.size; j++) {
-                        wasm_exporttype_t *ex = exports.data[i];
+                        wasm_exporttype_t *ex = exports.data[j];
                         const wasm_name_t *ex_name = wasm_exporttype_name(ex);
                         if (compare_names(im_name, ex_name)) {
                                 continue;
                         }
-                        extern[i] = wasm_extern_copy(exports->data[j]);
+                        const wasm_externtype_t *extype =
+                                wasm_exporttype_type(ex);
+                        if (compare_externtype(extype, imtype)) {
+                                continue;
+                        }
+                        externs->data[i] =
+                                wasm_extern_copy(mod_externs.data[j]);
                         nresolved++;
+                        break;
+                }
+                wasm_exporttype_vec_delete(&exports);
+                wasm_extern_vec_delete(&mod_externs);
+                if (j == exports.size) {
                 }
         }
         return nresolved;
@@ -114,13 +147,25 @@ resolve_imports(wasm_module_t *importer, unsigned int nexporters,
 
 void
 load_module(wasm_store_t *store, struct module *mod, const char *fn,
-            wasm_extern_vec_t *externs, const char *register_name)
+            unsigned int nexporters, const struct module *exporters,
+            const char *register_name)
 {
-        mod->module = load(fn, store, &mod->bins);
+        mod->module = load(fn, store, &mod->bin);
         assert(mod->module);
-        mod->instance = wasm_instance_new(store, mod->modules, externs, NULL);
+        wasm_importtype_vec_t imports;
+        wasm_module_imports(mod->module, &imports);
+        size_t size = imports.size;
+        wasm_extern_vec_t externs;
+        wasm_extern_vec_new_uninitialized(&externs, size);
+        unsigned int nresolved =
+                resolve_imports(&imports, nexporters, exporters, &externs);
+        wasm_importtype_vec_delete(&imports);
+        assert(nresolved == size);
+        mod->instance = wasm_instance_new(store, mod->module, &externs, NULL);
         assert(mod->instance);
+        wasm_extern_vec_delete(&externs);
         wasm_instance_exports(mod->instance, &mod->exports);
+        mod->module_name = register_name;
 }
 
 int
@@ -133,26 +178,35 @@ main(int argc, char **argv)
 
         const int nmodules = 3;
         struct module modules[nmodules];
-        wasm_extern_vec_t empty = WASM_EMPTY_VEC;
-        load_module(store, &modules[0], NAME ".0.wasm", &empty, "g");
-        load_module(store, &modules[1], NAME ".1.wasm", , "sub");
-        load_module(store, &modules[1], NAME ".2.wasm", , "main");
+        load_module(store, &modules[0], NAME ".0.wasm", 0, NULL, "g");
+        load_module(store, &modules[1], NAME ".1.wasm", 1, modules, "sub");
+        load_module(store, &modules[2], NAME ".2.wasm", 2, modules, "main");
 
-        wasm_func_t *get_fn = wasm_extern_as_func(exports4.data[1]);
-#if 0
-    wasm_func_t *inc_fn = wasm_extern_as_func(exports4.data[0]);
-#else
-        wasm_func_t *inc_fn = sub_inc_fn;
-#endif
+        wasm_func_t *inc_fn = wasm_extern_as_func(modules[2].exports.data[0]);
+        wasm_func_t *get_fn = wasm_extern_as_func(modules[2].exports.data[1]);
+        wasm_func_t *sub_get_fn =
+                wasm_extern_as_func(modules[1].exports.data[1]);
 
+        int i;
+        for (i = 0; i < nmodules; i++) {
+                struct module *mod = &modules[i];
+                wasm_module_delete(mod->module);
+                wasm_instance_delete(mod->instance);
+                wasm_byte_vec_delete(&mod->bin);
+        }
+
+        wasm_val_vec_t args;
+        wasm_val_vec_new_uninitialized(&args, 0);
+        wasm_val_vec_t results;
+        wasm_val_vec_new_uninitialized(&results, 1);
         if (wasm_func_call(get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("main > %u\n", (int)rs[0].of.i32);
+        printf("main > %u\n", (int)results.data[0].of.i32);
         if (wasm_func_call(sub_get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("sub > %u\n", (int)rs[0].of.i32);
+        printf("sub > %u\n", (int)results.data[0].of.i32);
 
         if (wasm_func_call(inc_fn, &args, &results)) {
                 assert(false);
@@ -161,11 +215,11 @@ main(int argc, char **argv)
         if (wasm_func_call(get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("main > %u\n", (int)rs[0].of.i32);
+        printf("main > %u\n", (int)results.data[0].of.i32);
         if (wasm_func_call(sub_get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("sub > %u\n", (int)rs[0].of.i32);
+        printf("sub > %u\n", (int)results.data[0].of.i32);
 
         if (wasm_func_call(inc_fn, &args, &results)) {
                 assert(false);
@@ -174,9 +228,19 @@ main(int argc, char **argv)
         if (wasm_func_call(get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("main > %u\n", (int)rs[0].of.i32);
+        printf("main > %u\n", (int)results.data[0].of.i32);
         if (wasm_func_call(sub_get_fn, &args, &results)) {
                 assert(false);
         }
-        printf("sub > %u\n", (int)rs[0].of.i32);
+        printf("sub > %u\n", (int)results.data[0].of.i32);
+
+        wasm_val_vec_delete(&args);
+        wasm_val_vec_delete(&results);
+
+        for (i = 0; i < nmodules; i++) {
+                struct module *mod = &modules[i];
+                wasm_extern_vec_delete(&mod->exports);
+        }
+        wasm_store_delete(store);
+        wasm_engine_delete(engine);
 }
