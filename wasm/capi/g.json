@@ -1,0 +1,12 @@
+{"source_filename": "wast/g.wast",
+ "commands": [
+  {"type": "module", "line": 2, "filename": "g.0.wasm"}, 
+  {"type": "register", "line": 4, "as": "g"}, 
+  {"type": "module", "line": 6, "filename": "g.1.wasm"}, 
+  {"type": "assert_return", "line": 12, "action": {"type": "invoke", "field": "inc", "args": []}, "expected": []}, 
+  {"type": "assert_return", "line": 13, "action": {"type": "invoke", "field": "get", "args": []}, "expected": [{"type": "i32", "value": "101"}]}, 
+  {"type": "register", "line": 15, "as": "sub"}, 
+  {"type": "module", "line": 17, "filename": "g.2.wasm"}, 
+  {"type": "assert_return", "line": 23, "action": {"type": "invoke", "field": "get", "args": []}, "expected": [{"type": "i32", "value": "101"}]}, 
+  {"type": "assert_return", "line": 24, "action": {"type": "invoke", "field": "inc", "args": []}, "expected": []}, 
+  {"type": "assert_return", "line": 25, "action": {"type": "invoke", "field": "get", "args": []}, "expected": [{"type": "i32", "value": "102"}]}]}
