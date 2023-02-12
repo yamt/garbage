@@ -1,3 +1,7 @@
+/*
+ * test poll/read vs close behavior
+ */
+
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
@@ -17,11 +21,24 @@ closer(void *vp)
         sleep(1);
         printf("%s: closing fd 0\n", __func__);
         /*
-         * macOS, NetBSD:
-         * close() blocks until read() finishes.
+         * macOS:
+         * read() blocks close().
+         * poll() doesn't block close().
+         * close() doesn't wake up poll() or read().
+         * for some reasons, after close() started, poll() doesn't
+         * seem reacting on the events. (bug?)
+         *
+         * NetBSD:
+         * read() blocks close().
+         * poll() doesn't block close().
+         * close() doesn't wake up poll() or read().
+         * on the next wake up, poll() returns POLLNVAL.
          *
          * linux:
-         * close() finishes successfully. read() continues to work.
+         * read() doesn't block close().
+         * poll() doesn't block close().
+         * close() doesn't wake up poll() or read().
+         * on the next wake up, poll() returns POLLNVAL.
          */
         int ret = close(STDIN_FILENO);
         printf("%s: closed fd 0 with %d\n", __func__, ret);
@@ -31,16 +48,26 @@ closer(void *vp)
 void *
 poller(void *vp)
 {
-        struct pollfd pfd;
-        pfd.fd = 0;
-        pfd.events = POLLIN;
+        struct pollfd pfd0;
+        struct pollfd *pfd = &pfd0;
+        pfd[0].fd = 0;
+        pfd[0].events = POLLIN;
+        printf("%s: POLLIN=%02x POLLHUP=%02x POLLERR=%02x POLLNVAL=%0x\n",
+               __func__, POLLIN, POLLHUP, POLLERR, POLLNVAL);
         printf("%s: polling on fd 0\n", __func__);
-        int ret = poll(&pfd, 1, -1);
+        int ret = poll(pfd, 1, -1);
         if (ret == -1) {
                 printf("%s: poll returned %d errno %d (%s)\n", __func__, ret,
                        errno, strerror(errno));
         } else {
                 printf("%s: poll returned %d\n", __func__, ret);
+                if (ret >= 0) {
+                        int i;
+                        for (i = 0; i < ret; i++) {
+                                printf("%s: pfd[%d] revent %04x\n", __func__,
+                                       i, pfd[i].revents);
+                        }
+                }
         }
         return NULL;
 }
