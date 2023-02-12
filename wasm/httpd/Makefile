@@ -1,5 +1,5 @@
-#WASI_SDK_DIR = /opt/wasi-sdk-16.0
-WASI_SDK_DIR = ${HOME}/git/wasi-sdk/build/install/opt/wasi-sdk
+WASI_SDK_DIR = /opt/wasi-sdk-19.5g0236e959edbc
+#WASI_SDK_DIR = ${HOME}/git/wasi-sdk/build/install/opt/wasi-sdk
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
@@ -17,18 +17,18 @@ CFLAGS += -g
 ifeq ($(THREADS),1)
 # make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
 #SYSROOT = ${HOME}/git/wasi-libc/sysroot
-CFLAGS += --sysroot $(SYSROOT)
+#CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
 CFLAGS += -ftls-model=local-exec
 CFLAGS += -DTHREADS
 #CFLAGS += -mbulk-memory
 #CFLAGS += -matomics
 CLINKFLAGS += -pthread
-CLINKFLAGS += --sysroot $(SYSROOT)
+#CLINKFLAGS += --sysroot $(SYSROOT)
 CLINKFLAGS += -Wl,--import-memory
 
-CFLAGS += --target=wasm32-wasi-pthread
-CLINKFLAGS += --target=wasm32-wasi-pthread
+CFLAGS += --target=wasm32-wasi-threads
+CLINKFLAGS += --target=wasm32-wasi-threads
 endif
 
 #CLINKFLAGS += -Wl,--allow-undefined

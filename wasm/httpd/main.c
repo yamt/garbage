@@ -5,7 +5,7 @@
  * see ../../listenexec
  */
 
-#define _POSIX_C_SOURCE /* strerror_r */
+#define _POSIX_C_SOURCE 200112L /* strerror_r, snprintf, ... */
 #include <sys/socket.h>
 
 #include <arpa/inet.h>
@@ -67,7 +67,7 @@ try_read(struct state *state)
                 return ret;
         }
         if (ssz == 0) {
-                printf("unexpected EOF\n");
+                printf("unexpected EOF (normal for ab with >1 concurrency)\n");
                 return ECONNRESET;
         }
         assert(ssz >= 0);
