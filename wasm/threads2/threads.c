@@ -7,14 +7,15 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 void *
-start(void *vp)
+closer(void *vp)
 {
-        printf("sleeping 1 sec\n");
+        printf("%s: sleeping 1 sec\n", __func__);
         sleep(1);
-        printf("closing fd 0\n");
+        printf("%s: closing fd 0\n", __func__);
         /*
          * macOS, NetBSD:
          * close() blocks until read() finishes.
@@ -23,7 +24,24 @@ start(void *vp)
          * close() finishes successfully. read() continues to work.
          */
         int ret = close(STDIN_FILENO);
-        printf("closed fd 0 with %d\n", ret);
+        printf("%s: closed fd 0 with %d\n", __func__, ret);
+        return NULL;
+}
+
+void *
+poller(void *vp)
+{
+        struct pollfd pfd;
+        pfd.fd = 0;
+        pfd.events = POLLIN;
+        printf("%s: polling on fd 0\n", __func__);
+        int ret = poll(&pfd, 1, -1);
+        if (ret == -1) {
+                printf("%s: poll returned %d errno %d (%s)\n", __func__, ret,
+                       errno, strerror(errno));
+        } else {
+                printf("%s: poll returned %d\n", __func__, ret);
+        }
         return NULL;
 }
 
@@ -33,20 +51,16 @@ main(int argc, char **argv)
         int ret;
         setvbuf(stdout, NULL, _IONBF, 0);
 
-        unsigned int n = 1;
-
-        pthread_t *t;
-        if (n > 0) {
-                t = malloc(n * sizeof(*t));
-                assert(t != NULL);
+        pthread_t t[2];
+        ret = pthread_create(&t[0], NULL, closer, NULL);
+        if (ret != 0) {
+                printf("pthread_create failed with %d\n", ret);
+                exit(1);
         }
-        unsigned int i;
-        for (i = 0; i < n; i++) {
-                ret = pthread_create(&t[i], NULL, start, NULL);
-                if (ret != 0) {
-                        printf("pthread_create failed with %d\n", ret);
-                        exit(1);
-                }
+        ret = pthread_create(&t[1], NULL, poller, NULL);
+        if (ret != 0) {
+                printf("pthread_create failed with %d\n", ret);
+                exit(1);
         }
 
         char buf[1];
@@ -55,6 +69,13 @@ main(int argc, char **argv)
         ssize_t ssz = read(STDIN_FILENO, buf, sizeof(buf));
         printf("read from fd 0, result '%c' ssz=%zd\n", *buf, ssz);
 
+        printf("joining\n");
+        int i;
+        for (i = 0; i < 2; i++) {
+                void *v;
+                ret = pthread_join(t[i], &v);
+                assert(ret == 0);
+        }
         printf("exiting\n");
         exit(0);
 }
