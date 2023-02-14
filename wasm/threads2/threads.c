@@ -42,6 +42,7 @@ closer(void *vp)
          */
         int ret = close(STDIN_FILENO);
         printf("%s: closed fd 0 with %d\n", __func__, ret);
+        printf("%s: exiting\n", __func__);
         return NULL;
 }
 
@@ -69,6 +70,7 @@ poller(void *vp)
                         }
                 }
         }
+        printf("%s: exiting\n", __func__);
         return NULL;
 }
 
@@ -78,17 +80,24 @@ main(int argc, char **argv)
         int ret;
         setvbuf(stdout, NULL, _IONBF, 0);
 
-        pthread_t t[2];
-        ret = pthread_create(&t[0], NULL, closer, NULL);
+        pthread_t t[4];
+        pthread_t *pt = t;
+        int i;
+        for (i = 0; i < 3; i++) {
+                ret = pthread_create(pt, NULL, closer, NULL);
+                if (ret != 0) {
+                        printf("pthread_create failed with %d\n", ret);
+                        exit(1);
+                }
+                pt++;
+        }
+
+        ret = pthread_create(pt, NULL, poller, NULL);
         if (ret != 0) {
                 printf("pthread_create failed with %d\n", ret);
                 exit(1);
         }
-        ret = pthread_create(&t[1], NULL, poller, NULL);
-        if (ret != 0) {
-                printf("pthread_create failed with %d\n", ret);
-                exit(1);
-        }
+        pt++;
 
         char buf[1];
         *buf = 0;
@@ -97,8 +106,8 @@ main(int argc, char **argv)
         printf("read from fd 0, result '%c' ssz=%zd\n", *buf, ssz);
 
         printf("joining\n");
-        int i;
-        for (i = 0; i < 2; i++) {
+        for (i = 0; i < pt - t; i++) {
+                printf("joining [%d]\n", i);
                 void *v;
                 ret = pthread_join(t[i], &v);
                 assert(ret == 0);
