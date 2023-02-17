@@ -29,4 +29,18 @@ spacetanuki% toywasm --wasi a.out
 spacetanuki% 
 ```
 
+a more recent version of llvm i happened to have
+```
+spacetanuki% ~/llvm/bin/clang --version
+clang version 17.0.0 (https://github.com/llvm/llvm-project.git 6548866eb2ef3ac3632a2a1b33ff1bb5749a074f)
+Target: wasm32-unknown-wasi
+Thread model: posix
+InstalledDir: /Users/yamamoto/llvm/bin
+spacetanuki% ~/llvm/bin/clang --sysroot=/opt/wasi-sdk-20.0+threads/share/wasi-sysroot a.c b.c
+spacetanuki% toywasm --wasi a.out
+0
+0
+spacetanuki%
+```
+
 maybe a wasm-specific bug?
