@@ -165,6 +165,20 @@ poller(void *vp)
         pfd.fd = STDIN_FILENO;
         pfd.events = POLLIN;
         ret = poll(&pfd, 1, -1);
+        if (ret == -1) {
+                printf("poll failed with %d\n", errno);
+        }
+        if (ret == 1) {
+                if ((pfd.revents & POLLERR) != 0) {
+                        printf("POLLERR\n");
+                }
+                if ((pfd.revents & POLLHUP) != 0) {
+                        printf("POLLHUP\n");
+                }
+                if ((pfd.revents & POLLNVAL) != 0) {
+                        printf("POLLNVAL\n");
+                }
+        }
         assert(ret == 0);
         assert(0);
 }
