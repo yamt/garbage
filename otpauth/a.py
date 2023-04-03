@@ -1,3 +1,5 @@
+# pip install cryptography
+
 import sys
 import time
 import base64
@@ -7,7 +9,9 @@ from cryptography.hazmat.primitives.hashes import SHA1
 
 # https://github.com/google/google-authenticator/wiki/Key-Uri-Format
 
-secret = sys.argv[1]  # base32 secret found in otpauth uri
+# base32 secret found in otpauth uri
+# eg. otpauth://totp/XXX?secret=SECRET_IS_HERE&issuer=YYY
+secret = sys.argv[1]
 key = base64.b32decode(secret.upper())
 
 # the default values are assumed here
