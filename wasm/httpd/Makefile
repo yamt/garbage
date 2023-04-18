@@ -25,6 +25,7 @@ CFLAGS += -DTHREADS
 CLINKFLAGS += -pthread
 #CLINKFLAGS += --sysroot $(SYSROOT)
 CLINKFLAGS += -Wl,--import-memory
+CLINKFLAGS += -Wl,--export-memory
 
 CFLAGS += --target=wasm32-wasi-threads
 CLINKFLAGS += --target=wasm32-wasi-threads
