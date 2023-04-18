@@ -24,6 +24,7 @@ CFLAGS += -ftls-model=local-exec
 CLINKFLAGS += -pthread
 CLINKFLAGS += --sysroot $(SYSROOT)
 CLINKFLAGS += -Wl,--import-memory
+CLINKFLAGS += -Wl,--export-memory
 # Note: --import-memory implicitly disables the "memory" export.
 # Revisit when https://reviews.llvm.org/D135898 is available.
 
