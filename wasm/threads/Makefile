@@ -1,7 +1,6 @@
 # Note: llvm >= 15 is necessary for tls
 # https://reviews.llvm.org/D126107
-#WASI_SDK_DIR = /opt/wasi-sdk-19.0
-WASI_SDK_DIR = /opt/wasi-sdk-19.5g0236e959edbc
+WASI_SDK_DIR = /opt/wasi-sdk-20.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
@@ -15,8 +14,8 @@ CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 CFLAGS += -g
 
-# make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
-#SYSROOT = ${HOME}/git/wasi-libc/sysroot
+# make -j4 CC=/opt/wasi-sdk-20.0/bin/clang THREAD_MODEL=posix
+# SYSROOT = ${HOME}/git/wasi-libc/sysroot
 CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
 CFLAGS += -ftls-model=local-exec
