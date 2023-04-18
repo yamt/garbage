@@ -1,5 +1,4 @@
-WASI_SDK_DIR = /opt/wasi-sdk-19.5g0236e959edbc
-#WASI_SDK_DIR = ${HOME}/git/wasi-sdk/build/install/opt/wasi-sdk
+WASI_SDK_DIR = /opt/wasi-sdk-20.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
@@ -15,7 +14,7 @@ CFLAGS += -Wall -Werror
 CFLAGS += -g
 
 ifeq ($(THREADS),1)
-# make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
+# make -j4 CC=/opt/wasi-sdk-20.0/bin/clang THREAD_MODEL=posix
 #SYSROOT = ${HOME}/git/wasi-libc/sysroot
 #CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
