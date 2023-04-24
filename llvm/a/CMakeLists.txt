@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(llvm-test LANGUAGES C)
+
+project(llvm-test LANGUAGES C CXX)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED YES)
 
 # https://www.llvm.org/docs/CMake.html#embedding-llvm-in-your-project
 find_package(LLVM REQUIRED CONFIG)
@@ -17,6 +20,7 @@ message(STATUS "LLVM_LIBS: ${LLVM_LIBS}")
 
 set(sources
 	"test.c"
+	"cxx.cxx"
 )
 
 add_executable(test ${sources})

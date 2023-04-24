@@ -13,6 +13,8 @@
 #include <llvm-c/LLJIT.h>
 #include <llvm-c/TargetMachine.h>
 
+#include "cxx.h"
+
 LLVMOrcThreadSafeModuleRef
 create_module(void)
 {
@@ -126,12 +128,24 @@ create_module(void)
         }
 
         LLVMTargetMachineRef target_machine;
+#if 0
         target_machine = LLVMCreateTargetMachine(
                 target, triple, "", "", LLVMCodeGenLevelDefault, LLVMRelocPIC,
                 LLVMCodeModelDefault);
+#else
+		/* C api doesn't seem to have a way to specify TargetOptions */
+        target_machine = create_target_machine(target, triple, "", "");
+#endif
 
-        ret = LLVMTargetMachineEmitToFile(target_machine, m, "test.S",
+        ret = LLVMTargetMachineEmitToFile(target_machine, m, "out.S",
                                           LLVMAssemblyFile, &errormsg);
+        if (ret) {
+                printf("LLVMTargetMachineEmitToFile failed: %s\n", errormsg);
+                LLVMDisposeMessage(errormsg);
+                exit(1);
+        }
+        ret = LLVMTargetMachineEmitToFile(target_machine, m, "out.o",
+                                          LLVMObjectFile, &errormsg);
         if (ret) {
                 printf("LLVMTargetMachineEmitToFile failed: %s\n", errormsg);
                 LLVMDisposeMessage(errormsg);
