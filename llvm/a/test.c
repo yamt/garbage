@@ -133,8 +133,10 @@ create_module(void)
                 target, triple, "", "", LLVMCodeGenLevelDefault, LLVMRelocPIC,
                 LLVMCodeModelDefault);
 #else
-		/* C api doesn't seem to have a way to specify TargetOptions */
-        target_machine = create_target_machine(target, triple, "", "");
+        /* C api doesn't seem to have a way to specify TargetOptions */
+        target_machine = LLVMCreateTargetMachineWithOpts(
+                target, triple, "", "", LLVMCodeGenLevelDefault, LLVMRelocPIC,
+                LLVMCodeModelDefault, true, "out.su");
 #endif
 
         ret = LLVMTargetMachineEmitToFile(target_machine, m, "out.S",
