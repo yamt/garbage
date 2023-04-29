@@ -81,7 +81,9 @@ LLVMCreateTargetMachineWithOpts(LLVMTargetRef ctarget, const char *triple,
         opts.EmitStackSizeSection = EmitStackSizeSection;
 
         // -fstack-usage equiv
-        opts.StackUsageOutput = StackUsageOutput;
+        if (StackUsageOutput != NULL) {
+                opts.StackUsageOutput = StackUsageOutput;
+        }
 
         auto target = reinterpret_cast<llvm::Target *>(ctarget);
         auto rm = convert(reloc_mode);
