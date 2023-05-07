@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <llvm-c/Analysis.h>
 #include <llvm-c/Core.h>
@@ -39,6 +40,13 @@ create_module(void)
         LLVMTypeRef type_func =
                 LLVMFunctionType(type_i32, paramtypes, 2, false);
 
+        // int32_t hoge(int32_t *);
+        LLVMTypeRef hoge_paramtypes[] = {
+                type_i32_ptr,
+        };
+        LLVMTypeRef type_func_hoge =
+                LLVMFunctionType(type_i32, hoge_paramtypes, 1, false);
+
         // create values
         LLVMValueRef const_i32_1 = LLVMConstInt(type_i32, 1, true);
 
@@ -49,6 +57,13 @@ create_module(void)
         LLVMValueRef func = LLVMAddFunction(m, "func", type_func);
         LLVMValueRef ctx = LLVMGetParam(func, 0);
         LLVMValueRef n = LLVMGetParam(func, 1);
+#if 1
+        LLVMAttributeRef attr_probe_stack = LLVMCreateStringAttribute(
+                context, "probe-stack", strlen("probe-stack"), "test_probe",
+                strlen("test_probe"));
+        LLVMAddAttributeAtIndex(func, LLVMAttributeFunctionIndex,
+                                attr_probe_stack);
+#endif
 
         // create blocks
         LLVMBasicBlockRef block1 =
@@ -84,11 +99,21 @@ create_module(void)
 
         // block2
         LLVMPositionBuilderAtEnd(b, block2);
+
+        LLVMValueRef retval;
+
+        LLVMValueRef tmp = LLVMBuildAlloca(b, type_i32, "tmp");
+        LLVMValueRef hoge_args[] = {
+                tmp,
+        };
+        LLVMValueRef func_hoge = LLVMAddFunction(m, "hoge", type_func_hoge);
+        retval = LLVMBuildCall2(b, type_func_hoge, func_hoge, hoge_args, 1,
+                                "call");
+
         LLVMValueRef args[2];
         args[0] = ctx;
         args[1] = n;
-        LLVMValueRef retval =
-                LLVMBuildCall2(b, type_func, func, args, 2, "call");
+        retval = LLVMBuildCall2(b, type_func, func, args, 2, "call");
         // c api doesn't seem to have a way to use musttail
         LLVMSetTailCall(retval, true);
 
@@ -162,6 +187,34 @@ create_module(void)
 }
 
 int
+hoge(void *p)
+{
+        printf("%s called %p\n", __func__, p);
+        return 0;
+}
+
+/*
+ * a probe function for probe-stack.
+ *
+ * it has a special ABI.
+ * this is something we should write in asm, not C.
+ *
+ * the amount of stack growth is passed via %rax.
+ * %rax should be preserved.
+ *
+ * i'm not sure if preserve_all is enough or not.
+ * probably call-crobbered registers like %r11 should be
+ * preserved as well.
+ */
+__attribute__((preserve_all)) void
+test_probe()
+{
+        long rax;
+        __asm__("movq %%rax, %0" : "=r"(rax));
+        printf("%s called %ld\n", __func__, rax);
+}
+
+int
 main(int argc, char **argv)
 {
         LLVMOrcThreadSafeModuleRef tsm = create_module();
@@ -171,10 +224,37 @@ main(int argc, char **argv)
         LLVMOrcLLJITRef jit;
         LLVMOrcCreateLLJIT(&jit, jit_builder);
         LLVMOrcJITDylibRef jd = LLVMOrcLLJITGetMainJITDylib(jit);
+
+        LLVMErrorRef error;
+        LLVMOrcSymbolStringPoolEntryRef sym_hoge =
+                LLVMOrcLLJITMangleAndIntern(jit, "hoge");
+        LLVMOrcSymbolStringPoolEntryRef sym_test_probe =
+                LLVMOrcLLJITMangleAndIntern(jit, "test_probe");
+        LLVMOrcRetainSymbolStringPoolEntry(sym_hoge);
+        LLVMOrcRetainSymbolStringPoolEntry(sym_test_probe);
+        LLVMJITCSymbolMapPair syms[] = {
+                {sym_hoge, {(uintptr_t)hoge, {0, 0}}},
+                {sym_test_probe, {(uintptr_t)test_probe, {0, 0}}},
+        };
+        LLVMOrcMaterializationUnitRef mu = LLVMOrcAbsoluteSymbols(syms, 2);
+        error = LLVMOrcJITDylibDefine(jd, mu);
+        if (error != NULL) {
+                char *msg = LLVMGetErrorMessage(error);
+                printf("error: %s\n", msg);
+                LLVMDisposeErrorMessage(msg);
+                exit(1);
+        }
+
         LLVMOrcLLJITAddLLVMIRModule(jit, jd, tsm);
 
         LLVMOrcExecutorAddress funcp;
-        LLVMOrcLLJITLookup(jit, &funcp, "func");
+        error = LLVMOrcLLJITLookup(jit, &funcp, "func");
+        if (error != NULL) {
+                char *msg = LLVMGetErrorMessage(error);
+                printf("error: %s\n", msg);
+                LLVMDisposeErrorMessage(msg);
+                exit(1);
+        }
 
         // test JIT'ed code
         struct uctx {
