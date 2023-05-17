@@ -1,4 +1,4 @@
-WASI_SDK_DIR = /opt/wasi-sdk-16.0
+WASI_SDK_DIR = /opt/wasi-sdk-20.0
 SYSROOT = $(WASI_SDK_DIR)/share/wasi-sysroot/
 
 CC = $(WASI_SDK_DIR)/bin/clang
@@ -11,28 +11,29 @@ CFLAGS = -Os
 CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 CFLAGS += -g
+CLINKFLAGS += -g
 
-SYSROOT = ${HOME}/git/wasi-libc/sysroot
+#SYSROOT = ${HOME}/git/wasi-libc/sysroot
+#CFLAGS += --sysroot $(SYSROOT)
+#CLINKFLAGS += --sysroot $(SYSROOT)
 ifeq ($(THREAD),1)
 # make -j4 CC=/opt/wasi-sdk-16.0/bin/clang THREAD_MODEL=posix
-CFLAGS += --sysroot $(SYSROOT)
 CFLAGS += -pthread
 #CFLAGS += -mbulk-memory
 #CFLAGS += -matomics
 CLINKFLAGS += -pthread
-CLINKFLAGS += --sysroot $(SYSROOT)
 endif
 
 #CLINKFLAGS += -Wl,--allow-undefined
 
 CLINKFLAGS += -z stack-size=$(STACK_SIZE)
-CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
+#CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
 #CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
 #CLINKFLAGS += -Wl,--export=__data_end -Wl,--export=__heap_base
 #CLINKFLAGS += -Wl,--export=malloc -Wl,--export=free
 
 STACK_SIZE = 8192
-INITIAL_MEMORY = 65536
+#INITIAL_MEMORY = 65536
 #MAX_MEMORY = 65536
 
 WAMRC = wamrc
