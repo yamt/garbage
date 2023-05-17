@@ -28,6 +28,8 @@ create_module(void)
         LLVMTypeRef type_i64 = LLVMInt64TypeInContext(context);
         LLVMTypeRef type_i32_ptr = LLVMPointerType(type_i32, 0);
 
+        LLVMTypeRef type_i32_array5 = LLVMArrayType(type_i32, 5);
+
         LLVMTypeRef elems[2];
         elems[0] = type_i64;
         elems[1] = type_i32;
@@ -48,10 +50,35 @@ create_module(void)
                 LLVMFunctionType(type_i32, hoge_paramtypes, 1, false);
 
         // create values
+        LLVMValueRef const_i32_0 = LLVMConstInt(type_i32, 0, true);
         LLVMValueRef const_i32_1 = LLVMConstInt(type_i32, 1, true);
+        LLVMValueRef a[] = {
+                const_i32_0, const_i32_0, const_i32_0, const_i32_0,
+                const_i32_1, // to avoid zeroinitializer
+        };
+        LLVMValueRef const_5xi32_values = LLVMConstArray(type_i32, a, 5);
 
         // create a module
         LLVMModuleRef m = LLVMModuleCreateWithNameInContext("mytest", context);
+
+        // set triple
+        //const char *triple = LLVMGetDefaultTargetTriple();
+        const char *triple = "x86_64-pc-linux-gnu";
+        printf("triple: %s\n", triple);
+        LLVMSetTarget(m, triple);
+
+        // create globals
+        LLVMValueRef global =
+                LLVMAddGlobal(m, type_i32_array5, "global_array");
+        // LLVMSetLinkage(global, LLVMInternalLinkage);
+        LLVMSetGlobalConstant(global, true);
+        /* zeroinitializer */
+        LLVMSetInitializer(global, LLVMConstNull(type_i32_array5));
+        LLVMSetAlignment(global, 4);
+
+        LLVMValueRef global2 =
+                LLVMAddGlobal(m, type_i32_array5, "global_array2");
+        LLVMSetInitializer(global2, const_5xi32_values);
 
         // create a function
         LLVMValueRef func = LLVMAddFunction(m, "func", type_func);
@@ -89,7 +116,10 @@ create_module(void)
         LLVMValueRef countp =
                 LLVMBuildStructGEP2(b, type_context, ctx, 1, "countp");
         LLVMValueRef count = LLVMBuildLoad2(b, type_i32, countp, "count");
-        LLVMValueRef count2 = LLVMBuildAdd(b, count, const_i32_1, "inc");
+        LLVMValueRef g_2_p =
+                LLVMBuildStructGEP2(b, type_i32_array5, global, 2, "g_1_p");
+        LLVMValueRef g_2 = LLVMBuildLoad2(b, type_i32, g_2_p, "inc");
+        LLVMValueRef count2 = LLVMBuildAdd(b, count, g_2, "add");
         // why does LLVMBuildStore return LLVMValueRef?
         LLVMBuildStore(b, count2, countp);
         LLVMValueRef cond = LLVMBuildICmp(b, LLVMIntULT, count2, n, "cmp");
@@ -137,8 +167,6 @@ create_module(void)
         }
 
         // emit machine code
-        char *triple = LLVMGetDefaultTargetTriple();
-        printf("triple: %s\n", triple);
         LLVMInitializeAllTargetInfos();
         LLVMInitializeAllTargets();
         LLVMInitializeAllTargetMCs();
@@ -246,6 +274,17 @@ main(int argc, char **argv)
         }
 
         LLVMOrcLLJITAddLLVMIRModule(jit, jd, tsm);
+
+        LLVMOrcExecutorAddress p;
+        error = LLVMOrcLLJITLookup(jit, &p, "global_array");
+        if (error != NULL) {
+                char *msg = LLVMGetErrorMessage(error);
+                printf("error: %s\n", msg);
+                LLVMDisposeErrorMessage(msg);
+                exit(1);
+        }
+        /* can jit place a constant in read-only memory? */
+        ((uint32_t *)p)[2] = 1;
 
         LLVMOrcExecutorAddress funcp;
         error = LLVMOrcLLJITLookup(jit, &funcp, "func");
