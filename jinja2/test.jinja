@@ -1,5 +1,5 @@
 header
-{% for i in range(n | int) -%}
+{% for i in range(n | default(1) | int) -%}
 4 ** {{i}} == {{4 ** i}}
 {% endfor -%}
 footer
