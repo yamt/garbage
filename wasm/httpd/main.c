@@ -389,7 +389,7 @@ do_loop(int listenfd)
 void *
 thread_start(void *vp)
 {
-        int fd = STDIN_FILENO;
+        int fd = *(const int *)vp;
         int ret;
         printf("thread %p starting\n", (const void *)pthread_self());
         ret = do_loop(fd);
@@ -398,6 +398,31 @@ thread_start(void *vp)
         return (void *)(uintptr_t)ret;
 }
 #endif
+
+/*
+ * this function is intended to be compatible with systemd
+ * socket-based activation
+ */
+int
+sd_get_listenfd(const char *name)
+{
+        const char *fds = getenv("LISTEN_FDS");
+        if (fds == NULL) {
+                return -1;
+        }
+        int fd = 3;
+        int nfds = atoi(fds);
+        if (nfds >= 1) {
+                /*
+                 * assume the first one.
+                 *
+                 * REVISIT: if LISTEN_FDNAMES contains colon-separated names,
+                 * find the entry with the given "name".
+                 */
+                return fd;
+        }
+        return fd;
+}
 
 int
 main(int argc, char **argv)
@@ -421,9 +446,26 @@ main(int argc, char **argv)
                 exit(1);
         }
         printf("working_dir: %s\n", working_dir);
+        int fd = sd_get_listenfd("http");
+        if (fd >= 0) {
+                /*
+                 * for some reasons, wasmtime makes the sockets non-blocking
+                 * cf. https://github.com/bytecodealliance/wasmtime/pull/5633
+                 */
+                int flags = fcntl(fd, F_GETFL, 0);
+                ret = fcntl(fd, F_SETFL, flags & ~O_NONBLOCK);
+                if (ret != 0) {
+                        goto fail;
+                }
+        }
+        if (fd < 0) {
+                fd = STDIN_FILENO;
+        }
+        printf("listen fd: %d\n", fd);
+
 #if defined(THREADS)
         int n = 8;
-        pthread_t t[n];
+        pthread_t t[8];
         pthread_attr_t a;
         ret = pthread_attr_init(&a);
         if (ret != 0) {
@@ -435,7 +477,7 @@ main(int argc, char **argv)
         }
         int i;
         for (i = 0; i < n; i++) {
-                ret = pthread_create(&t[i], &a, thread_start, NULL);
+                ret = pthread_create(&t[i], &a, thread_start, &fd);
                 if (ret != 0) {
                         printf("pthread_create failed ret=%d (%s)\n", ret,
                                strerror(ret));
@@ -458,11 +500,10 @@ main(int argc, char **argv)
         if (ret1 != 0) {
                 ret = ret1;
         }
-fail:;
 #else
-        int fd = STDIN_FILENO;
         ret = do_loop(fd);
 #endif
+fail:
         printf("exiting ret=%d (%s)\n", ret, strerror(ret));
         exit(1);
 }
