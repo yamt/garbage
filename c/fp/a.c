@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 void
-print_float(float f)
+_print_float(const char *label, float f)
 {
         union {
                 float f;
@@ -26,7 +26,7 @@ print_float(float f)
         uint32_t sign = u.u >> 31;
         uint32_t exponent = (u.u >> 23) & 0xff;
         uint32_t fraction = u.u & ((1U << 23) - 1);
-        printf("%f sign %" PRIx32 " exp %" PRIu32 " frac %" PRIu32 "\n", u.f,
+        printf("%s: %#x %f sign %" PRIx32 " exp %" PRIu32 " frac %" PRIu32 "\n", label, u.u, u.f,
                sign, exponent, fraction);
         /* restore hidden/implicit bit */
         float significand = (1 << 23) | fraction;
@@ -44,6 +44,8 @@ print_float(float f)
         printf("%f\n", v);
 }
 
+#define print_float(a) _print_float(#a, a)
+
 int
 main()
 {
@@ -55,7 +57,24 @@ main()
         print_float(INT32_MIN);
         print_float(0.0);
         print_float(-0.0f);
-        print_float(1.0 / 0.0);
-        print_float(-1.0 / 0.0);
-        print_float(0.0 / 0.0);
+        print_float(1.0 / 0.0); /* inf */
+        print_float(INFINITY);
+        print_float(-1.0 / 0.0); /* -inf */
+        print_float(-INFINITY);
+        print_float(0.0 / 0.0); /* nan */
+        print_float(-0.0 / 0.0); /* nan */
+        print_float(NAN);
+        float inf = 1.0 / 0.0;
+        float minus_inf = -1.0 / 0.0;
+        float nan = 0.0 / 0.0;
+        print_float(inf);
+        print_float(minus_inf);
+        print_float(nan);
+        print_float(sqrt(inf));
+        /*
+         * Note: x86 produces NaN with sign=1 while ARM produces
+         * the one with sign=0
+         */
+        print_float(sqrt(minus_inf));
+        print_float(sqrt(-1.0));
 }
