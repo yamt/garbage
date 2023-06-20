@@ -206,8 +206,10 @@ main(int argc, char **argv)
 
         ret = pthread_attr_init(&attr);
         assert(ret == 0);
+#if 0
         ret = pthread_attr_setstacksize(&attr, 4096);
         assert(ret == 0);
+#endif
 #if 0
         ret = pthread_attr_setguardsize(&attr, 0);
         assert(ret == 0);
