@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <netdb.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,15 +17,19 @@ main(int argc, char **argv)
 {
         const char *host = "localhost";
         const char *port = "";
+        bool systemd_style = false;
 
         int ch;
-        while ((ch = getopt(argc, argv, "h:p:")) != -1) {
+        while ((ch = getopt(argc, argv, "h:p:s")) != -1) {
                 switch (ch) {
                 case 'h':
                         host = optarg;
                         break;
                 case 'p':
                         port = optarg;
+                        break;
+                case 's':
+                        systemd_style = true;
                         break;
                 }
         }
@@ -101,9 +106,18 @@ main(int argc, char **argv)
         }
 
         fprintf(stderr, "execute: %s\n", argv[0]);
+        int listenfd = STDIN_FILENO;
         int ret;
-        if (sock[0] != STDIN_FILENO) {
-                ret = dup2(sock[0], STDIN_FILENO);
+        if (systemd_style) {
+                listenfd = 3;
+                ret = setenv("LISTEN_FDS", "1", 1);
+                if (ret != 0) {
+                        fprintf(stderr, "setenv failed with %d\n", errno);
+                        exit(1);
+                }
+        }
+        if (sock[0] != listenfd) {
+                ret = dup2(sock[0], listenfd);
                 if (ret == -1) {
                         fprintf(stderr, "dup failed with %d\n", errno);
                         exit(1);
