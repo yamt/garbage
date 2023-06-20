@@ -53,8 +53,11 @@ create_module(void)
         LLVMValueRef const_i32_0 = LLVMConstInt(type_i32, 0, true);
         LLVMValueRef const_i32_1 = LLVMConstInt(type_i32, 1, true);
         LLVMValueRef a[] = {
-                const_i32_0, const_i32_0, const_i32_0, const_i32_0,
                 const_i32_1, // to avoid zeroinitializer
+                LLVMConstNull(type_i32),
+                const_i32_0,
+                const_i32_0,
+                const_i32_0,
         };
         LLVMValueRef const_5xi32_values = LLVMConstArray(type_i32, a, 5);
 
@@ -62,8 +65,9 @@ create_module(void)
         LLVMModuleRef m = LLVMModuleCreateWithNameInContext("mytest", context);
 
         // set triple
-        //const char *triple = LLVMGetDefaultTargetTriple();
+        // const char *triple = LLVMGetDefaultTargetTriple();
         const char *triple = "x86_64-pc-linux-gnu";
+        // const char *triple = "i386-pc-linux-gnu";
         printf("triple: %s\n", triple);
         LLVMSetTarget(m, triple);
 
@@ -90,6 +94,14 @@ create_module(void)
                 strlen("test_probe"));
         LLVMAddAttributeAtIndex(func, LLVMAttributeFunctionIndex,
                                 attr_probe_stack);
+#endif
+#if 1
+        unsigned int kind = LLVMGetEnumAttributeKindForName(
+                "noinline", strlen("noinline"));
+        LLVMAttributeRef attr_noinline =
+                LLVMCreateEnumAttribute(context, kind, 0);
+        LLVMAddAttributeAtIndex(func, LLVMAttributeFunctionIndex,
+                                attr_noinline);
 #endif
 
         // create blocks
@@ -153,9 +165,6 @@ create_module(void)
 
         LLVMDisposeBuilder(b);
 
-        // dump the module
-        LLVMDumpModule(m);
-
         // verify
         char *errormsg;
         LLVMBool ret;
@@ -191,6 +200,13 @@ create_module(void)
                 target, triple, "", "", LLVMCodeGenLevelDefault, LLVMRelocPIC,
                 LLVMCodeModelDefault, true, "out.su");
 #endif
+
+        LLVMTargetDataRef target_data =
+                LLVMCreateTargetDataLayout(target_machine);
+        LLVMSetModuleDataLayout(m, target_data);
+
+        // dump the module
+        LLVMDumpModule(m);
 
         ret = LLVMTargetMachineEmitToFile(target_machine, m, "out.S",
                                           LLVMAssemblyFile, &errormsg);
