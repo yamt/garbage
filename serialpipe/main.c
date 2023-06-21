@@ -10,6 +10,7 @@
 #include <unistd.h>
 
 int debug = 0;
+FILE *debugfp;
 
 int
 set_nonblocking(int fd, bool nonblocking, bool *orig)
@@ -45,7 +46,7 @@ int
 xfer(struct xfer_state *st, struct pollfd **pfdp)
 {
         if (debug) {
-                fprintf(stderr, "xfer (%d->%d)\n", st->infd, st->outfd);
+                fprintf(debugfp, "xfer (%d->%d)\n", st->infd, st->outfd);
         }
         while (true) {
                 while (st->start < st->end) {
@@ -54,7 +55,7 @@ xfer(struct xfer_state *st, struct pollfd **pfdp)
                         if (wsz == -1) {
                                 if (errno == EAGAIN) {
                                         if (debug) {
-                                                fprintf(stderr,
+                                                fprintf(debugfp,
                                                         "write (%d) EAGAIN\n",
                                                         st->outfd);
                                         }
@@ -64,14 +65,14 @@ xfer(struct xfer_state *st, struct pollfd **pfdp)
                                         return 0;
                                 }
                                 if (debug) {
-                                        fprintf(stderr,
+                                        fprintf(debugfp,
                                                 "write (%d) error: %s\n",
                                                 st->outfd, strerror(errno));
                                 }
                                 goto fail;
                         }
                         if (debug) {
-                                fprintf(stderr, "write (%d) -> %zu\n",
+                                fprintf(debugfp, "write (%d) -> %zu\n",
                                         st->outfd, wsz);
                         }
                         st->start += wsz;
@@ -83,7 +84,7 @@ xfer(struct xfer_state *st, struct pollfd **pfdp)
                 if (rsz == -1) {
                         if (errno == EAGAIN) {
                                 if (debug) {
-                                        fprintf(stderr, "read (%d) EAGAIN\n",
+                                        fprintf(debugfp, "read (%d) EAGAIN\n",
                                                 st->infd);
                                 }
                                 struct pollfd *pfd = (*pfdp)++;
@@ -92,7 +93,7 @@ xfer(struct xfer_state *st, struct pollfd **pfdp)
                                 return 0;
                         }
                         if (debug) {
-                                fprintf(stderr, "read (%d) error: %s\n",
+                                fprintf(debugfp, "read (%d) error: %s\n",
                                         st->infd, strerror(errno));
                         }
                         goto fail;
@@ -100,12 +101,12 @@ xfer(struct xfer_state *st, struct pollfd **pfdp)
                 if (rsz == 0) {
                         /* EOF */
                         if (debug) {
-                                fprintf(stderr, "read (%d) EOF\n", st->infd);
+                                fprintf(debugfp, "read (%d) EOF\n", st->infd);
                         }
                         goto fail;
                 }
                 if (debug) {
-                        fprintf(stderr, "read (%d) -> %zu\n", st->infd, rsz);
+                        fprintf(debugfp, "read (%d) -> %zu\n", st->infd, rsz);
                 }
                 st->start = 0;
                 st->end = rsz;
@@ -126,8 +127,15 @@ xfer_init(struct xfer_state *st, int infd, int outfd)
 int
 main(int argc, char **argv)
 {
+#if 0
+        int outfd = STDERR_FILENO;
+        debugfp = stdout;
+#else
+        int outfd = STDOUT_FILENO;
+        debugfp = stderr;
+#endif
         if (argc != 3) {
-                fprintf(stderr, "unexpected argc\n");
+                fprintf(debugfp, "unexpected argc\n");
                 exit(2);
         }
         const char *devname = argv[1];
@@ -135,25 +143,25 @@ main(int argc, char **argv)
         unsigned int rate;
         rate = atoi(rate_str);
         if (rate == 0) {
-                fprintf(stderr, "invalid rate: %s\n", rate_str);
+                fprintf(debugfp, "invalid rate: %s\n", rate_str);
                 exit(2);
         }
         int fd;
         if (debug) {
-                fprintf(stderr, "opening: %s\n", devname);
+                fprintf(debugfp, "opening: %s\n", devname);
         }
         fd = open(devname, O_RDWR | O_NDELAY | O_NOCTTY);
         if (fd == -1) {
-                fprintf(stderr, "open failed: %s: %s\n", devname,
+                fprintf(debugfp, "open failed: %s: %s\n", devname,
                         strerror(errno));
                 exit(1);
         }
         if (debug) {
-                fprintf(stderr, "opened: %s\n", devname);
+                fprintf(debugfp, "opened: %s\n", devname);
         }
         struct termios c;
         if (tcgetattr(fd, &c) < 0) {
-                fprintf(stderr, "tcgetattr failed: %s: %s\n", devname,
+                fprintf(debugfp, "tcgetattr failed: %s: %s\n", devname,
                         strerror(errno));
                 exit(1);
         }
@@ -164,7 +172,7 @@ main(int argc, char **argv)
 #error not implemented
 #endif
         if (cfsetspeed(&c, speed) < 0) {
-                fprintf(stderr, "cfsetspeed failed: %s: %s\n", devname,
+                fprintf(debugfp, "cfsetspeed failed: %s: %s\n", devname,
                         strerror(errno));
                 exit(1);
         }
@@ -187,24 +195,25 @@ main(int argc, char **argv)
 #endif
 
         if (tcsetattr(fd, TCSAFLUSH, &c) < 0) {
-                fprintf(stderr, "tcsetattr failed: %s: %s\n", devname,
+                fprintf(debugfp, "tcsetattr failed: %s: %s\n", devname,
                         strerror(errno));
                 exit(1);
         }
-#if 1 
+#if 1
         if (set_nonblocking(fd, true, NULL) ||
             set_nonblocking(STDIN_FILENO, true, NULL) ||
-            set_nonblocking(STDOUT_FILENO, true, NULL)) {
-                fprintf(stderr, "set_nonblocking failed\n");
+            set_nonblocking(outfd, true, NULL)) {
+                fprintf(debugfp, "set_nonblocking failed\n");
                 exit(1);
         }
 #endif
         struct xfer_state in_state;
         struct xfer_state out_state;
         xfer_init(&in_state, STDIN_FILENO, fd);
-        xfer_init(&out_state, fd, STDOUT_FILENO);
+        xfer_init(&out_state, fd, outfd);
         if (debug) {
-                fprintf(stderr, "starting i/o loop\n");
+
+                fprintf(debugfp, "starting i/o loop\n");
         }
         while (true) {
                 struct pollfd pfds[4];
@@ -215,11 +224,11 @@ main(int argc, char **argv)
                 assert(pfd >= pfds + 2);
                 if (debug) {
                         unsigned int n = pfd - pfds;
-                        fprintf(stderr, "poll (%u)\n", n);
+                        fprintf(debugfp, "poll (%u)\n", n);
                 }
                 int ret = poll(pfds, pfd - pfds, -1);
                 if (ret == -1) {
-                        fprintf(stderr, "poll failed: %s\n", strerror(errno));
+                        fprintf(debugfp, "poll failed: %s\n", strerror(errno));
                         exit(1);
                 }
         }
