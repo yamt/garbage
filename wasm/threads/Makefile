@@ -50,7 +50,11 @@ BIN = $(NAME).wasm
 
 STACK_SIZE = 4096
 INITIAL_MEMORY = 65536
-MAX_MEMORY = 65536000
+
+# it's safer to avoid large max-memory as some runtimes allocate
+# max-sized memory on instantiation.
+#MAX_MEMORY = 65536000
+MAX_MEMORY = 65536
 
 BINS = $(BIN)
 
