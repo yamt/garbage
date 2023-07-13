@@ -12,7 +12,8 @@ void (*foo_set_p)(int) = foo_set;
 extern char *optarg;
 
 /* try to override a function in libbar */
-int func_in_bar(int n)
+int
+func_in_bar(int n)
 {
         return n + 4;
 }
@@ -20,13 +21,13 @@ int func_in_bar(int n)
 #if defined(__wasi__)
 __attribute__((export_name("func_in_main")))
 #endif
-const char *func_in_main()
+const char *
+func_in_main()
 {
-	return "func in main";
+        return "func in main";
 }
 
-const char *
-call_func_in_main();
+const char *call_func_in_main();
 
 int
 main(int argc, char **argv)
@@ -50,7 +51,9 @@ main(int argc, char **argv)
         // return foo_get();
         printf("%d (expected 100)\n", foo_get());
 
-        printf("%d (expected 10 for flat namespace, 11 for two-level namespace)\n", func_in_foo(3));
+        printf("%d (expected 10 for flat namespace, 11 for two-level "
+               "namespace)\n",
+               func_in_foo(3));
 
         printf("%s\n", call_func_in_main());
 }
