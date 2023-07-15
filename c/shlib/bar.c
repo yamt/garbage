@@ -11,3 +11,12 @@ call_func_in_main()
 {
         return func_in_main();
 }
+
+const char *
+get_a_value_in_foo_via_bar()
+{
+        extern const char *a_value_in_foo;
+        return a_value_in_foo;
+}
+
+const char *a_value_in_bar = "this is a value in bar";

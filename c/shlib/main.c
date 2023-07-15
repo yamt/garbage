@@ -12,6 +12,9 @@ void (*foo_set_p)(int) = foo_set;
 extern char *optarg;
 
 /* try to override a function in libbar */
+#if defined(__wasi__)
+__attribute__((export_name("func_in_bar")))
+#endif
 int
 func_in_bar(int n)
 {
@@ -29,9 +32,15 @@ func_in_main()
 
 const char *call_func_in_main();
 
+#if 0
+int
+main()
+#else
 int
 main(int argc, char **argv)
+#endif
 {
+#if 1
         int ch;
         while ((ch = getopt(argc, argv, "f:")) != -1) {
                 switch (ch) {
@@ -40,6 +49,7 @@ main(int argc, char **argv)
                         break;
                 }
         }
+#endif
 
         printf("get_foo_set_ptr() = %p\n", get_foo_set_ptr());
         printf("foo_set = %p\n", foo_set);
@@ -56,4 +66,10 @@ main(int argc, char **argv)
                func_in_foo(3));
 
         printf("%s\n", call_func_in_main());
+
+        extern const char *get_a_value_in_foo_via_bar();
+        printf("a value in foo via bar: %s\n", get_a_value_in_foo_via_bar());
+
+        extern const char *get_a_value_in_bar_via_foo();
+        printf("a value in bar via foo: %s\n", get_a_value_in_bar_via_foo());
 }

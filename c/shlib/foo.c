@@ -21,3 +21,12 @@ func_in_foo(int n)
 {
         return func_in_bar(n * 2);
 }
+
+const char *
+get_a_value_in_bar_via_foo()
+{
+        extern const char *a_value_in_bar;
+        return a_value_in_bar;
+}
+
+const char *a_value_in_foo = "this is a value in foo";
