@@ -18,6 +18,16 @@ void (*get_foo_set_ptr())(int) { return foo_set; }
 
 __attribute__((weak)) int func_in_bar(int n);
 
+/*
+ * for some reasons, emscriptens complains on the following block.
+ *
+ * error: undefined symbol: weak_func2 (referenced by root reference (e.g.
+ * compiled C/C++ code)) warning: To disable errors for undefined symbols use
+ * `-sERROR_ON_UNDEFINED_SYMBOLS=0` warning: _weak_func2 may need to be added
+ * to EXPORTED_FUNCTIONS if it arrives from a system library
+ */
+
+#if !defined(__EMSCRIPTEN__)
 __attribute__((weak)) const char *weak_func2();
 
 const char *
@@ -33,6 +43,7 @@ return_weak_func2()
 {
         return weak_func2;
 }
+#endif
 
 int
 func_in_foo(int n)
