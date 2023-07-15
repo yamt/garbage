@@ -27,7 +27,7 @@ __attribute__((weak)) int func_in_bar(int n);
  * to EXPORTED_FUNCTIONS if it arrives from a system library
  */
 
-#if !defined(__EMSCRIPTEN__)
+#if !defined(__EMSCRIPTEN__) || 1
 __attribute__((weak)) const char *weak_func2();
 
 const char *
