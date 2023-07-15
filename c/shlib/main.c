@@ -32,6 +32,9 @@ func_in_main()
 
 const char *call_func_in_main();
 
+__attribute__((weak)) extern int weak_var;
+__attribute__((weak)) extern int weak_func();
+
 #if 0
 int
 main()
@@ -72,4 +75,8 @@ main(int argc, char **argv)
 
         extern const char *get_a_value_in_bar_via_foo();
         printf("a value in bar via foo: %s\n", get_a_value_in_bar_via_foo());
+
+        printf("&weak_var = %p\n", &weak_var);
+        printf("weak_func = %p\n", (void *)weak_func);
+        // weak_func();
 }
