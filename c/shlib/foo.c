@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 int store;
 
 void
@@ -14,11 +16,28 @@ foo_get()
 
 void (*get_foo_set_ptr())(int) { return foo_set; }
 
-int func_in_bar(int n);
+__attribute__((weak)) int func_in_bar(int n);
+
+__attribute__((weak)) const char *weak_func2();
+
+const char *
+call_weak_func2()
+{
+        return weak_func2();
+}
+
+typedef const char *(*fn)();
+
+fn
+return_weak_func2()
+{
+        return weak_func2;
+}
 
 int
 func_in_foo(int n)
 {
+        printf("%s in %s called\n", __func__, __FILE__);
         return func_in_bar(n * 2);
 }
 

@@ -18,6 +18,7 @@ __attribute__((export_name("func_in_bar")))
 int
 func_in_bar(int n)
 {
+        printf("%s in %s called\n", __func__, __FILE__);
         return n + 4;
 }
 

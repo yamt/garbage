@@ -1,6 +1,9 @@
+#include <stdio.h>
+
 int
 func_in_bar(int n)
 {
+        printf("%s in %s called\n", __func__, __FILE__);
         return n + 5;
 }
 
