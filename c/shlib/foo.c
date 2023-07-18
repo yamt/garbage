@@ -19,6 +19,8 @@ void (*get_foo_set_ptr())(int) { return foo_set; }
 __attribute__((weak)) int func_in_bar(int n);
 
 /*
+ * https://github.com/emscripten-core/emscripten/issues/19861
+ *
  * for some reasons, emscriptens complains on the following block.
  *
  * error: undefined symbol: weak_func2 (referenced by root reference (e.g.

@@ -31,6 +31,25 @@ func_in_main()
         return "func in main";
 }
 
+extern int recurse_bar(int i);
+
+#if defined(__wasi__)
+__attribute__((export_name("recurse_main")))
+#endif
+int
+recurse_main(int i)
+{
+        if (i < 0) {
+                printf("%s %d fp=%p\n", __func__, i,
+                       (void *)__builtin_frame_address(0));
+                return i;
+        }
+#if !defined(__wasm__) || defined(__wasm_tail_call__)
+        __attribute__((musttail))
+#endif
+        return recurse_bar(i);
+}
+
 const char *call_func_in_main();
 
 __attribute__((weak)) extern int weak_var;
@@ -80,4 +99,36 @@ main(int argc, char **argv)
         printf("&weak_var = %p\n", &weak_var);
         printf("weak_func = %p\n", (void *)weak_func);
         // weak_func();
+
+        /* test internal GOT */
+        extern int var_in_main2;
+        extern int *get_ptr_of_var_in_main2();
+
+        extern const char *func_in_main2();
+        extern const char *(*get_ptr_of_func_in_main2())();
+
+        printf("var_in_main2: %u\n", var_in_main2);
+        printf("&var_in_main2: %p\n", (void *)&var_in_main2);
+        printf("get_ptr_of_var_in_main2(): %p\n",
+               (void *)get_ptr_of_var_in_main2());
+        assert(get_ptr_of_var_in_main2() == &var_in_main2);
+        assert(get_ptr_of_var_in_main2() != NULL);
+
+        printf("func_in_main2: %s\n", func_in_main2());
+        printf("&func_in_main2: %p\n", (void *)func_in_main2);
+        printf("get_ptr_of_func_in_main2(): %p\n",
+               (void *)get_ptr_of_func_in_main2());
+        assert(get_ptr_of_func_in_main2() == func_in_main2);
+        assert(get_ptr_of_func_in_main2() != NULL);
+
+        /* test tail-call between instances */
+#if !defined(__wasm__) || defined(__wasm_tail_call__)
+        /* assume tail-call */
+        int n = 1000000;
+#else
+        int n = 100;
+#endif
+        printf("calling recurse_bar(%d) fp=%p\n", n,
+               (void *)__builtin_frame_address(0));
+        recurse_bar(n);
 }

@@ -23,3 +23,13 @@ get_a_value_in_foo_via_bar()
 }
 
 const char *a_value_in_bar = "this is a value in bar";
+
+int
+recurse_bar(int i)
+{
+        extern int recurse_main(int i);
+#if !defined(__wasm__) || defined(__wasm_tail_call__)
+        __attribute__((musttail))
+#endif
+        return recurse_main(i - 1);
+}
