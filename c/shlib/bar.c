@@ -28,8 +28,12 @@ int
 recurse_bar(int i)
 {
         extern int recurse_main(int i);
+#if defined(__has_attribute)
+#if __has_attribute(musttail)
 #if !defined(__wasm__) || defined(__wasm_tail_call__)
         __attribute__((musttail))
+#endif
+#endif
 #endif
         return recurse_main(i - 1);
 }

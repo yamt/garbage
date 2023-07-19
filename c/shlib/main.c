@@ -44,8 +44,12 @@ recurse_main(int i)
                        (void *)__builtin_frame_address(0));
                 return i;
         }
+#if defined(__has_attribute)
+#if __has_attribute(musttail)
 #if !defined(__wasm__) || defined(__wasm_tail_call__)
         __attribute__((musttail))
+#endif
+#endif
 #endif
         return recurse_bar(i);
 }
@@ -122,11 +126,14 @@ main(int argc, char **argv)
         assert(get_ptr_of_func_in_main2() != NULL);
 
         /* test tail-call between instances */
+        int n = 100;
+#if defined(__has_attribute)
+#if __has_attribute(musttail)
 #if !defined(__wasm__) || defined(__wasm_tail_call__)
         /* assume tail-call */
-        int n = 1000000;
-#else
-        int n = 100;
+        n = 1000000;
+#endif
+#endif
 #endif
         printf("calling recurse_bar(%d) fp=%p\n", n,
                (void *)__builtin_frame_address(0));
