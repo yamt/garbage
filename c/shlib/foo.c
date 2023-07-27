@@ -62,3 +62,11 @@ get_a_value_in_bar_via_foo()
 }
 
 const char *a_value_in_foo = "this is a value in foo";
+
+const char *var_to_override = "var_to_override foo";
+
+const char *
+func_to_override()
+{
+	return "func_to_override foo";
+}

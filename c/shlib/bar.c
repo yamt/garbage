@@ -37,3 +37,11 @@ recurse_bar(int i)
 #endif
         return recurse_main(i - 1);
 }
+
+const char *var_to_override = "var_to_override bar";
+
+const char *
+func_to_override()
+{
+	return "func_to_override bar";
+}

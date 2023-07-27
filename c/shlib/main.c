@@ -125,6 +125,12 @@ main(int argc, char **argv)
         assert(get_ptr_of_func_in_main2() == func_in_main2);
         assert(get_ptr_of_func_in_main2() != NULL);
 
+		/* note: libfoo is loaded earlier than libbar */
+        extern const char *var_to_override;
+		extern const char *func_to_override();
+        printf("var_to_override: %s (expected foo)\n", var_to_override);
+        printf("func_to_override: %s (expected foo)\n", func_to_override());
+
         /* test tail-call between instances */
         int n = 100;
 #if defined(__has_attribute)
