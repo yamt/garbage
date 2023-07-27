@@ -59,7 +59,10 @@ const char *call_func_in_main();
 __attribute__((weak)) extern int weak_var;
 __attribute__((weak)) extern int weak_func();
 
-#if 0
+//#define USE_MAIN_VOID
+#undef USE_MAIN_VOID
+
+#if defined(USE_MAIN_VOID)
 int
 main()
 #else
@@ -67,7 +70,7 @@ int
 main(int argc, char **argv)
 #endif
 {
-#if 1
+#if !defined(USE_MAIN_VOID)
         int ch;
         while ((ch = getopt(argc, argv, "f:")) != -1) {
                 switch (ch) {
