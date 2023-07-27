@@ -68,5 +68,5 @@ const char *var_to_override = "var_to_override foo";
 const char *
 func_to_override()
 {
-	return "func_to_override foo";
+        return "func_to_override foo";
 }

@@ -43,5 +43,5 @@ const char *var_to_override = "var_to_override bar";
 const char *
 func_to_override()
 {
-	return "func_to_override bar";
+        return "func_to_override bar";
 }
