@@ -36,6 +36,7 @@ CLIBLINKFLAGS="-shared -fvisibility=default"
 
 ${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
 ${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c
+${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
 ${CC} ${CFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \

@@ -1,6 +1,64 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
+
+#if !defined(__wasi__)
+#include <dlfcn.h>
+#else
+
+/* a simple dlopen/dlsym implementation backed by toywasm dyld_dlfcn */
+
+__attribute__((import_module("dyld")))
+__attribute__((import_name("load_object"))) int
+dyld_load_module(const char *name, size_t namelen, int flags, void *handlep);
+
+__attribute__((import_module("dyld")))
+__attribute__((import_name("resolve_symbol"))) int
+dyld_resolve_symbol(void *handle, int symtype, const char *name,
+                    size_t namelen, void **addrp);
+
+#define DYLD_SYMBOL_TYPE_FUNC 1
+#define DYLD_SYMBOL_TYPE_MEMORY 2
+
+#define RTLD_LAZY 1
+
+void *
+dlopen(const char *name, int mode)
+{
+        int ret;
+        void *h;
+        ret = dyld_load_module(name, strlen(name), 0, &h);
+        if (ret != 0) {
+                return NULL;
+        }
+        return h;
+}
+
+void *
+dlsym(void *h, const char *name)
+{
+        int ret;
+        void *vp;
+        ret = dyld_resolve_symbol(h, DYLD_SYMBOL_TYPE_FUNC, name, strlen(name),
+                                  &vp);
+        if (ret != 0) {
+                ret = dyld_resolve_symbol(h, DYLD_SYMBOL_TYPE_MEMORY, name,
+                                          strlen(name), &vp);
+        }
+        if (ret != 0) {
+                return NULL;
+        }
+        return vp;
+}
+
+const char *
+dlerror()
+{
+        return "error";
+}
+#endif /* wasi */
 
 void foo_set(int x);
 void (*get_foo_set_ptr())(int);
@@ -58,6 +116,17 @@ const char *call_func_in_main();
 
 __attribute__((weak)) extern int weak_var;
 __attribute__((weak)) extern int weak_func();
+
+/* note: this export should not interfere dlopen/dlsym */
+#if defined(__wasi__)
+__attribute__((export_name("fn")))
+#endif
+int
+fn(const char *caller)
+{
+        printf("hi, %s. this is %s @ %s\n", caller, __func__, __FILE__);
+        abort();
+}
 
 //#define USE_MAIN_VOID
 #undef USE_MAIN_VOID
@@ -147,4 +216,27 @@ main(int argc, char **argv)
         printf("calling recurse_bar(%d) fp=%p\n", n,
                (void *)__builtin_frame_address(0));
         recurse_bar(n);
+
+        /* dlopen */
+        void *h = dlopen("libbaz.so", RTLD_LAZY);
+        if (h == NULL) {
+                printf("dlopen failed %s\n", dlerror());
+                exit(1);
+        }
+        void *var = dlsym(h, "var");
+        if (var == NULL) {
+                printf("dlsym var failed\n");
+                exit(1);
+        }
+        printf("var = %p\n", var);
+        printf("*var = %d\n", *(int *)var);
+        void *fn = dlsym(h, "fn");
+        if (fn == NULL) {
+                printf("dlsym fn failed\n");
+                exit(1);
+        }
+        printf("fn = %p\n", fn);
+        printf("calling fn @ baz...\n");
+        int (*fn1)(const char *) = fn;
+        printf("fn(\"main\") = %d (expectd 4)\n", fn1("main"));
 }

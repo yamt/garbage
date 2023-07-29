@@ -20,6 +20,7 @@ esac
 
 cc -fPIC ${CLINKFLAGS} -shared -o libbar.so bar.c
 cc -fPIC ${CLINKFLAGS} -shared -o libfoo.so foo.c libbar.so
+cc -fPIC ${CLINKFLAGS} -shared -o libbaz.so baz.c
 cc -fPIC ${CLINKFLAGS} -o main main.c main2.c libfoo.so libbar.so
 
 ./main
