@@ -18,7 +18,9 @@ CC=${LLVM_HOME}/bin/clang
 CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
 CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 
-# built with TOYWASM_ENABLE_DYLD=ON
+# built with
+#  TOYWASM_ENABLE_DYLD=ON
+#  TOYWASM_ENABLE_DYLD_DLFCN=ON
 TOYWASM=${TOYWASM:-toywasm}
 
 CFLAGS="${CFLAGS} -O3 -fPIC"
@@ -48,6 +50,7 @@ libfoo.so libbar.so
 
 ${TOYWASM} --wasi \
 --dyld \
+--dyld-dlfcn \
 --dyld-path . \
 --dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
 "$@" main
