@@ -24,6 +24,7 @@ CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 TOYWASM=${TOYWASM:-toywasm}
 
 CFLAGS="${CFLAGS} -O3 -fPIC"
+CFLAGS="${CFLAGS} -I./libdl"
 
 # https://reviews.llvm.org/D155542
 #CFLAGS="${CFLAGS} -mextended-const"
@@ -46,11 +47,12 @@ ${CC} ${CFLAGS} ${CLINKFLAGS} \
 -o main \
 main.c \
 main2.c \
-libfoo.so libbar.so
+libfoo.so libbar.so libdl/libdl.so
 
 ${TOYWASM} --wasi \
 --dyld \
 --dyld-dlfcn \
 --dyld-path . \
 --dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
+--dyld-path ./libdl \
 "$@" main

@@ -3,62 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-
-#if !defined(__wasi__)
 #include <dlfcn.h>
-#else
-
-/* a simple dlopen/dlsym implementation backed by toywasm dyld_dlfcn */
-
-__attribute__((import_module("dyld")))
-__attribute__((import_name("load_object"))) int
-dyld_load_module(const char *name, size_t namelen, int flags, void *handlep);
-
-__attribute__((import_module("dyld")))
-__attribute__((import_name("resolve_symbol"))) int
-dyld_resolve_symbol(void *handle, int symtype, const char *name,
-                    size_t namelen, void **addrp);
-
-#define DYLD_SYMBOL_TYPE_FUNC 1
-#define DYLD_SYMBOL_TYPE_MEMORY 2
-
-#define RTLD_LAZY 1
-
-void *
-dlopen(const char *name, int mode)
-{
-        int ret;
-        void *h;
-        ret = dyld_load_module(name, strlen(name), 0, &h);
-        if (ret != 0) {
-                return NULL;
-        }
-        return h;
-}
-
-void *
-dlsym(void *h, const char *name)
-{
-        int ret;
-        void *vp;
-        ret = dyld_resolve_symbol(h, DYLD_SYMBOL_TYPE_FUNC, name, strlen(name),
-                                  &vp);
-        if (ret != 0) {
-                ret = dyld_resolve_symbol(h, DYLD_SYMBOL_TYPE_MEMORY, name,
-                                          strlen(name), &vp);
-        }
-        if (ret != 0) {
-                return NULL;
-        }
-        return vp;
-}
-
-const char *
-dlerror()
-{
-        return "error";
-}
-#endif /* wasi */
 
 void foo_set(int x);
 void (*get_foo_set_ptr())(int);
