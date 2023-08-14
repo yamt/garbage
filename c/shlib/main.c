@@ -1,6 +1,6 @@
 #include <assert.h>
-#include <errno.h>
 #include <dlfcn.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -190,6 +190,15 @@ main(int argc, char **argv)
         printf("calling fn @ baz...\n");
         int (*fn1)(const char *) = fn;
         printf("fn(\"main\") = %d (expectd 4)\n", fn1("main"));
+
+        void *(*get_printf_ptr)() = dlsym(h, "get_printf_ptr");
+        if (get_printf_ptr == NULL) {
+                printf("dlsym get_printf_ptr failed\n");
+                exit(1);
+        }
+        printf("printf in main: %p\n", printf);
+        printf("printf in baz: %p\n", get_printf_ptr());
+        assert(printf == get_printf_ptr());
 
         printf("errno = %d\n", errno);
 }
