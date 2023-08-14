@@ -4,16 +4,17 @@ set -e
 set -x
 
 # https://github.com/yamt/wasi-libc/tree/dynamic-linking-__main_void.o-revert 
-WASI_SDK=${WASI_SDK:-/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk}
-CC=${WASI_SDK}/bin/clang
+#WASI_SDK=${WASI_SDK:-/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk}
+#CC=${WASI_SDK}/bin/clang
 
 #WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 WASI_SYSROOT=/Users/yamamoto/git/wasi-libc/sysroot
 
 #LLVM_HOME=/Volumes/PortableSSD/llvm/llvm
 LLVM_HOME=/Volumes/PortableSSD/llvm/build
-#RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
-RESOURCE_DIR=${WASI_SDK}/lib/clang/17
+#LLVM_HOME=/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk
+RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
+#RESOURCE_DIR=${WASI_SDK}/lib/clang/17
 CC=${LLVM_HOME}/bin/clang
 CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
 CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
@@ -38,7 +39,8 @@ CLIBLINKFLAGS="-shared -fvisibility=default"
 #CRT1=$(${CC} --print-file-name crt1-reactor.o)
 
 ${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
-${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c
+# see the comment in native.sh
+${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
 ${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
 ${CC} ${CFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \

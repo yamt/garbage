@@ -70,3 +70,9 @@ func_to_override()
 {
         return "func_to_override foo";
 }
+
+__attribute__((constructor(50))) static void
+ctor(void)
+{
+        printf("this is %s @ %s\n", __func__, __FILE__);
+}

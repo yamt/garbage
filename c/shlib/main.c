@@ -1,9 +1,10 @@
 #include <assert.h>
+#include <errno.h>
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <dlfcn.h>
 
 void foo_set(int x);
 void (*get_foo_set_ptr())(int);
@@ -119,7 +120,11 @@ main(int argc, char **argv)
 
         printf("&weak_var = %p\n", &weak_var);
         printf("weak_func = %p\n", (void *)weak_func);
-        // weak_func();
+
+        typedef const char *(*fn_t)();
+        extern fn_t return_weak_func2();
+        printf("return_weak_func2() = %p\n", return_weak_func2());
+        assert(return_weak_func2() == NULL);
 
         /* test internal GOT */
         extern int var_in_main2;
@@ -163,6 +168,7 @@ main(int argc, char **argv)
         recurse_bar(n);
 
         /* dlopen */
+        printf("dlopen'ing libbaz.so...\n");
         void *h = dlopen("libbaz.so", RTLD_LAZY);
         if (h == NULL) {
                 printf("dlopen failed %s\n", dlerror());
@@ -184,4 +190,12 @@ main(int argc, char **argv)
         printf("calling fn @ baz...\n");
         int (*fn1)(const char *) = fn;
         printf("fn(\"main\") = %d (expectd 4)\n", fn1("main"));
+
+        printf("errno = %d\n", errno);
+}
+
+__attribute__((constructor(50))) static void
+ctor(void)
+{
+        printf("this is %s @ %s\n", __func__, __FILE__);
 }
