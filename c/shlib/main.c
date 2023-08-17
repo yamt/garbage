@@ -105,6 +105,7 @@ main(int argc, char **argv)
         foo_set_p(100);
         // return foo_get();
         printf("%d (expected 100)\n", foo_get());
+        assert(foo_get() == 100);
 
         printf("%d (expected 10 for flat namespace, 11 for two-level "
                "namespace)\n",
@@ -134,6 +135,7 @@ main(int argc, char **argv)
         extern const char *(*get_ptr_of_func_in_main2())();
 
         printf("var_in_main2: %u\n", var_in_main2);
+        assert(var_in_main2 == 321);
         printf("&var_in_main2: %p\n", (void *)&var_in_main2);
         printf("get_ptr_of_var_in_main2(): %p\n",
                (void *)get_ptr_of_var_in_main2());
@@ -174,6 +176,10 @@ main(int argc, char **argv)
                 printf("dlopen failed %s\n", dlerror());
                 exit(1);
         }
+
+        printf("errno = %d\n", errno);
+        assert(errno == 4321); /* set by baz ctor */
+
         void *var = dlsym(h, "var");
         if (var == NULL) {
                 printf("dlsym var failed\n");
@@ -181,6 +187,8 @@ main(int argc, char **argv)
         }
         printf("var = %p\n", var);
         printf("*var = %d\n", *(int *)var);
+        assert(*(int *)var == 42);
+
         void *fn = dlsym(h, "fn");
         if (fn == NULL) {
                 printf("dlsym fn failed\n");
@@ -199,8 +207,6 @@ main(int argc, char **argv)
         printf("printf in main: %p\n", printf);
         printf("printf in baz: %p\n", get_printf_ptr());
         assert(printf == get_printf_ptr());
-
-        printf("errno = %d\n", errno);
 }
 
 __attribute__((constructor(50))) static void

@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stdio.h>
 
 int
@@ -46,8 +47,23 @@ func_to_override()
         return "func_to_override bar";
 }
 
+extern int func_in_foo(int);
+int (*ptr_to_func_in_foo)(int) = func_in_foo;
+extern int (*ptr_to_func_in_bar)(int);
+
 __attribute__((constructor(50))) static void
 ctor(void)
 {
         printf("this is %s @ %s\n", __func__, __FILE__);
+
+        /* note: ctor in foo and bar relies on the other's reloctaion */
+        int n;
+
+        n = ptr_to_func_in_foo(1000);
+        printf("func_in_foo returned %d (2005 for two-level namespace, 2004 for flat namespace)\n", n);
+        assert(n == 2004 || n == 2005);
+
+        n = ptr_to_func_in_bar(1000);
+        printf("func_in_bar returned %d (1005 for two-level namespace, 1004 for flat namespace)\n", n);
+        assert(n == 1004 || n == 1005);
 }
