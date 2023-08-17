@@ -24,7 +24,7 @@ CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 #  TOYWASM_ENABLE_DYLD_DLFCN=ON
 TOYWASM=${TOYWASM:-toywasm}
 
-CFLAGS="${CFLAGS} -O3 -fPIC"
+CFLAGS="${CFLAGS} -O3"
 CFLAGS="${CFLAGS} -I./libdl"
 
 # https://reviews.llvm.org/D155542
@@ -38,11 +38,15 @@ CLIBLINKFLAGS="-shared -fvisibility=default"
 
 #CRT1=$(${CC} --print-file-name crt1-reactor.o)
 
-${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
+CPICFLAGS="${CFLAGS} -fPIC"
+
+${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
 # see the comment in native.sh
-${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
-${CC} ${CFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
-${CC} ${CFLAGS} ${CLINKFLAGS} \
+${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
+${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
+BUILD_PIE=${BUILD_PIE:-0}
+if [ ${BUILD_PIE} -ne 0 ]; then
+${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \
 -Xlinker --import-memory \
@@ -50,6 +54,27 @@ ${CC} ${CFLAGS} ${CLINKFLAGS} \
 main.c \
 main2.c \
 libfoo.so libbar.so libdl/libdl.so
+else
+# clang doesn't have DynamicNoPIC for non-darwin targets. just use -fPIC.
+#PIC=-mdynamic-no-pic
+PIC=-fPIC
+${CC} -v ${CFLAGS} ${CLINKFLAGS} \
+-g \
+${PIC} \
+-nodefaultlibs \
+-Xlinker --export-if-defined=__main_argc_argv \
+-Xlinker --unresolved-symbols=import-dynamic \
+-Xlinker --export-table \
+-Xlinker --growable-table \
+-Xlinker --export=__stack_pointer \
+-Xlinker --export=__heap_base \
+-Xlinker --export=__heap_end \
+-z stack-size=16384 \
+-o main \
+main.c \
+main2.c \
+libfoo.so libbar.so libdl/libdl.so
+fi
 
 ${TOYWASM} --wasi \
 --dyld \
