@@ -1,5 +1,9 @@
 /*
- * note: nuttx doesn't have siglongjmp/sigsetjmp
+ * note: nuttx doesn't have sigsetjmp/siglongjmp
+ *
+ * note: in posix, it's unspecified if setjmp/longjmp save and restore
+ * the signal mask. on netbsd they do. no nuttx they don't.
+ * this code tries to avoid assuming either behaviors.
  *
  * note: signal handling on nuttx is a bit broken
  * https://github.com/apache/nuttx/issues/10326
@@ -7,45 +11,69 @@
 
 #include <sys/wait.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <setjmp.h>
 #include <signal.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+const int signo = SIGUSR1;
+
 jmp_buf jb;
 sigset_t mask;
 
-void
-sighandler(int signo)
+static void
+assert_sigmask(bool blocked)
 {
-        longjmp(jb, 1);
+        sigset_t curmask;
+        sigprocmask(SIG_BLOCK, NULL, &curmask);
+        assert(blocked == sigismember(&curmask, signo));
 }
 
 static void
 block()
 {
+        assert_sigmask(false);
         sigprocmask(SIG_BLOCK, &mask, NULL);
+        assert_sigmask(true);
 }
 
 static void
 unblock()
 {
+        assert_sigmask(true);
         sigprocmask(SIG_UNBLOCK, &mask, NULL);
+        assert_sigmask(false);
+}
+
+void
+sighandler(int signo)
+{
+        assert_sigmask(true);
+        longjmp(jb, 1);
 }
 
 ssize_t
 cancellable_read(int fd, void *buf, size_t buflen)
 {
         void *some_resource = malloc(1);
+        assert_sigmask(true);
         if (setjmp(jb) != 0) {
+                assert_sigmask(true);
                 printf("%s: cancelled\n", __func__);
                 free(some_resource);
                 return EINTR;
         }
         unblock();
+        /*
+         * note: printf here is not safe because it isn't async-signal-safe.
+         *
+         * note: read is async-signal-safe.
+         */
         printf("%s: calling read\n", __func__);
         ssize_t ret = read(fd, buf, buflen);
         printf("%s: returned from read\n", __func__);
@@ -63,8 +91,6 @@ cancellable_read(int fd, void *buf, size_t buflen)
 int
 main(int argc, char **argv)
 {
-        int signo = SIGUSR1;
-
         sigemptyset(&mask);
         sigaddset(&mask, signo);
         block();
