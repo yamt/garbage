@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -10,7 +11,20 @@ using namespace cv;
 int
 main()
 {
-        VideoCapture cap(0);
+        /*
+         * Note: opencv doesn't have an API to list camera devices.
+         * https://github.com/opencv/opencv/issues/4269
+         * While ID 0 seems to work for many cases, it doesn't always work.
+         * For example, while I can successfully open ID 0 on my macbook,
+         * it returns an empty frame for some reasons. The front camera
+         * on the macbook seems working if I specify ID 1.
+         */
+        const char *camera_id_str = getenv("CAMERA_ID");
+        unsigned int camera_id = 0;
+        if (camera_id_str != NULL) {
+                camera_id = atoi(camera_id_str);
+        }
+        VideoCapture cap(camera_id);
 #if 0
         cap.set(CAP_PROP_FRAME_WIDTH, 200);
         cap.set(CAP_PROP_FRAME_HEIGHT, 200);
