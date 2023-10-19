@@ -48,8 +48,18 @@ print_env(void)
         PRINT_WEAK_SYM(__heap_end);
 #endif
         PRINT_SYM(__dso_handle);
+        printf("__builtin_wasm_memory_size(0) %p\n",
+               (void *)__builtin_wasm_memory_size(0));
+        /*
+         * XXX for some reasons it hangs up with emscripten
+         *
+         * emcc hello.c
+         * node a.out.js
+         */
+#if !defined(__EMSCRIPTEN__)
         printf("__builtin_wasm_memory_grow(0,0) %p\n",
                (void *)__builtin_wasm_memory_grow(0, 0));
+#endif
 
         /* https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md
          */
