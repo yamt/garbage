@@ -41,7 +41,7 @@ _print_float(const char *label, float f)
         if (sign) {
                 v = -v;
         }
-        printf("%f\n", v);
+        printf("%f isnan=%u isinf=%u\n", v, (int)isnan(f), (int)isinf(f));
 }
 
 #define print_float(a) _print_float(#a, a)
@@ -77,4 +77,11 @@ main()
          */
         print_float(sqrt(minus_inf));
         print_float(sqrt(-1.0));
+
+        union {
+                float f;
+                uint32_t u;
+        } u;
+        u.u = 0xffffffff;
+        print_float(u.f);
 }
