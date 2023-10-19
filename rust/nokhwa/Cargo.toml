@@ -1,0 +1,16 @@
+[package]
+name = "nokhwa"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1.0.75"
+tracing = "0.1.37"
+image = "0.24.7"
+# released versions is a bit broken for avfoundation.
+# https://github.com/l1npengtul/nokhwa/pull/151
+# https://github.com/l1npengtul/nokhwa/pull/152
+#nokhwa = {version = "0.10.4", features = ["input-native"]}
+nokhwa = {path = "../../../nokhwa", features = ["input-native"]}
