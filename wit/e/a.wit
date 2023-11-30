@@ -1,0 +1,20 @@
+package foo:bar;
+
+interface hoge {
+    variant v1 {
+        a(u32),
+    }
+    set1: func(v: v1);
+    get1: func() -> v1;
+
+    variant v2 {
+        a(u32),
+        b(string),
+    }
+    set2: func(v: v2);
+    get2: func() -> v2;
+}
+
+world useless {
+    import hoge;
+}
