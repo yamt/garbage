@@ -1,0 +1,30 @@
+https://github.com/bytecodealliance/wit-bindgen/issues/775
+
+https://github.com/bytecodealliance/wit-bindgen/pull/598
+https://github.com/bytecodealliance/wit-bindgen/pull/676
+https://github.com/bytecodealliance/wit-bindgen/issues/673
+
+```
+spacetanuki% wit-bindgen --version
+wit-bindgen-cli 0.14.0 (5f903613c 2023-11-13)
+spacetanuki% wit-bindgen rust a.wit
+Generating "useless.rs"
+spacetanuki% grep "fn set" useless.rs
+      pub fn set1(v: V1,){
+      pub fn set2(v: &V2,){
+      pub fn set3(v: &V3,){
+spacetanuki% wit-bindgen rust --ownership=borrowing a.wit
+Generating "useless.rs"
+spacetanuki% grep "fn set" useless.rs
+      pub fn set1(v: V1,){
+      pub fn set2(v: &V2,){
+      pub fn set3(v: V3<'_,>,){
+spacetanuki% wit-bindgen rust --ownership=borrowing-duplicate-if-necessary a.wit
+
+Generating "useless.rs"
+spacetanuki% grep "fn set" useless.rs
+      pub fn set1(v: V1,){
+      pub fn set2(v: V2Param<'_,>,){
+      pub fn set3(v: V3<'_,>,){
+spacetanuki%
+```
