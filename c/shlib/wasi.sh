@@ -3,21 +3,25 @@
 set -e
 set -x
 
+WASI_SDK=${WASI_SDK:-/opt/wasi-sdk-21.0}
+CC=${WASI_SDK}/bin/clang
+WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
+
 # https://github.com/yamt/wasi-libc/tree/dynamic-linking-__main_void.o-revert 
 #WASI_SDK=${WASI_SDK:-/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk}
 #CC=${WASI_SDK}/bin/clang
 
 #WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
-WASI_SYSROOT=/Users/yamamoto/git/wasi-libc/sysroot
+#WASI_SYSROOT=/Users/yamamoto/git/wasi-libc/sysroot
 
 #LLVM_HOME=/Volumes/PortableSSD/llvm/llvm
-LLVM_HOME=/Volumes/PortableSSD/llvm/build
+#LLVM_HOME=/Volumes/PortableSSD/llvm/build
 #LLVM_HOME=/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk
-RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
+#RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
 #RESOURCE_DIR=${WASI_SDK}/lib/clang/17
-CC=${LLVM_HOME}/bin/clang
-CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
-CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
+#CC=${LLVM_HOME}/bin/clang
+#CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
+#CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 
 # built with
 #  TOYWASM_ENABLE_DYLD=ON
@@ -76,10 +80,12 @@ main2.c \
 libfoo.so libbar.so libdl/libdl.so
 fi
 
+# note: specify --dyld-path for toywasm libdl.so before the one for wasi-libc
+# so that dyld picks up the former.
 ${TOYWASM} --wasi \
 --dyld \
 --dyld-dlfcn \
 --dyld-path . \
---dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
 --dyld-path ./libdl \
+--dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
 "$@" main
