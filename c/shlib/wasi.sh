@@ -48,8 +48,14 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
 # see the comment in native.sh
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
+
 BUILD_PIE=${BUILD_PIE:-0}
 if [ ${BUILD_PIE} -ne 0 ]; then
+# Note: --import-memory is to follow the dynamic-linking convention.
+# https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md#interface-and-usage
+# while it isn't very clear what to do for the main executable, this is what
+# emscripten seems to do. (and toywasm followed it for the pie case.)
+# Note: --export-memory is a wasi requirement
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \
