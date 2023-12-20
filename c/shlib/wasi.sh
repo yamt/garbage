@@ -54,6 +54,7 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \
 -Xlinker --import-memory \
+-Xlinker --export-memory \
 -o main \
 main.c \
 main2.c \
