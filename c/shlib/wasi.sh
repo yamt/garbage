@@ -29,7 +29,7 @@ WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 TOYWASM=${TOYWASM:-toywasm}
 
 CFLAGS="${CFLAGS} -O3"
-CFLAGS="${CFLAGS} -I./libdl"
+#CFLAGS="${CFLAGS} -I./libdl"
 
 # https://reviews.llvm.org/D155542
 #CFLAGS="${CFLAGS} -mextended-const"
@@ -57,11 +57,14 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -o main \
 main.c \
 main2.c \
-libfoo.so libbar.so libdl/libdl.so
+libfoo.so libbar.so \
+-ldl
 else
 # clang doesn't have DynamicNoPIC for non-darwin targets. just use -fPIC.
 #PIC=-mdynamic-no-pic
 PIC=-fPIC
+# Note: wasm-ld doesn't find libdl.so for -ldl unless -shared or -pie is used
+# https://github.com/llvm/llvm-project/blob/b01adc6bed7e5b924dd8a097be0aa893f4823905/lld/wasm/Driver.cpp#L309-L313
 ${CC} -v ${CFLAGS} ${CLINKFLAGS} \
 -g \
 ${PIC} \
@@ -77,7 +80,8 @@ ${PIC} \
 -o main \
 main.c \
 main2.c \
-libfoo.so libbar.so libdl/libdl.so
+libfoo.so libbar.so \
+${WASI_SYSROOT}/lib/wasm32-wasi/libdl.so
 fi
 
 # note: specify --dyld-path for toywasm libdl.so before the one for wasi-libc
