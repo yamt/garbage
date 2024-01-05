@@ -87,6 +87,12 @@ skip(int fd, off_t sz)
         return sz;
 }
 
+off_t
+tell(int fd)
+{
+        return lseek(fd, 0, SEEK_CUR);
+}
+
 const char *
 section_type(uint32_t type)
 {
@@ -129,6 +135,19 @@ readstr(int fd, char **pp)
                 free(p);
         }
         return off + ssz;
+}
+
+void
+dump_text(int fd, size_t size)
+{
+        uint32_t literal_size;
+        size -= read32(fd, &literal_size);
+        printf("literals %" PRIu32 " bytes\n", literal_size);
+        skip(fd, literal_size);
+        uint32_t code_size = size - literal_size;
+        printf("code offset %" PRIu64 " size %" PRIu32 "\n",
+               (uint64_t)tell(fd), code_size);
+        skip(fd, code_size);
 }
 
 void
@@ -286,6 +305,9 @@ main(int argc, char **argv)
                 printf("section: %s %u %u\n", section_type(shdr.type),
                        shdr.type, shdr.size);
                 switch (shdr.type) {
+                case 2:
+                        dump_text(fd, shdr.size);
+                        break;
                 case 4:
                         dump_export(fd, shdr.size);
                         break;
