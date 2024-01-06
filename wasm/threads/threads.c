@@ -75,6 +75,7 @@ print_env(void)
 {
         printf("pthread_self %ju\n", (uintmax_t)pthread_self());
         printf("tid %u\n", tid(pthread_self()));
+        printf("&errno = %p\n", &errno);
         printf("__builtin_frame_address %p\n", __builtin_frame_address(0));
         printf("__builtin_wasm_tls_base %p\n", __builtin_wasm_tls_base());
         printf("__builtin_wasm_tls_size %zu\n", __builtin_wasm_tls_size());
