@@ -29,8 +29,8 @@ RUN chsh -s /usr/bin/zsh root
 FROM base as install
 
 # Note: this is amd64 binary
-RUN curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-16/wasi-sdk-16.0-linux.tar.gz | (mkdir -p /opt && cd /opt && pax -rvz)
-RUN ln -s wasi-sdk-16.0 /opt/wasi-sdk
+RUN curl -L https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-21/wasi-sdk-21.0-linux.tar.gz | (mkdir -p /opt && cd /opt && pax -rvz)
+RUN ln -s wasi-sdk-21.0 /opt/wasi-sdk
 
 # qemu: Ninja, pkg-config, libglib2.0-dev
 # bsdmailutils includes hexdump
