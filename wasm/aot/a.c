@@ -137,6 +137,152 @@ readstr(int fd, char **pp)
         return off + ssz;
 }
 
+#define DUMP_U8(name)                                                         \
+        uint8_t name;                                                         \
+        size -= read8(fd, &name);                                             \
+        printf("%s %" PRIu8 "\n", #name, name)
+
+#define DUMP_U16(name)                                                        \
+        uint16_t name;                                                        \
+        size -= read16(fd, &name);                                            \
+        printf("%s %" PRIu16 "\n", #name, name)
+
+#define DUMP_U32(name)                                                        \
+        uint32_t name;                                                        \
+        size -= read32(fd, &name);                                            \
+        printf("%s %" PRIu32 "\n", #name, name)
+
+#define DUMP_U64(name)                                                        \
+        uint64_t name;                                                        \
+        size -= read64(fd, &name);                                            \
+        printf("%s %" PRIu64 "\n", #name, name)
+
+#define DUMP_STR(name)                                                        \
+        char *name;                                                           \
+        size -= readstr(fd, &name);                                           \
+        printf("%s %s\n", #name, name);                                       \
+        free(name);
+
+void
+dump_init_data(int fd, size_t size)
+{
+        uint32_t i;
+
+        DUMP_U32(import_memory_count);
+        DUMP_U32(memory_count);
+        for (i = 0; i < memory_count; i++) {
+                DUMP_U32(memory_flags);
+                DUMP_U32(num_bytes_per_page);
+                DUMP_U32(mem_init_page_count);
+                DUMP_U32(mem_max_page_count);
+        }
+        DUMP_U32(init_data_count);
+        for (i = 0; i < init_data_count; i++) {
+                DUMP_U32(is_passive);
+                DUMP_U32(memory_index);
+                DUMP_U32(init_expr_type);
+                DUMP_U64(init_expr_value);
+                DUMP_U32(byte_count);
+
+                skip(fd, byte_count);
+                size -= byte_count;
+        }
+
+        DUMP_U32(import_table_count);
+        for (i = 0; i < import_table_count; i++) {
+                DUMP_U32(elem_type);
+                DUMP_U32(table_init_size);
+                DUMP_U32(table_max_size);
+                DUMP_U32(possible_grow);
+        }
+
+        DUMP_U32(table_count);
+        for (i = 0; i < table_count; i++) {
+                DUMP_U32(elem_type);
+                DUMP_U32(table_flags);
+                DUMP_U32(table_init_size);
+                DUMP_U32(table_max_size);
+                DUMP_U32(possible_grow);
+        }
+
+        DUMP_U32(table_init_data_count);
+        for (i = 0; i < table_init_data_count; i++) {
+                DUMP_U32(mode);
+                DUMP_U32(elem_type);
+                DUMP_U32(table_index);
+                DUMP_U32(init_expr_type);
+                DUMP_U64(init_expr_value);
+                DUMP_U32(func_index_count);
+
+                skip(fd, func_index_count * 4);
+                size -= func_index_count * 4;
+        }
+
+        DUMP_U32(func_type_count);
+        for (i = 0; i < func_type_count; i++) {
+                DUMP_U32(param_count);
+                DUMP_U32(result_count);
+
+                uint32_t sz = param_count + result_count;
+                skip(fd, sz);
+                size -= sz;
+        }
+
+        DUMP_U32(import_global_count);
+        for (i = 0; i < import_table_count; i++) {
+                DUMP_U32(type);
+                DUMP_U32(is_mutable);
+                DUMP_STR(module_name);
+                DUMP_STR(global_name);
+        }
+
+        DUMP_U32(global_count);
+        for (i = 0; i < global_count; i++) {
+                DUMP_U8(type);
+                DUMP_U8(is_mutable);
+                DUMP_U16(init_expr_type);
+                if (init_expr_type != 0xfd) {
+                        DUMP_U64(init_expr);
+                } else {
+                        DUMP_U64(init_expr_1);
+                        DUMP_U64(init_expr_2);
+                }
+        }
+
+        DUMP_U32(import_func_count);
+        for (i = 0; i < import_func_count; i++) {
+                DUMP_U16(func_type_index);
+                DUMP_STR(module_name);
+                DUMP_STR(func_name);
+        }
+
+        DUMP_U32(func_count);
+        DUMP_U32(start_func_index);
+
+        DUMP_U32(aux_data_end_global_index);
+        DUMP_U32(aux_data_end);
+        DUMP_U32(aux_heap_base_global_index);
+        DUMP_U32(aux_heap_base);
+        DUMP_U32(aux_stack_top_global_index);
+        DUMP_U32(aux_stack_bottom);
+        DUMP_U32(aux_stack_size);
+
+        DUMP_U32(data_section_count);
+        for (i = 0; i < data_section_count; i++) {
+                DUMP_STR(data_section_name);
+                DUMP_U32(data_section_size);
+
+                printf("data section [%" PRIu32 "] offset %" PRIu64
+                       " size %" PRIu32 "\n",
+                       i, (uint64_t)tell(fd), data_section_size);
+                uint32_t sz = data_section_size;
+                skip(fd, sz);
+                size -= sz;
+        }
+
+        skip(fd, size);
+}
+
 void
 dump_text(int fd, size_t size)
 {
@@ -305,6 +451,9 @@ main(int argc, char **argv)
                 printf("section: %s %u %u\n", section_type(shdr.type),
                        shdr.type, shdr.size);
                 switch (shdr.type) {
+                case 1:
+                        dump_init_data(fd, shdr.size);
+                        break;
                 case 2:
                         dump_text(fd, shdr.size);
                         break;
