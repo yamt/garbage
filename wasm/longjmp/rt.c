@@ -37,6 +37,7 @@ saveSetjmp(void *env, uint32_t label, void *table, uint32_t size)
                 }
         }
         /* TODO grow the table */
+        __builtin_trap();
 done:
         state->size = size;
         return table;
