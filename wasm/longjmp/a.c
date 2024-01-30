@@ -20,6 +20,7 @@ typedef void *jmp_buf;
  */
 void *buf1[5];
 void *buf2[5];
+void *buf3[5];
 
 __attribute__((noinline)) void
 g(jmp_buf buf, int x)
@@ -46,13 +47,16 @@ int count = 5;
 void
 loop()
 {
-        int ret = setjmp(buf2);
+        int ret;
+        ret = setjmp(buf2);
         printf("setjmp(buf2) returned %d\n", ret);
         if (ret == 0) {
                 printf("calling f\n");
                 f(buf2, 1);
                 printf("f returned\n");
         }
+        ret = setjmp(buf3);
+        printf("setjmp(buf3) returned %d\n", ret);
         if (--count > 0) {
                 printf("count %u\n", count);
                 f(buf2, 1);
