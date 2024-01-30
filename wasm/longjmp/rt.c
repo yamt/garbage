@@ -1,5 +1,8 @@
 /*
  * https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/WebAssembly/WebAssemblyLowerEmscriptenEHSjLj.cpp
+ *
+ * XXX if i understand it correctly, repeated setjmp calls would grow
+ * the table indefinetely. am i missing something?
  */
 
 #include <stdint.h>
