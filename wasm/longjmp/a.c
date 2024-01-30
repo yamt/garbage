@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(__wasm__)
 /* for some reasons, __builtin_setjmp/__builtin_longjmp is not used */
@@ -22,9 +23,12 @@ void *buf1[5];
 void *buf2[5];
 void *buf3[5];
 
+int g_called;
+
 __attribute__((noinline)) void
 g(jmp_buf buf, int x)
 {
+        g_called++;
         if (x == 0) {
                 printf("just returning\n");
                 return;
@@ -57,6 +61,10 @@ loop()
         }
         ret = setjmp(buf3);
         printf("setjmp(buf3) returned %d\n", ret);
+        if (ret != 0) {
+                printf("SHOULD NOT REACH HERE!\n");
+                exit(1);
+        }
         if (--count > 0) {
                 printf("count %u\n", count);
                 f(buf2, 1);
@@ -66,8 +74,9 @@ loop()
 int
 main()
 {
+        int ret;
         printf("calling setjmp\n");
-        int ret = setjmp(buf1);
+        ret = setjmp(buf1);
         printf("setjmp(buf1) returned %d\n", ret);
         if (ret == 0) {
                 loop();
@@ -77,6 +86,10 @@ main()
                 printf("calling f\n");
                 f(buf1, 1);
                 printf("f returned\n");
+        }
+        if (g_called != 7) {
+                printf("UNEXPECTED g_called %d\n", g_called);
+                exit(1);
         }
         printf("done\n");
 }
