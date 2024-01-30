@@ -14,10 +14,12 @@ typedef void *jmp_buf;
 #endif
 
 /*
+ * note: a jmp_buf for __builtin_setjmp is of 5 words
  * https://gcc.gnu.org/onlinedocs/gcc/Nonlocal-Gotos.html
  * https://llvm.org/docs/ExceptionHandling.html#llvm-eh-sjlj-setjmp
  */
-void *buf[5];
+void *buf1[5];
+void *buf2[5];
 
 __attribute__((noinline)) void
 g(jmp_buf buf, int x)
@@ -39,18 +41,37 @@ f(jmp_buf buf, int x)
         printf("g returned\n");
 }
 
+int count = 5;
+
+void
+loop()
+{
+        int ret = setjmp(buf2);
+        printf("setjmp(buf2) returned %d\n", ret);
+        if (ret == 0) {
+                printf("calling f\n");
+                f(buf2, 1);
+                printf("f returned\n");
+        }
+        if (--count > 0) {
+                printf("count %u\n", count);
+                f(buf2, 1);
+        }
+}
+
 int
 main()
 {
         printf("calling setjmp\n");
-        int ret = setjmp(buf);
-        printf("setjmp returned %d\n", ret);
+        int ret = setjmp(buf1);
+        printf("setjmp(buf1) returned %d\n", ret);
         if (ret == 0) {
+                loop();
                 printf("calling f\n");
-                f(buf, 0);
+                f(buf1, 0);
                 printf("f returned\n");
                 printf("calling f\n");
-                f(buf, 1);
+                f(buf1, 1);
                 printf("f returned\n");
         }
         printf("done\n");
