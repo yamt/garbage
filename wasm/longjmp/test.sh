@@ -1,5 +1,7 @@
 #! /bin/sh
 
+set -e
+
 CC=/opt/wasi-sdk-21.0/bin/clang
 # binaryen with https://github.com/WebAssembly/binaryen/pull/6210
 WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
