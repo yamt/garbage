@@ -39,7 +39,7 @@ done:
         return table;
 }
 
-int
+uint32_t
 testSetjmp(unsigned int id, void *table, uint32_t size)
 {
         struct entry *e = table;
@@ -52,7 +52,7 @@ testSetjmp(unsigned int id, void *table, uint32_t size)
         return 0;
 }
 
-int
+uint32_t
 getTempRet0()
 {
         struct state *state = &g_state;
