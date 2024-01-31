@@ -11,6 +11,7 @@ TOYWASM=toywasm
 ${CC} \
 --target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
+-Os \
 a.c rt.c
 
 ${WASM_OPT} \
