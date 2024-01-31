@@ -5,11 +5,11 @@
 
 #if defined(__wasm__)
 /* for some reasons, __builtin_setjmp/__builtin_longjmp is not used */
-typedef void *jmp_buf;
+typedef void *jmp_buf[1];
 int setjmp(jmp_buf env);
 void longjmp(jmp_buf env, int val);
 #else
-typedef void *jmp_buf;
+typedef void *jmp_buf[5];
 #define setjmp __builtin_setjmp
 #define longjmp __builtin_longjmp
 #endif
@@ -19,9 +19,10 @@ typedef void *jmp_buf;
  * https://gcc.gnu.org/onlinedocs/gcc/Nonlocal-Gotos.html
  * https://llvm.org/docs/ExceptionHandling.html#llvm-eh-sjlj-setjmp
  */
-void *buf1[5];
-void *buf2[5];
-void *buf3[5];
+jmp_buf buf1;
+jmp_buf buf2;
+jmp_buf buf3;
+jmp_buf buf4;
 
 int g_called;
 
@@ -41,6 +42,13 @@ g(jmp_buf buf, int x)
 __attribute__((noinline)) void
 f(jmp_buf buf, int x)
 {
+        int ret;
+        ret = setjmp(buf4);
+        printf("setjmp(buf4) returned %d\n", ret);
+        if (ret != 0) {
+                printf("SHOULD NOT REACH HERE!\n");
+                exit(1);
+        }
         printf("calling g\n");
         g(buf, x);
         printf("g returned\n");
