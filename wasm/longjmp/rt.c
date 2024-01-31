@@ -1,11 +1,9 @@
 /*
  * https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/WebAssembly/WebAssemblyLowerEmscriptenEHSjLj.cpp
- *
- * XXX if i understand it correctly, repeated setjmp calls would grow
- * the table indefinetely. am i missing something?
  */
 
 #include <stdint.h>
+#include <stdlib.h>
 
 struct entry {
         uint32_t id;
@@ -21,6 +19,15 @@ struct state {
         } arg;
 } g_state; /* XXX should be thread-local */
 
+/*
+ * table is allocated at the entry of functions which call setjmp.
+ *
+ *   table = malloc(40);
+ *   size = 4;
+ *   *(int *)table = 0;
+ */
+_Static_assert(sizeof(struct entry) * (4 + 1) <= 40, "entry size");
+
 void *
 saveSetjmp(void *env, uint32_t label, void *table, uint32_t size)
 {
@@ -33,11 +40,20 @@ saveSetjmp(void *env, uint32_t label, void *table, uint32_t size)
                         *(uint32_t *)env = id;
                         e[i].id = id;
                         e[i].label = label;
+                        /*
+                         * note: only the first word is zero-initialized
+                         * by the caller.
+                         */
+                        e[i + 1].id = 0;
                         goto done;
                 }
         }
-        /* TODO grow the table */
-        __builtin_trap();
+        size *= 2;
+        void *p = realloc(table, sizeof(*e) * (size + 1));
+        if (p == NULL) {
+                __builtin_trap();
+        }
+        table = p;
 done:
         state->size = size;
         return table;
