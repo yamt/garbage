@@ -46,7 +46,7 @@ f(jmp_buf buf, int x)
         ret = setjmp(buf4);
         printf("setjmp(buf4) returned %d\n", ret);
         if (ret != 0) {
-                printf("SHOULD NOT REACH HERE!\n");
+                printf("SHOULD NOT REACH HERE! (buf4)\n");
                 exit(1);
         }
         printf("calling g\n");
@@ -70,7 +70,7 @@ loop()
         ret = setjmp(buf3);
         printf("setjmp(buf3) returned %d\n", ret);
         if (ret != 0) {
-                printf("SHOULD NOT REACH HERE!\n");
+                printf("SHOULD NOT REACH HERE! (buf3)\n");
                 exit(1);
         }
         if (--count > 0) {
