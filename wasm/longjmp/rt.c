@@ -10,8 +10,7 @@ struct entry {
         uint32_t label;
 };
 
-_Thread_local
-struct state {
+_Thread_local struct state {
         uint32_t id;
         uint32_t size;
         struct arg {
