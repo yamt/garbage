@@ -10,6 +10,7 @@ struct entry {
         uint32_t label;
 };
 
+_Thread_local
 struct state {
         uint32_t id;
         uint32_t size;
@@ -17,7 +18,7 @@ struct state {
                 void *env;
                 int val;
         } arg;
-} g_state; /* XXX should be thread-local */
+} g_state;
 
 /*
  * table is allocated at the entry of functions which call setjmp.
