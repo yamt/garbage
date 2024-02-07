@@ -15,7 +15,7 @@ ${CC} \
 a.c rt.c
 
 ${WASM_OPT} \
---translate-eh-old-to-new -all \
+--translate-to-new-eh -all \
 --strip-dwarf \
 -o a.out.neweh \
 a.out
