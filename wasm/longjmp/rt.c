@@ -84,6 +84,14 @@ __wasm_longjmp(void *env, int val)
 {
         struct state *state = &g_state;
         struct arg *arg = &state->arg;
+        /*
+         * C standard:
+         * > The longjmp function cannot cause the setjmp macro to return
+         * > the value 0; if val is 0, the setjmp macro returns the value 1.
+         */
+        if (val == 0) {
+                val = 1;
+        }
         arg->env = env;
         arg->val = val;
         __builtin_wasm_throw(1, arg);
