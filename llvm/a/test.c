@@ -95,6 +95,10 @@ create_module(void)
         LLVMAddAttributeAtIndex(func, LLVMAttributeFunctionIndex,
                                 attr_probe_stack);
 #endif
+        LLVMAttributeRef attr_x = LLVMCreateStringAttribute(
+                context, "xxx", strlen("xxx"), "", 0);
+        LLVMAddAttributeAtIndex(func, LLVMAttributeFunctionIndex,
+                                attr_x);
 #if 1
         unsigned int kind = LLVMGetEnumAttributeKindForName(
                 "noinline", strlen("noinline"));
