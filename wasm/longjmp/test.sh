@@ -2,7 +2,8 @@
 
 set -e
 
-CC=/opt/wasi-sdk-21.0/bin/clang
+#CC=/opt/wasi-sdk-21.0/bin/clang
+CC="/Volumes/PortableSSD/llvm/build/bin/clang --sysroot /opt/wasi-sdk-21.0/share/wasi-sysroot -resource-dir /Volumes/PortableSSD/llvm/llvm/lib/clang/17"
 # binaryen with https://github.com/WebAssembly/binaryen/pull/6210
 WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
 # toywasm v36.0.0 or later with TOYWASM_ENABLE_WASM_EXCEPTION_HANDLING=ON
