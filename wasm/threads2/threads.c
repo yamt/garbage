@@ -51,7 +51,7 @@ poller(void *vp)
 {
         struct pollfd pfd0;
         struct pollfd *pfd = &pfd0;
-        pfd[0].fd = 0;
+        pfd[0].fd = STDIN_FILENO;
         pfd[0].events = POLLIN;
         printf("%s: POLLIN=%02x POLLHUP=%02x POLLERR=%02x POLLNVAL=%0x\n",
                __func__, POLLIN, POLLHUP, POLLERR, POLLNVAL);
