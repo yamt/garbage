@@ -110,17 +110,26 @@ main(int argc, char **argv)
         printf("%d (expected 10 for flat namespace, 11 for two-level "
                "namespace)\n",
                func_in_foo(3));
+#if defined(__wasi__)
+        assert(func_in_foo(3) == 10);
+#endif
 
         printf("%s\n", call_func_in_main());
 
         extern const char *get_a_value_in_foo_via_bar();
         printf("a value in foo via bar: %s\n", get_a_value_in_foo_via_bar());
+        assert(!strcmp(get_a_value_in_foo_via_bar(),
+                       "this is a value in foo"));
 
         extern const char *get_a_value_in_bar_via_foo();
         printf("a value in bar via foo: %s\n", get_a_value_in_bar_via_foo());
+        assert(!strcmp(get_a_value_in_bar_via_foo(),
+                       "this is a value in bar"));
 
         printf("&weak_var = %p\n", &weak_var);
         printf("weak_func = %p\n", (void *)weak_func);
+        assert(&weak_var == NULL);
+        assert(weak_func == NULL);
 
         typedef const char *(*fn_t)();
         extern fn_t return_weak_func2();
@@ -154,6 +163,8 @@ main(int argc, char **argv)
         extern const char *func_to_override();
         printf("var_to_override: %s (expected foo)\n", var_to_override);
         printf("func_to_override: %s (expected foo)\n", func_to_override());
+        assert(!strcmp(var_to_override, "var_to_override foo"));
+        assert(!strcmp(func_to_override(), "func_to_override foo"));
 
         /* test tail-call between instances */
         int n = 100;
