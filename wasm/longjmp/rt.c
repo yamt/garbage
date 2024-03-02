@@ -94,5 +94,5 @@ __wasm_longjmp(void *env, int val)
         }
         arg->env = env;
         arg->val = val;
-        __builtin_wasm_throw(1, arg);
+        __builtin_wasm_throw(1, arg); /* 1 == C_LONGJMP */
 }
