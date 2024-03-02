@@ -75,7 +75,6 @@ PIC=-fPIC
 # Note: wasm-ld doesn't find libdl.so for -ldl unless -shared or -pie is used
 # https://github.com/llvm/llvm-project/blob/b01adc6bed7e5b924dd8a097be0aa893f4823905/lld/wasm/Driver.cpp#L309-L313
 ${CC} -v ${CFLAGS} ${CLINKFLAGS} \
--g \
 ${PIC} \
 -nodefaultlibs \
 -Xlinker --export-if-defined=__main_argc_argv \
