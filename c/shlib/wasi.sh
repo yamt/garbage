@@ -49,9 +49,7 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
 
-BUILD_PIE=${BUILD_PIE:-0}
-if [ ${BUILD_PIE} -ne 0 ]; then
-BIN=main.wasi.pie
+# PIE build
 # Note: --import-memory is to follow the dynamic-linking convention.
 # https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md#interface-and-usage
 # while it isn't very clear what to do for the main executable, this is what
@@ -62,13 +60,14 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker --export-if-defined=__main_argc_argv \
 -Xlinker --import-memory \
 -Xlinker --export-memory \
--o ${BIN} \
+-o main.wasi.pie \
 main.c \
 main2.c \
 libfoo.so libbar.so \
 -ldl
-else
-BIN=main.wasi.non-pie
+
+
+# non-PIE build
 # clang doesn't have DynamicNoPIC for non-darwin targets. just use -fPIC.
 #PIC=-mdynamic-no-pic
 PIC=-fPIC
@@ -85,12 +84,11 @@ ${PIC} \
 -Xlinker --export=__heap_base \
 -Xlinker --export=__heap_end \
 -z stack-size=16384 \
--o ${BIN} \
+-o main.wasi.non-pie \
 main.c \
 main2.c \
 libfoo.so libbar.so \
 ${WASI_SYSROOT}/lib/wasm32-wasi/libdl.so
-fi
 
 # note: specify --dyld-path for toywasm libdl.so before the one for wasi-libc
 # so that dyld picks up the former.
@@ -100,4 +98,12 @@ ${TOYWASM} --wasi \
 --dyld-path . \
 --dyld-path ./libdl \
 --dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
-"$@" ${BIN}
+"$@" main.wasi.non-pie
+
+${TOYWASM} --wasi \
+--dyld \
+--dyld-dlfcn \
+--dyld-path . \
+--dyld-path ./libdl \
+--dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
+"$@" main.wasi.pie
