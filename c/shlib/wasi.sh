@@ -28,7 +28,7 @@ WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 #  TOYWASM_ENABLE_DYLD_DLFCN=ON
 TOYWASM=${TOYWASM:-toywasm}
 
-CFLAGS="${CFLAGS} -O3"
+CFLAGS="${CFLAGS} -Os"
 #CFLAGS="${CFLAGS} -I./libdl"
 
 # https://reviews.llvm.org/D155542
