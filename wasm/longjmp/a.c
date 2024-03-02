@@ -30,6 +30,12 @@ jmp_buf buf4;
 
 int g_called;
 
+#define unreachable()                                                         \
+        do {                                                                  \
+                printf("%s %u UNREACHABLE\n", __func__, __LINE__);            \
+                __builtin_trap();                                             \
+        } while (0)
+
 __attribute__((noinline)) void
 g(jmp_buf buf, int x)
 {
@@ -94,10 +100,10 @@ test1()
                 return;
         }
         if (setjmp(b2)) {
-                __builtin_trap();
+                unreachable();
         }
         longjmp(b1, 1);
-        __builtin_trap();
+        unreachable();
 }
 
 void
@@ -107,14 +113,14 @@ test2()
         jmp_buf b1;
         jmp_buf b2;
         if (setjmp(b1)) {
-                __builtin_trap();
+                unreachable();
         }
         if (setjmp(b2)) {
                 printf("%s success\n", __func__);
                 return;
         }
         longjmp(b2, 1);
-        __builtin_trap();
+        unreachable();
 }
 
 void
@@ -143,25 +149,25 @@ test3()
         if (setjmp(b1)) {
                 if (staticvar != 124) {
                         printf("staticvar %d != %d\n", local, 124);
-                        __builtin_trap();
+                        unreachable();
                 }
                 if (local != 124) {
                         printf("local %d != %d\n", local, 124);
-                        __builtin_trap();
+                        unreachable();
                 }
                 local++;
                 staticvar++;
                 longjmp(b2, 1);
-                __builtin_trap();
+                unreachable();
         }
         if (setjmp(b2)) {
                 if (staticvar != 125) {
                         printf("staticvar %d != %d\n", local, 125);
-                        __builtin_trap();
+                        unreachable();
                 }
                 if (local != 125) {
                         printf("local %d != %d\n", local, 125);
-                        __builtin_trap();
+                        unreachable();
                 }
                 printf("%s success\n", __func__);
                 return;
@@ -169,7 +175,7 @@ test3()
         local++;
         staticvar++;
         longjmp(b1, 1);
-        __builtin_trap();
+        unreachable();
 }
 
 void
@@ -187,7 +193,7 @@ test4()
          * > the value 0; if val is 0, the setjmp macro returns the value 1.
          */
         longjmp(b1, 0);
-        __builtin_trap();
+        unreachable();
 }
 
 void
@@ -198,7 +204,7 @@ test5()
         int i = setjmp(b1);
         if (i < 10) {
                 longjmp(b1, i + 1);
-                __builtin_trap();
+                unreachable();
         }
         printf("%s success\n", __func__);
 }
@@ -214,20 +220,20 @@ test6_2(jmp_buf t, int x)
                 jmp_buf b1;
                 jmp_buf b2;
                 if (setjmp(b1)) {
-                        __builtin_trap();
+                        unreachable();
                 }
                 if (!setjmp(b)) {
                         if (x == 5) {
                                 test6_1(b, x - 1);
-                                __builtin_trap();
+                                unreachable();
                         }
                         test6_1(t, x - 1);
                         if (x >= 5) {
-                                __builtin_trap();
+                                unreachable();
                         }
                 }
                 if (setjmp(b2)) {
-                        __builtin_trap();
+                        unreachable();
                 }
                 if (x != 5) {
                         printf("%s: %p %u != 5\n", __func__, t, x);
@@ -236,10 +242,10 @@ test6_2(jmp_buf t, int x)
         }
         printf("%s: %p x=%u longjmp\n", __func__, t, x);
         if (t == NULL) {
-                __builtin_trap();
+                unreachable();
         }
         longjmp(t, 1);
-        __builtin_trap();
+        unreachable();
 }
 
 __attribute__((noinline)) void
@@ -252,7 +258,7 @@ test6_1(jmp_buf t, int x)
         }
         printf("%s: %p x=%u returning\n", __func__, t, x);
         if (x != 10) {
-                __builtin_trap();
+                unreachable();
         }
 }
 
@@ -269,18 +275,18 @@ test7()
         volatile int i;
         for (i = 0; i < 10; i++) {
                 if (setjmp(b)) {
-                        __builtin_trap();
+                        unreachable();
                 }
                 if (setjmp(b)) {
                         if (i == 10) {
                                 return;
                         }
                         printf("%s: %d\n", __func__, i);
-                        __builtin_trap();
+                        unreachable();
                 }
         }
         longjmp(b, 1);
-        __builtin_trap();
+        unreachable();
 }
 
 int
