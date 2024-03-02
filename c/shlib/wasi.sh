@@ -51,6 +51,7 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
 
 BUILD_PIE=${BUILD_PIE:-0}
 if [ ${BUILD_PIE} -ne 0 ]; then
+BIN=main.wasi.pie
 # Note: --import-memory is to follow the dynamic-linking convention.
 # https://github.com/WebAssembly/tool-conventions/blob/main/DynamicLinking.md#interface-and-usage
 # while it isn't very clear what to do for the main executable, this is what
@@ -61,12 +62,13 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker --export-if-defined=__main_argc_argv \
 -Xlinker --import-memory \
 -Xlinker --export-memory \
--o main \
+-o ${BIN} \
 main.c \
 main2.c \
 libfoo.so libbar.so \
 -ldl
 else
+BIN=main.wasi.non-pie
 # clang doesn't have DynamicNoPIC for non-darwin targets. just use -fPIC.
 #PIC=-mdynamic-no-pic
 PIC=-fPIC
@@ -84,7 +86,7 @@ ${PIC} \
 -Xlinker --export=__heap_base \
 -Xlinker --export=__heap_end \
 -z stack-size=16384 \
--o main \
+-o ${BIN} \
 main.c \
 main2.c \
 libfoo.so libbar.so \
@@ -99,4 +101,4 @@ ${TOYWASM} --wasi \
 --dyld-path . \
 --dyld-path ./libdl \
 --dyld-path ${WASI_SYSROOT}/lib/wasm32-wasi \
-"$@" main
+"$@" ${BIN}
