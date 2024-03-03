@@ -83,9 +83,19 @@ ctor(void)
         /* note: ctor in foo and bar relies on the other's reloctaion */
         int n;
         n = ptr_to_func_in_foo(1000);
-        printf("func_in_foo returned %d (2005 for two-level namespace, 2004 for flat namespace)\n", n);
+        printf("func_in_foo returned %d (2005 for two-level namespace, 2004 "
+               "for flat namespace)\n",
+               n);
         assert(n == 2004 || n == 2005);
+#if defined(__wasi__)
+        assert(n == 2004);
+#endif
         n = ptr_to_func_in_bar(1000);
-        printf("func_in_bar returned %d (1005 for two-level namespace, 1004 for flat namespace)\n", n);
+        printf("func_in_bar returned %d (1005 for two-level namespace, 1004 "
+               "for flat namespace)\n",
+               n);
         assert(n == 1004 || n == 1005);
+#if defined(__wasi__)
+        assert(n == 1004);
+#endif
 }
