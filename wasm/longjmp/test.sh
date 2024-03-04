@@ -12,6 +12,15 @@ TOYWASM=toywasm
 ${CC} \
 --target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
+-mllvm -experimental-wasm-enable-alt-sjlj \
+-Os \
+-S \
+a.c
+
+${CC} \
+--target=wasm32-wasi \
+-mllvm -wasm-enable-sjlj \
+-mllvm -experimental-wasm-enable-alt-sjlj \
 -Os \
 a.c rt.c
 
