@@ -5,7 +5,7 @@
 
 #if defined(__wasm__)
 /* for some reasons, __builtin_setjmp/__builtin_longjmp is not used */
-typedef void *jmp_buf[2];
+typedef void *jmp_buf[4];
 int setjmp(jmp_buf env) __attribute__((__returns_twice__));
 void longjmp(jmp_buf env, int val);
 #else

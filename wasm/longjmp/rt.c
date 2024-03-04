@@ -8,14 +8,12 @@
 struct jmp_buf_impl {
         void *func_invocation_id;
         uint32_t label;
-};
 
-static _Thread_local struct state {
         struct arg {
                 void *env;
                 int val;
         } arg;
-} g_state;
+};
 
 void
 __wasm_sjlj_setjmp(void *env, uint32_t label, void *table)
@@ -50,8 +48,8 @@ __wasm_sjlj_test(void *env, void *table)
 void
 __wasm_sjlj_longjmp(void *env, int val)
 {
-        struct state *state = &g_state;
-        struct arg *arg = &state->arg;
+        struct jmp_buf_impl *jb = env;
+        struct arg *arg = &jb->arg;
         /*
          * C standard:
          * > The longjmp function cannot cause the setjmp macro to return
