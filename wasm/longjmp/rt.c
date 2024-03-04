@@ -17,23 +17,28 @@ static _Thread_local struct state {
         } arg;
 } g_state;
 
-void *
-saveSetjmp(void *env, uint32_t label, void *table, uint32_t size)
+void
+__wasm_sjlj_setjmp(void *env, uint32_t label, void *table)
 {
         struct jmp_buf_impl *jb = env;
         if (label == 0) { /* ABI contract */
                 __builtin_trap();
         }
+        if (table == NULL) { /* sanity check */
+                __builtin_trap();
+        }
         jb->func_invocation_id = table;
         jb->label = label;
-        return table;
 }
 
 uint32_t
-testSetjmp(void *env, void *table, uint32_t size)
+__wasm_sjlj_test(void *env, void *table)
 {
         struct jmp_buf_impl *jb = env;
         if (jb->label == 0) { /* ABI contract */
+                __builtin_trap();
+        }
+        if (table == NULL) { /* sanity check */
                 __builtin_trap();
         }
         if (jb->func_invocation_id == table) {
@@ -42,14 +47,8 @@ testSetjmp(void *env, void *table, uint32_t size)
         return 0;
 }
 
-uint32_t
-getTempRet0()
-{
-        return 0;
-}
-
 void
-__wasm_longjmp(void *env, int val)
+__wasm_sjlj_longjmp(void *env, int val)
 {
         struct state *state = &g_state;
         struct arg *arg = &state->arg;
