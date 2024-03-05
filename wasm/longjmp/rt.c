@@ -2,8 +2,8 @@
  * https://github.com/llvm/llvm-project/blob/main/llvm/lib/Target/WebAssembly/WebAssemblyLowerEmscriptenEHSjLj.cpp
  */
 
+#include <stddef.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 struct jmp_buf_impl {
         void *func_invocation_id;
