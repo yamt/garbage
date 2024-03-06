@@ -10,24 +10,55 @@ WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
 TOYWASM=toywasm
 
 ${CC} \
+-c \
+--target=wasm32-wasi \
+-mllvm -wasm-enable-sjlj \
+-Os \
+rt.c
+
+${CC} \
+-c \
+--target=wasm32-wasi \
+-mllvm -wasm-enable-sjlj \
+-mllvm -experimental-wasm-enable-alt-sjlj \
+-fPIC \
+-Os \
+-o a-pic.o \
+a.c
+
+${CC} \
+-c \
 --target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
 -Os \
--S \
 a.c
 
 ${CC} \
 --target=wasm32-wasi \
--mllvm -wasm-enable-sjlj \
--mllvm -experimental-wasm-enable-alt-sjlj \
--Os \
-a.c rt.c
+-o test-sjlj.wasm \
+a.o rt.o
+
+${CC} \
+--target=wasm32-wasi \
+-Xlinker -pie \
+-Xlinker --export-if-defined=__main_argc_argv \
+-Xlinker --import-memory \
+-Xlinker --export-memory \
+-o test-sjlj-shared.wasm \
+a-pic.o rt.o
 
 ${WASM_OPT} \
 --translate-to-new-eh -all \
 --strip-dwarf \
--o a.out.neweh \
-a.out
+-o test-sjlj.wasm.neweh \
+test-sjlj.wasm
 
-${TOYWASM} --wasi a.out.neweh
+${WASM_OPT} \
+--translate-to-new-eh -all \
+--strip-dwarf \
+-o test-sjlj-shared.wasm.neweh \
+test-sjlj-shared.wasm
+
+${TOYWASM} --wasi test-sjlj.wasm.neweh
+${TOYWASM} --dyld --dyld-path=/opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi --wasi test-sjlj-shared.wasm.neweh
