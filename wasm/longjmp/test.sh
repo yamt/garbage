@@ -1,6 +1,7 @@
 #! /bin/sh
 
 set -e
+set -x
 
 #CC=/opt/wasi-sdk-21.0/bin/clang
 WASI_SYSROOT=/opt/wasi-sdk-21.0/share/wasi-sysroot
