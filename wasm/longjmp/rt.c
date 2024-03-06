@@ -9,6 +9,9 @@ struct jmp_buf_impl {
         void *func_invocation_id;
         uint32_t label;
 
+        /*
+         * ideally, this can be replaced with multivalue.
+         */
         struct arg {
                 void *env;
                 int val;
