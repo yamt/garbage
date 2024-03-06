@@ -1,4 +1,5 @@
 /*
+ * a runtime implementation for
  * https://docs.google.com/document/d/1ZvTPT36K5jjiedF8MCXbEmYjULJjI723aOAks1IdLLg/edit
  */
 
@@ -14,6 +15,9 @@ struct jmp_buf_impl {
         uint32_t label;
 
         /*
+         * this is a temorary storage used by the communication between
+         * __wasm_sjlj_longjmp and WebAssemblyLowerEmscriptenEHSjL-generated
+         * logic.
          * ideally, this can be replaced with multivalue.
          */
         struct arg {
