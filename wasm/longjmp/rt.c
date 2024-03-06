@@ -5,6 +5,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+/*
+ * jmp_buf should have large enough size and alignment to contain
+ * this structure.
+ */
 struct jmp_buf_impl {
         void *func_invocation_id;
         uint32_t label;
