@@ -43,6 +43,12 @@ ${CC} \
 -o test-sjlj.wasm \
 a.o rt.o
 
+# note: this is a bit broken as the executable will define the __c_longjmp
+# tag by itself rather than importing it.
+# possible fixes:
+# - build rt.o with -fPIC.
+# - make llvm create the tag at link time (as it is for linear memory)
+# cf. https://docs.google.com/document/d/1ZvTPT36K5jjiedF8MCXbEmYjULJjI723aOAks1IdLLg/edit#bookmark=id.lmq7kt1mwwoh
 ${CC} \
 --target=wasm32-wasi \
 -Xlinker -pie \
