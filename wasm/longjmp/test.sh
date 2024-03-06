@@ -3,10 +3,13 @@
 set -e
 
 #CC=/opt/wasi-sdk-21.0/bin/clang
-CC="/Volumes/PortableSSD/llvm/build/bin/clang --sysroot /opt/wasi-sdk-21.0/share/wasi-sysroot -resource-dir /Volumes/PortableSSD/llvm/llvm/lib/clang/17"
+WASI_SYSROOT=/opt/wasi-sdk-21.0/share/wasi-sysroot
+CC="/Volumes/PortableSSD/llvm/build/bin/clang --sysroot ${WASI_SYSROOT} -resource-dir /Volumes/PortableSSD/llvm/llvm/lib/clang/17"
 # binaryen with https://github.com/WebAssembly/binaryen/pull/6210
 WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
+
 # toywasm v36.0.0 or later with TOYWASM_ENABLE_WASM_EXCEPTION_HANDLING=ON
+# and TOYWASM_ENABLE_DYLD=ON
 TOYWASM=toywasm
 
 ${CC} \
@@ -61,4 +64,4 @@ ${WASM_OPT} \
 test-sjlj-shared.wasm
 
 ${TOYWASM} --wasi test-sjlj.wasm.neweh
-${TOYWASM} --dyld --dyld-path=/opt/wasi-sdk/share/wasi-sysroot/lib/wasm32-wasi --wasi test-sjlj-shared.wasm.neweh
+${TOYWASM} --dyld --dyld-path=${WASI_SYSROOT}/lib/wasm32-wasi --wasi test-sjlj-shared.wasm.neweh
