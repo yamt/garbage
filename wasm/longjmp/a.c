@@ -164,7 +164,10 @@ void
 test4()
 {
 #if defined(__EMSCRIPTEN__)
-        /* note: emscripten doesn't handle longjmp(..., 0) correctly */
+        /*
+         * note: emscripten doesn't handle longjmp(..., 0) correctly
+         * https://github.com/emscripten-core/emscripten/issues/21486
+         */
         printf("%s skipped (emscripten bug)\n", __func__);
 #else
         printf("%s start\n", __func__);
