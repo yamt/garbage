@@ -276,6 +276,40 @@ test7()
         unreachable();
 }
 
+extern void longjmp_in_lib(jmp_buf buf, int val);
+extern int setjmp_in_lib(void (*cb)(jmp_buf));
+
+void
+test8()
+{
+        jmp_buf buf;
+        volatile int x = 0;
+        if (!setjmp(buf)) {
+                x++;
+                longjmp_in_lib(buf, 1);
+                unreachable();
+        }
+        if (x != 1) {
+                unreachable();
+        }
+}
+
+void
+cb(jmp_buf buf)
+{
+        longjmp(buf, 1);
+}
+
+void
+test9()
+{
+        jmp_buf buf;
+        int ret = setjmp_in_lib(cb);
+        if (ret != 108) {
+                unreachable();
+        }
+}
+
 int
 main()
 {
@@ -303,5 +337,7 @@ main()
         test5();
         test6();
         test7();
+        test8();
+        test9();
         printf("done\n");
 }
