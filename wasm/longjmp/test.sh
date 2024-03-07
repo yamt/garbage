@@ -5,6 +5,7 @@ set -x
 
 #CC=/opt/wasi-sdk-21.0/bin/clang
 WASI_SYSROOT=/opt/wasi-sdk-21.0/share/wasi-sysroot
+# clang with https://github.com/llvm/llvm-project/pull/84137
 CC="/Volumes/PortableSSD/llvm/build/bin/clang --sysroot ${WASI_SYSROOT} -resource-dir /Volumes/PortableSSD/llvm/llvm/lib/clang/17"
 # binaryen with https://github.com/WebAssembly/binaryen/pull/6210
 WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
