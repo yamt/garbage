@@ -17,6 +17,8 @@ TOYWASM=toywasm
 # common options
 CC="${CC} --target=wasm32-wasi -Os"
 
+### static
+
 ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
@@ -26,9 +28,13 @@ ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
--fPIC \
--o a-pic.o \
-a.c
+a.c lib.c
+
+${CC} \
+-o test-sjlj.wasm \
+a.o lib.o rt.o
+
+### dynamic
 
 ${CC} \
 -fPIC \
@@ -50,17 +56,11 @@ ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
-a.c lib.c
+-fPIC \
+-o a-pic.o \
+a.c
 
-${CC} \
--o test-sjlj.wasm \
-a.o lib.o rt.o
-
-# note: this is a bit broken as the executable will define the __c_longjmp
-# tag by itself rather than importing it.
-# possible fixes:
-# - build rt.o as a (part of) shared library like libc.
-# - make llvm create the tag at link time (as it is for linear memory)
+# dynamic link involves a few subtleties.
 # cf. https://docs.google.com/document/d/1ZvTPT36K5jjiedF8MCXbEmYjULJjI723aOAks1IdLLg/edit#bookmark=id.lmq7kt1mwwoh
 ${CC} \
 -Xlinker -pie \
@@ -69,6 +69,8 @@ ${CC} \
 -Xlinker --export-memory \
 -o test-sjlj-shared.wasm \
 a-pic.o rt.so lib.so
+
+### translate to new eh
 
 ${WASM_OPT} \
 --translate-to-new-eh -all \
@@ -90,6 +92,8 @@ ${WASM_OPT} \
 -g \
 -o lib.so \
 lib.so
+
+### run
 
 ${TOYWASM} --wasi test-sjlj.wasm.neweh
 
