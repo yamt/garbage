@@ -14,53 +14,45 @@ WASM_OPT=~/git/wasm/binaryen/b/bin/wasm-opt
 # and TOYWASM_ENABLE_DYLD=ON
 TOYWASM=toywasm
 
+# common options
+CC="${CC} --target=wasm32-wasi -Os"
+
 ${CC} \
 -c \
---target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
--Os \
 rt.c
 
 ${CC} \
 -c \
---target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
 -fPIC \
--Os \
 -o a-pic.o \
 a.c
 
 ${CC} \
 -fPIC \
 -shared -fvisibility=default \
---target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
--Os \
 -o rt.so \
 rt.c
 
 ${CC} \
 -fPIC \
 -shared -fvisibility=default \
---target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
 -fPIC \
--Os \
 -o lib.so \
 lib.c rt.so
 
 ${CC} \
 -c \
---target=wasm32-wasi \
 -mllvm -wasm-enable-sjlj \
 -mllvm -experimental-wasm-enable-alt-sjlj \
--Os \
 a.c lib.c
 
 ${CC} \
---target=wasm32-wasi \
 -o test-sjlj.wasm \
 a.o lib.o rt.o
 
@@ -71,7 +63,6 @@ a.o lib.o rt.o
 # - make llvm create the tag at link time (as it is for linear memory)
 # cf. https://docs.google.com/document/d/1ZvTPT36K5jjiedF8MCXbEmYjULJjI723aOAks1IdLLg/edit#bookmark=id.lmq7kt1mwwoh
 ${CC} \
---target=wasm32-wasi \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \
 -Xlinker --import-memory \
