@@ -163,6 +163,10 @@ test3()
 void
 test4()
 {
+#if defined(__EMSCRIPTEN__)
+        /* note: emscripten doesn't handle longjmp(..., 0) correctly */
+        printf("%s skipped (emscripten bug)\n", __func__);
+#else
         printf("%s start\n", __func__);
         jmp_buf b1;
         if (setjmp(b1)) {
@@ -176,6 +180,7 @@ test4()
          */
         longjmp(b1, 0);
         unreachable();
+#endif
 }
 
 void
