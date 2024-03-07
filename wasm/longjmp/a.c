@@ -304,11 +304,39 @@ cb(jmp_buf buf)
 }
 
 void
+cb_noop(jmp_buf buf)
+{
+}
+
+void
+cb2(jmp_buf buf)
+{
+        volatile int x = 0;
+        if (!setjmp(buf)) { /* overwrite buf */
+                x++;
+                longjmp_in_lib(buf, 1);
+                unreachable();
+        }
+        if (x == 0) {
+                unreachable();
+        }
+}
+
+void
 test9()
 {
         jmp_buf buf;
-        int ret = setjmp_in_lib(cb);
+        int ret;
+        ret = setjmp_in_lib(cb_noop);
+        if (ret != 1) {
+                unreachable();
+        }
+        ret = setjmp_in_lib(cb);
         if (ret != 108) {
+                unreachable();
+        }
+        ret = setjmp_in_lib(cb2);
+        if (ret != 1) {
                 unreachable();
         }
 }
