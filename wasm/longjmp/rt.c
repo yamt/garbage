@@ -8,6 +8,13 @@
 #include <stdint.h>
 
 /*
+ * function prototypes
+ */
+void __wasm_setjmp(void *env, uint32_t label, void *func_invocation_id);
+uint32_t __wasm_setjmp_test(void *env, void *func_invocation_id);
+void __wasm_longjmp(void *env, int val);
+
+/*
  * jmp_buf should have large enough size and alignment to contain
  * this structure.
  */
@@ -28,7 +35,7 @@ struct jmp_buf_impl {
 };
 
 void
-__wasm_sjlj_setjmp(void *env, uint32_t label, void *func_invocation_id)
+__wasm_setjmp(void *env, uint32_t label, void *func_invocation_id)
 {
         struct jmp_buf_impl *jb = env;
         if (label == 0) { /* ABI contract */
@@ -42,7 +49,7 @@ __wasm_sjlj_setjmp(void *env, uint32_t label, void *func_invocation_id)
 }
 
 uint32_t
-__wasm_sjlj_test(void *env, void *func_invocation_id)
+__wasm_setjmp_test(void *env, void *func_invocation_id)
 {
         struct jmp_buf_impl *jb = env;
         if (jb->label == 0) { /* ABI contract */
@@ -58,14 +65,14 @@ __wasm_sjlj_test(void *env, void *func_invocation_id)
 }
 
 void
-__wasm_sjlj_longjmp(void *env, int val)
+__wasm_longjmp(void *env, int val)
 {
         struct jmp_buf_impl *jb = env;
         struct arg *arg = &jb->arg;
         /*
-         * C standard:
-         * > The longjmp function cannot cause the setjmp macro to return
-         * > the value 0; if val is 0, the setjmp macro returns the value 1.
+         * C standard says:
+         * The longjmp function cannot cause the setjmp macro to return
+         * the value 0; if val is 0, the setjmp macro returns the value 1.
          */
         if (val == 0) {
                 val = 1;

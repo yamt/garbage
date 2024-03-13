@@ -27,7 +27,6 @@ rt.c
 ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
--mllvm -experimental-wasm-enable-alt-sjlj \
 a.c lib.c
 
 ${CC} \
@@ -47,7 +46,6 @@ ${CC} \
 -fPIC \
 -shared -fvisibility=default \
 -mllvm -wasm-enable-sjlj \
--mllvm -experimental-wasm-enable-alt-sjlj \
 -fPIC \
 -o lib.so \
 lib.c rt.so
@@ -55,7 +53,6 @@ lib.c rt.so
 ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
--mllvm -experimental-wasm-enable-alt-sjlj \
 -fPIC \
 -o a-pic.o \
 a.c
