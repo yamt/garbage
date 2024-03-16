@@ -1,5 +1,5 @@
 #if defined(__wasm__)
-#if defined(__EMSCRIPTEN__)
+#if defined(__EMSCRIPTEN__) || 1
 #include <setjmp.h>
 #else
 /* for some reasons, __builtin_setjmp/__builtin_longjmp is not used */

@@ -4,7 +4,8 @@ set -e
 set -x
 
 #CC=/opt/wasi-sdk-21.0/bin/clang
-WASI_SYSROOT=/opt/wasi-sdk-21.0/share/wasi-sysroot
+#WASI_SYSROOT=/opt/wasi-sdk-21.0/share/wasi-sysroot
+WASI_SYSROOT=${HOME}/git/wasi-libc/sysroot
 # clang with https://github.com/llvm/llvm-project/pull/84137
 CC="/Volumes/PortableSSD/llvm/build/bin/clang --sysroot ${WASI_SYSROOT} -resource-dir /Volumes/PortableSSD/llvm/llvm/lib/clang/17"
 # binaryen with https://github.com/WebAssembly/binaryen/pull/6210
@@ -22,16 +23,12 @@ CC="${CC} --target=wasm32-wasi -Os"
 ${CC} \
 -c \
 -mllvm -wasm-enable-sjlj \
-rt.c
-
-${CC} \
--c \
--mllvm -wasm-enable-sjlj \
 a.c lib.c
 
 ${CC} \
+-v \
 -o test-sjlj.wasm \
-a.o lib.o rt.o
+a.o lib.o -lsetjmp
 
 ### dynamic
 
@@ -39,16 +36,9 @@ ${CC} \
 -fPIC \
 -shared -fvisibility=default \
 -mllvm -wasm-enable-sjlj \
--o rt.so \
-rt.c
-
-${CC} \
--fPIC \
--shared -fvisibility=default \
--mllvm -wasm-enable-sjlj \
 -fPIC \
 -o lib.so \
-lib.c rt.so
+lib.c
 
 ${CC} \
 -c \
@@ -65,7 +55,7 @@ ${CC} \
 -Xlinker --import-memory \
 -Xlinker --export-memory \
 -o test-sjlj-shared.wasm \
-a-pic.o rt.so lib.so
+a-pic.o rt.so lib.so -lsetjmp
 
 ### translate to new eh
 
