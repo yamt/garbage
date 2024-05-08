@@ -123,6 +123,9 @@ main(void)
                 /*
                  * sleep was chosen here because it's unlikely used
                  * earlier in this program. (eg. in crt)
+                 *
+                 * for platforms like nuttx, sleep(0) might require less
+                 * stack because it might not actually make a context switch.
                  */
                 sleep(1);
 
