@@ -5,10 +5,14 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <inttypes.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+static bool old = false;
+static bool gc = false;
 
 /* XXX little endian is assumed */
 
@@ -163,6 +167,38 @@ readstr(int fd, char **pp)
         printf("%s %s\n", #name, name);                                       \
         free(name);
 
+#define DUMP_INIT_EXPR() size = dump_init_expr(fd, size)
+
+static uint32_t
+dump_init_expr(int fd, uint32_t size)
+{
+        DUMP_U32(init_expr_type);
+        switch (init_expr_type) {
+        case 0: // none
+        {
+                break;
+        }
+        case 0x41: // i32
+        case 0x43: // f32
+        case 0xd2: // funcref
+        {
+                DUMP_U32(init_expr_value);
+                break;
+        }
+        case 0x42: // i64
+        case 0x44: // f64
+        {
+                DUMP_U64(init_expr_value);
+                break;
+        }
+        default:
+                printf("unknown init_expr_type 0x%" PRIx32 "\n",
+                       init_expr_type);
+                abort();
+        }
+        return size;
+}
+
 void
 dump_init_data(int fd, size_t size)
 {
@@ -180,8 +216,12 @@ dump_init_data(int fd, size_t size)
         for (i = 0; i < init_data_count; i++) {
                 DUMP_U32(is_passive);
                 DUMP_U32(memory_index);
-                DUMP_U32(init_expr_type);
-                DUMP_U64(init_expr_value);
+                if (old) {
+                        DUMP_U32(init_expr_type);
+                        DUMP_U64(init_expr_value);
+                } else {
+                        DUMP_INIT_EXPR();
+                }
                 DUMP_U32(byte_count);
 
                 skip(fd, byte_count);
@@ -198,11 +238,20 @@ dump_init_data(int fd, size_t size)
 
         DUMP_U32(table_count);
         for (i = 0; i < table_count; i++) {
-                DUMP_U32(elem_type);
-                DUMP_U32(table_flags);
-                DUMP_U32(table_init_size);
-                DUMP_U32(table_max_size);
-                DUMP_U32(possible_grow);
+                if (old) {
+                        DUMP_U32(elem_type);
+                        DUMP_U32(table_flags);
+                        DUMP_U32(table_init_size);
+                        DUMP_U32(table_max_size);
+                        DUMP_U32(possible_grow);
+                } else {
+                        DUMP_U8(elem_type);
+                        DUMP_U8(table_flags);
+                        DUMP_U8(possible_grow);
+
+                        DUMP_U32(table_init_size);
+                        DUMP_U32(table_max_size);
+                }
         }
 
         DUMP_U32(table_init_data_count);
@@ -212,20 +261,81 @@ dump_init_data(int fd, size_t size)
                 DUMP_U32(table_index);
                 DUMP_U32(init_expr_type);
                 DUMP_U64(init_expr_value);
-                DUMP_U32(func_index_count);
 
-                skip(fd, func_index_count * 4);
-                size -= func_index_count * 4;
+                if (old) {
+                        DUMP_U32(func_index_count);
+                        skip(fd, func_index_count * 4);
+                        size -= func_index_count * 4;
+                } else {
+                        /* GC ref type info */
+                        skip(fd, 8);
+                        size -= 8;
+
+                        DUMP_U32(value_count);
+                        uint32_t j;
+                        for (j = 0; j < value_count; j++) {
+                                DUMP_INIT_EXPR();
+                        }
+                }
         }
 
-        DUMP_U32(func_type_count);
-        for (i = 0; i < func_type_count; i++) {
-                DUMP_U32(param_count);
-                DUMP_U32(result_count);
+        if (old) {
+                DUMP_U32(func_type_count);
+                for (i = 0; i < func_type_count; i++) {
+                        DUMP_U32(param_count);
+                        DUMP_U32(result_count);
 
-                uint32_t sz = param_count + result_count;
-                skip(fd, sz);
-                size -= sz;
+                        uint32_t sz = param_count + result_count;
+                        skip(fd, sz);
+                        size -= sz;
+                }
+        } else {
+                DUMP_U32(type_count);
+                for (i = 0; i < type_count; i++) {
+                        size -= align(fd, 4);
+                        DUMP_U16(type_flag);
+                        if (gc) {
+                                DUMP_U8(is_equivalence_type);
+                                if (is_equivalence_type) {
+                                        DUMP_U8(pad);
+                                        DUMP_U32(equiv_type_idx);
+                                        continue;
+                                }
+                                DUMP_U8(is_sub_final);
+                                DUMP_U32(parent_type_idx);
+                                DUMP_U16(rec_count);
+                                DUMP_U16(rec_idx);
+                                switch (type_flag) {
+                                case 0: // func
+                                {
+                                        DUMP_U16(param_count);
+                                        DUMP_U16(result_count);
+                                        DUMP_U16(ref_type_map_count);
+                                        uint32_t sz =
+                                                param_count + result_count;
+                                        skip(fd, sz);
+                                        size -= sz;
+                                        if (ref_type_map_count) {
+                                                printf("ref_type_map_count "
+                                                       "not implemented\n");
+                                                abort();
+                                        }
+                                        break;
+                                }
+                                default:
+                                        printf("unknown type_flag 0x%" PRIx16
+                                               "\n",
+                                               type_flag);
+                                        abort();
+                                }
+                        } else {
+                                DUMP_U16(param_count);
+                                DUMP_U16(result_count);
+                                uint32_t sz = param_count + result_count;
+                                skip(fd, sz);
+                                size -= sz;
+                        }
+                }
         }
 
         DUMP_U32(import_global_count);
@@ -240,12 +350,16 @@ dump_init_data(int fd, size_t size)
         for (i = 0; i < global_count; i++) {
                 DUMP_U8(type);
                 DUMP_U8(is_mutable);
-                DUMP_U16(init_expr_type);
-                if (init_expr_type != 0xfd) {
-                        DUMP_U64(init_expr);
+                if (old) {
+                        DUMP_U16(init_expr_type);
+                        if (init_expr_type != 0xfd) {
+                                DUMP_U64(init_expr);
+                        } else {
+                                DUMP_U64(init_expr_1);
+                                DUMP_U64(init_expr_2);
+                        }
                 } else {
-                        DUMP_U64(init_expr_1);
-                        DUMP_U64(init_expr_2);
+                        DUMP_INIT_EXPR();
                 }
         }
 
@@ -259,13 +373,23 @@ dump_init_data(int fd, size_t size)
         DUMP_U32(func_count);
         DUMP_U32(start_func_index);
 
-        DUMP_U32(aux_data_end_global_index);
-        DUMP_U32(aux_data_end);
-        DUMP_U32(aux_heap_base_global_index);
-        DUMP_U32(aux_heap_base);
-        DUMP_U32(aux_stack_top_global_index);
-        DUMP_U32(aux_stack_bottom);
-        DUMP_U32(aux_stack_size);
+        if (old) {
+                DUMP_U32(aux_data_end_global_index);
+                DUMP_U32(aux_data_end);
+                DUMP_U32(aux_heap_base_global_index);
+                DUMP_U32(aux_heap_base);
+                DUMP_U32(aux_stack_top_global_index);
+                DUMP_U32(aux_stack_bottom);
+                DUMP_U32(aux_stack_size);
+        } else {
+                DUMP_U32(aux_data_end_global_index);
+                DUMP_U64(aux_data_end);
+                DUMP_U32(aux_heap_base_global_index);
+                DUMP_U64(aux_heap_base);
+                DUMP_U32(aux_stack_top_global_index);
+                DUMP_U64(aux_stack_bottom);
+                DUMP_U32(aux_stack_size);
+        }
 
         DUMP_U32(data_section_count);
         for (i = 0; i < data_section_count; i++) {
@@ -400,7 +524,7 @@ dump_native(int fd, size_t *size)
         for (i = 0; i < count; i++) {
                 char *p;
                 *size -= readstr(fd, &p);
-                printf("native symbol: %s\n", p);
+                printf("native symbol [%u]: %s\n", i, p);
                 free(p);
         }
 }
