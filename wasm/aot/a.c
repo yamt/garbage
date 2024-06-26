@@ -141,6 +141,14 @@ readstr(int fd, char **pp)
         return off + ssz;
 }
 
+off_t
+readbytes(int fd, char *buf, size_t len)
+{
+        ssize_t ssz = read(fd, buf, len);
+        assert(ssz == len);
+        return len;
+}
+
 #define DUMP_U8(name)                                                         \
         uint8_t name;                                                         \
         size -= read8(fd, &name);                                             \
@@ -197,6 +205,23 @@ dump_init_expr(int fd, uint32_t size)
                 abort();
         }
         return size;
+}
+
+void
+dump_target_info(int fd, size_t size)
+{
+
+        DUMP_U16(bin_type);
+        DUMP_U16(abi_type);
+        DUMP_U16(e_type);
+        DUMP_U16(e_machine);
+        DUMP_U32(e_version);
+        DUMP_U32(e_flags);
+        DUMP_U64(feature_flags);
+        DUMP_U64(reserved);
+        char arch_str[16];
+        size -= readbytes(fd, arch_str, sizeof(arch_str));
+        printf("arch_str %.*s\n", (int)sizeof(arch_str), arch_str);
 }
 
 void
@@ -575,6 +600,9 @@ main(int argc, char **argv)
                 printf("section: %s %u %u\n", section_type(shdr.type),
                        shdr.type, shdr.size);
                 switch (shdr.type) {
+                case 0:
+                        dump_target_info(fd, shdr.size);
+                        break;
                 case 1:
                         dump_init_data(fd, shdr.size);
                         break;
