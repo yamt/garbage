@@ -12,6 +12,9 @@
 #include <unistd.h>
 
 const char *filename;
+uint64_t text_offset;
+uint64_t text_size;
+uint32_t module_func_count;
 
 static bool old = false;
 static bool gc = false;
@@ -398,6 +401,7 @@ dump_init_data(int fd, size_t size)
         }
 
         DUMP_U32(func_count);
+        module_func_count = func_count;
         DUMP_U32(start_func_index);
 
         if (old) {
@@ -447,7 +451,43 @@ dump_text(int fd, size_t size)
         printf(";; dd if=%s bs=1 iseek=%" PRIu64 " count=%" PRIu32
                " of=%s.text-section\n",
                filename, (uint64_t)tell(fd), code_size, filename);
+        text_offset = (uint64_t)tell(fd);
+        text_size = code_size;
         skip(fd, code_size);
+}
+
+void
+dump_function(int fd, size_t size)
+{
+        uint32_t i;
+        uint64_t prev_offset = 0;
+        for (i = 0; i < module_func_count; i++) {
+#if AOT_PTR_SIZE == 8
+                DUMP_U64(offset);
+#else
+                DUMP_U32(offset);
+#endif
+                if (i > 0) {
+                        printf(";; FUNC#%" PRIu32
+                               ": dd if=%s bs=1 iseek=%" PRIu64
+                               " count=%" PRIu64 " of=%s.func-%" PRIu32 "\n",
+                               i - 1, filename, text_offset + prev_offset,
+                               offset - prev_offset, filename, i - 1);
+                }
+                prev_offset = offset;
+        }
+        if (i > 0) {
+                printf(";; FUNC#%" PRIu32 ": dd if=%s bs=1 iseek=%" PRIu64
+                       " count=%" PRIu64 " of=%s.func-%" PRIu32 "\n",
+                       i - 1, filename, text_offset + prev_offset,
+                       text_size - prev_offset, filename, i - 1);
+        }
+
+        /*
+         * ignore the rest of the section
+         * as i'm not interested in it at this point
+         */
+        skip(fd, size);
 }
 
 void
@@ -613,6 +653,9 @@ main(int argc, char **argv)
                         break;
                 case 2:
                         dump_text(fd, shdr.size);
+                        break;
+                case 3:
+                        dump_function(fd, shdr.size);
                         break;
                 case 4:
                         dump_export(fd, shdr.size);
