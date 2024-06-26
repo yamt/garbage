@@ -11,6 +11,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+const char *filename;
+
 static bool old = false;
 static bool gc = false;
 
@@ -442,6 +444,9 @@ dump_text(int fd, size_t size)
         uint32_t code_size = size - literal_size;
         printf("code offset %" PRIu64 " size %" PRIu32 "\n",
                (uint64_t)tell(fd), code_size);
+        printf(";; dd if=%s bs=1 iseek=%" PRIu64 " count=%" PRIu32
+               " of=%s.text-section\n",
+               filename, (uint64_t)tell(fd), code_size, filename);
         skip(fd, code_size);
 }
 
@@ -578,7 +583,7 @@ dump_custom(int fd, size_t size)
 int
 main(int argc, char **argv)
 {
-        const char *filename = argv[1];
+        filename = argv[1];
         int fd = open(filename, O_RDONLY);
         assert(fd != -1);
         struct hdr hdr;
