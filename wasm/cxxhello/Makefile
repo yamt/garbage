@@ -9,7 +9,6 @@ NM = $(WASI_SDK_DIR)/bin/nm
 CFLAGS = -Os
 #CFLAGS += -fno-builtin-printf
 #CFLAGS += --sysroot $(SYSROOT)
-CFLAGS += -I../embed
 CFLAGS += -Wall -Werror
 CFLAGS += -g
 CLINKFLAGS += -g
@@ -18,15 +17,24 @@ CLINKFLAGS += -g
 #CFLAGS += --sysroot $(SYSROOT)
 #CLINKFLAGS += --sysroot $(SYSROOT)
 
-CXXFLAG = "${CFLAGS} -fno-exceptions -fno-rtti"
+# Note: wasi-sdk >=24 ships LTO build of libc/libcxx
+CFLAGS += -flto=full
+CLINKFLAGS += -flto=full
+CLINKFLAGS += -Wl,-mllvm,-enable-merge-functions
+
+CXXFLAGS = $(CFLAGS)
+CXXFLAGS += -fno-exceptions
+CXXFLAGS += -fno-rtti
 
 CLINKFLAGS += -z stack-size=$(STACK_SIZE)
-CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
-CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
+#CLINKFLAGS += -Wl,--initial-memory=$(INITIAL_MEMORY)
+#CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
+#CLINKFLAGS += -Wl,--strip-debug
+CLINKFLAGS += -Wl,--strip-all
 
 STACK_SIZE = 8192
-INITIAL_MEMORY = 6553600
-MAX_MEMORY = 6553600
+#INITIAL_MEMORY = 6553600
+#MAX_MEMORY = 6553600
 
 OBJS = cxxhello.o
 BIN = cxxhello.wasm
