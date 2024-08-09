@@ -55,6 +55,8 @@ ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
 # while it isn't very clear what to do for the main executable, this is what
 # emscripten seems to do. (and toywasm followed it for the pie case.)
 # Note: --export-memory is a wasi requirement
+# Note: maybe we should --export-table as well, but the current wasm-ld
+# reject the combination of -shared --export-table.
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} \
 -Xlinker -pie \
 -Xlinker --export-if-defined=__main_argc_argv \
