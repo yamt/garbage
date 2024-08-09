@@ -3,7 +3,7 @@
 set -e
 set -x
 
-WASI_SDK=${WASI_SDK:-/opt/wasi-sdk-21.0}
+WASI_SDK=${WASI_SDK:-/opt/wasi-sdk-24.0}
 CC=${WASI_SDK}/bin/clang
 WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 
