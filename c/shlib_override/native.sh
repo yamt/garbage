@@ -9,11 +9,11 @@ AR=ar
 CC="${CC} -fPIC"
 
 # static build
-${CC} -Os -c -o lib1.o lib1.c
-${CC} -Os -c -o lib2.o lib2.c
-rm -f lib.a
-${AR} crs lib.a lib1.o lib2.o
-${CC} -Os -o native.static main.c lib.a
+${CC} -Os -c -o lib1-native.o lib1.c
+${CC} -Os -c -o lib2-native.o lib2.c
+rm -f lib-native.a
+${AR} crs lib-native.a lib1-native.o lib2-native.o
+${CC} -Os -o native.static main.c lib-native.a
 
 LIBDL=
 
@@ -36,8 +36,8 @@ Linux)
     ;;
 esac
 
-${CC} -Os ${CLINKFLAGS} -shared -fvisibility=default -o lib.so lib1.c lib2.c
-${CC} -Os ${CLINKFLAGS} -fvisibility=default -o native main.c lib.so
+${CC} -Os ${CLINKFLAGS} -shared -fvisibility=default -o lib-native.so lib1.c lib2.c
+${CC} -Os ${CLINKFLAGS} -fvisibility=default -o native main.c lib-native.so
 
 # this works
 ./native.static
