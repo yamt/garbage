@@ -44,3 +44,5 @@ the symbol. i consider it a bug.
     call $inc_mem_impl)
   (func $inc_mem_impl (type 2) (param i32)
 ```
+
+https://github.com/llvm/llvm-project/issues/104575
