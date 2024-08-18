@@ -9,6 +9,8 @@ NM = $(WASI_SDK_DIR)/bin/nm
 CFLAGS = -Os
 #CFLAGS += -fno-builtin-printf
 #CFLAGS += --sysroot $(SYSROOT)
+CFLAGS += -fdata-sections
+CFLAGS += -ffunction-sections
 CFLAGS += -Wall -Werror
 CFLAGS += -g
 CLINKFLAGS += -g
@@ -31,6 +33,8 @@ CLINKFLAGS += -z stack-size=$(STACK_SIZE)
 #CLINKFLAGS += -Wl,--max-memory=$(MAX_MEMORY)
 #CLINKFLAGS += -Wl,--strip-debug
 CLINKFLAGS += -Wl,--strip-all
+CLINKFLAGS += -Wl,--gc-sections
+CLINKFLAGS += -Wl,--lto-O2
 
 STACK_SIZE = 8192
 #INITIAL_MEMORY = 6553600
