@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#if defined(USE_SETJMP_H)
+#include <setjmp.h>
+#else /* defined(USE_SETJMP_H) */
 #if defined(__wasm__)
 /* for some reasons, __builtin_setjmp/__builtin_longjmp is not used */
 typedef void *jmp_buf[1];
@@ -22,6 +25,7 @@ typedef void *jmp_buf[5];
 #define longjmp __builtin_longjmp
 #endif
 #endif
+#endif /* defined(USE_SETJMP_H) */
 
 jmp_buf buf1;
 jmp_buf buf2;
