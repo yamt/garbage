@@ -222,8 +222,12 @@ dump_target_info(int fd, size_t size)
         DUMP_U16(e_machine);
         DUMP_U32(e_version);
         DUMP_U32(e_flags);
-        DUMP_U64(feature_flags);
-        DUMP_U64(reserved);
+        if (old) {
+           DUMP_U32(reserved);
+        } else {
+           DUMP_U64(feature_flags);
+           DUMP_U64(reserved);
+        }
         char arch_str[16];
         size -= readbytes(fd, arch_str, sizeof(arch_str));
         printf("arch_str %.*s\n", (int)sizeof(arch_str), arch_str);
