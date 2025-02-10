@@ -4,5 +4,10 @@ void (*f_p)(void) = f;
 void
 _start(void)
 {
-		f_p();
+#if 0
+        if (f_p != f) {
+                __builtin_trap();
+        }
+#endif
+        f_p();
 }
