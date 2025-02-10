@@ -24,7 +24,7 @@ all: test
 	cc -g -c -o $@ $<
 
 $(BIN): $(HEADOBJ) $(OBJS)
-	c++ -o $@ $(HEADOBJ) $(OBJS)
+	c++ -Wl,-ld_classic -Wl,-no_fixup_chains -o $@ $(HEADOBJ) $(OBJS)
 
 test: $(BIN)
 	./$(BIN)
