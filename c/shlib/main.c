@@ -74,7 +74,7 @@ fn(const char *caller)
         abort();
 }
 
-//#define USE_MAIN_VOID
+// #define USE_MAIN_VOID
 #undef USE_MAIN_VOID
 
 #if defined(USE_MAIN_VOID)
@@ -96,14 +96,22 @@ main(int argc, char **argv)
         }
 #endif
 
+        printf("calling get_foo_set_ptr()...\n");
         printf("get_foo_set_ptr() = %p\n", get_foo_set_ptr());
         printf("foo_set = %p\n", foo_set);
         printf("foo_set_p = %p\n", foo_set_p);
+        printf("calling get_foo_set_ptr()...\n");
         assert(get_foo_set_ptr() == foo_set);
 
+        printf("foo_set = %p\n", foo_set);
+        printf("foo_set_p = %p\n", foo_set_p);
+        assert(foo_set == foo_set_p);
+        printf("calling foo_set()...\n");
         foo_set(200);
+        printf("calling foo_set_p()...\n");
         foo_set_p(100);
         // return foo_get();
+        printf("foo_get foo_set_p()...\n");
         printf("%d (expected 100)\n", foo_get());
         assert(foo_get() == 100);
 
@@ -133,6 +141,7 @@ main(int argc, char **argv)
 
         typedef const char *(*fn_t)();
         extern fn_t return_weak_func2();
+        printf("calling return_weak_func2()...\n");
         printf("return_weak_func2() = %p\n", return_weak_func2());
         assert(return_weak_func2() == NULL);
 
@@ -146,6 +155,7 @@ main(int argc, char **argv)
         printf("var_in_main2: %u\n", var_in_main2);
         assert(var_in_main2 == 321);
         printf("&var_in_main2: %p\n", (void *)&var_in_main2);
+        printf("calling get_ptr_of_var_in_main2()...\n");
         printf("get_ptr_of_var_in_main2(): %p\n",
                (void *)get_ptr_of_var_in_main2());
         assert(get_ptr_of_var_in_main2() == &var_in_main2);
