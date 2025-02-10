@@ -134,7 +134,8 @@ def chunk(it, n):
 
 
 def onehot(a):
-	return np.identity(10)[a].T
+    return np.identity(10)[a].T
+
 
 train_answers_a = onehot(train_answers)
 
