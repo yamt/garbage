@@ -21,3 +21,9 @@ spacetanuki% ./find_serial.sh AppleUSBFTDI 1
 /dev/tty.usbserial-SI88481
 spacetanuki% pyserial-miniterm /dev/tty.usbserial-SI88481 2000000
 ```
+
+## ESP-PROG
+
+spacetanuki% ./find_serial.sh AppleUSBFTDI 1
+/dev/tty.usbserial-1443401
+spacetanuki% 
