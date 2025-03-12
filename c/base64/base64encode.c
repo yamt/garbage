@@ -10,6 +10,14 @@
 #define __builtin_assume(cond)
 #endif
 
+#if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) &&                 \
+                                   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
+#define LITTLE_ENDIAN 1
+#endif
+#if !defined(LITTLE_ENDIAN)
+#error endian is not known
+#endif
+
 #define BASE64_ASSERT(cond) __builtin_assume(cond)
 
 static uint8_t
@@ -26,20 +34,28 @@ conv_to_char(uint8_t x)
         };
         return table[x];
 }
-
-static void
-enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
+static uint32_t
+loadbe(const uint8_t p[3])
 {
-        BASE64_ASSERT(srclen > 0 && srclen <= 3);
+        return ((uint32_t)p[0] << 16) | ((uint32_t)p[1] << 8) | p[2];
+}
 
-        /* load */
-        uint32_t x = ((uint32_t)p[0] << 16) | ((uint32_t)p[1] << 8) | p[2];
-
-        /* convert to 4 byte */
+static uint32_t
+expand(uint32_t x)
+{
         x = ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
             ((x << 2) & 0x00003f00) | (x & 0x0000003f);
+#if LITTLE_ENDIAN
+        /* byte swap */
+        x = ((x << 24) & 0x3f000000) | ((x << 8) & 0x003f0000) |
+            ((x >> 8) & 0x00003f00) | ((x >> 24) & 0x0000003f);
+#endif
+        return x;
+}
 
-        /* convert to ascii */
+static uint32_t
+convert(uint32_t x)
+{
         union {
                 uint32_t u32;
                 uint8_t u8[4];
@@ -49,24 +65,37 @@ enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
         for (j = 0; j < 4; j++) {
                 u.u8[j] = conv_to_char(u.u8[j]);
         }
-        x = u.u32;
+        return u.u32;
+}
 
-        /* bswap and padding */
-        u.u8[0] = x >> 24;
-        u.u8[1] = x >> 16;
-        if (srclen >= 2) {
-                u.u8[2] = x >> 8;
-        } else {
-                u.u8[2] = '=';
-        }
-        if (srclen == 3) {
-                u.u8[3] = x;
-        } else {
+static uint32_t
+pad(uint32_t x, unsigned int srclen)
+{
+        BASE64_ASSERT(srclen > 0 && srclen <= 3);
+        union {
+                uint32_t u32;
+                uint8_t u8[4];
+        } u;
+        u.u32 = x;
+        if (srclen < 3) {
+                if (srclen == 1) {
+                        u.u8[2] = '=';
+                }
                 u.u8[3] = '=';
         }
+        return u.u32;
+}
 
-        /* store */
-        memcpy(dst, &u.u32, 4);
+static void
+enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
+{
+        BASE64_ASSERT(srclen > 0 && srclen <= 3);
+
+        uint32_t x = loadbe(p);
+        x = expand(x);
+        x = convert(x);
+        x = pad(x, srclen);
+        memcpy(dst, &x, 4);
 }
 
 void
