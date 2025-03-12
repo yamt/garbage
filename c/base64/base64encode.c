@@ -98,6 +98,14 @@ enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
         memcpy(dst, &x, 4);
 }
 
+size_t
+base64size(size_t srclen)
+{
+        size_t bsz = (srclen + 2) / 3 * 4;
+        BASE64_ASSERT(srclen / 3 == bsz / 4 || srclen / 3 + 1 == bsz / 4);
+        return bsz;
+}
+
 void
 base64encode(const void *restrict src, size_t srclen, char *restrict dst)
 {
@@ -128,7 +136,7 @@ main(int argc, char **argv)
 {
         const char *p = argv[1];
         size_t sz = strlen(p);
-        size_t bsz = (sz + 2) / 3 * 4;
+        size_t bsz = base64size(sz);
         char buf[bsz];
         base64encode(p, sz, buf);
         printf("%.*s\n", (int)bsz, buf);
