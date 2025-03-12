@@ -10,10 +10,20 @@
 #define __builtin_assume(cond)
 #endif
 
+#if !defined(LITTLE_ENDIAN)
 #if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) &&                 \
                                    __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
 #define LITTLE_ENDIAN 1
 #endif
+#endif
+
+#if !defined(LITTLE_ENDIAN)
+#if defined(__BIG_ENDIAN__) ||                                                \
+        (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
+#define LITTLE_ENDIAN 0
+#endif
+#endif
+
 #if !defined(LITTLE_ENDIAN)
 #error endian is not known
 #endif
@@ -34,6 +44,7 @@ conv_to_char(uint8_t x)
         };
         return table[x];
 }
+
 static uint32_t
 loadbe(const uint8_t p[3])
 {
@@ -43,14 +54,15 @@ loadbe(const uint8_t p[3])
 static uint32_t
 expand(uint32_t x)
 {
-        x = ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
-            ((x << 2) & 0x00003f00) | (x & 0x0000003f);
-#if LITTLE_ENDIAN
-        /* byte swap */
-        x = ((x << 24) & 0x3f000000) | ((x << 8) & 0x003f0000) |
-            ((x >> 8) & 0x00003f00) | ((x >> 24) & 0x0000003f);
-#endif
-        return x;
+        return ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
+               ((x << 2) & 0x00003f00) | (x & 0x0000003f);
+}
+
+static uint32_t
+byteswap(uint32_t x)
+{
+        return ((x << 24) & 0x3f000000) | ((x << 8) & 0x003f0000) |
+               ((x >> 8) & 0x00003f00) | ((x >> 24) & 0x0000003f);
 }
 
 static uint32_t
@@ -93,6 +105,9 @@ enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
 
         uint32_t x = loadbe(p);
         x = expand(x);
+#if LITTLE_ENDIAN
+        x = byteswap(x);
+#endif
         x = convert(x);
         x = pad(x, srclen);
         memcpy(dst, &x, 4);
