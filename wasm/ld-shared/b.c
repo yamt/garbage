@@ -1,6 +1,6 @@
 void *
-g(void)
+g(int x)
 {
-        extern void *f(void);
-        return f();
+        extern void *f(int);
+        return f(x);
 }
