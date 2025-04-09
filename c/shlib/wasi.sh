@@ -11,17 +11,17 @@ WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 #WASI_SDK=${WASI_SDK:-/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk}
 #CC=${WASI_SDK}/bin/clang
 
-#WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
+WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 #WASI_SYSROOT=/Users/yamamoto/git/wasi-libc/sysroot
 
 #LLVM_HOME=/Volumes/PortableSSD/llvm/llvm
-#LLVM_HOME=/Volumes/PortableSSD/llvm/build
+LLVM_HOME=/Volumes/PortableSSD/llvm/build
 #LLVM_HOME=/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk
 #RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
-#RESOURCE_DIR=${WASI_SDK}/lib/clang/17
-#CC=${LLVM_HOME}/bin/clang
-#CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
-#CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
+RESOURCE_DIR=${WASI_SDK}/lib/clang/18
+CC=${LLVM_HOME}/bin/clang
+CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
+CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 
 # built with
 #  TOYWASM_ENABLE_DYLD=ON
@@ -38,13 +38,15 @@ CFLAGS="${CFLAGS} -Os"
 
 CLINKFLAGS="-Xlinker --experimental-pic"
 #CLIBLINKFLAGS="-shared -fvisibility=default -mexec-model=reactor"
-CLIBLINKFLAGS="-shared -fvisibility=default"
+#CLIBLINKFLAGS="-shared -fvisibility=default"
+# we have undefined symbols like func_in_main etc
+CLIBLINKFLAGS="-shared -fvisibility=default -Wl,--unresolved-symbols=import-dynamic"
 
 #CRT1=$(${CC} --print-file-name crt1-reactor.o)
 
 CPICFLAGS="${CFLAGS} -fPIC"
 
-${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
+${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -Wl,-mllvm,-debug -o libbar.so bar.c
 # see the comment in native.sh
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
@@ -77,20 +79,26 @@ PIC=-fPIC
 # https://github.com/llvm/llvm-project/blob/b01adc6bed7e5b924dd8a097be0aa893f4823905/lld/wasm/Driver.cpp#L309-L313
 ${CC} -v ${CFLAGS} ${CLINKFLAGS} \
 ${PIC} \
+-v \
 -nodefaultlibs \
+-Xlinker -Bdynamic \
 -Xlinker --export-if-defined=__main_argc_argv \
--Xlinker --unresolved-symbols=import-dynamic \
 -Xlinker --export-table \
 -Xlinker --growable-table \
 -Xlinker --export=__stack_pointer \
 -Xlinker --export=__heap_base \
 -Xlinker --export=__heap_end \
+-Xlinker -mllvm \
+-Xlinker -debug \
 -z stack-size=16384 \
 -o main.wasi.non-pie \
 main.c \
 main2.c \
 libfoo.so libbar.so \
-${WASI_SYSROOT}/lib/wasm32-wasi/libdl.so
+${WASI_SYSROOT}/lib/wasm32-wasi/libdl.so \
+${WASI_SYSROOT}/lib/wasm32-wasi/libc.so \
+-Xlinker -Bstatic
+
 
 # note: specify --dyld-path for toywasm libdl.so before the one for wasi-libc
 # so that dyld picks up the former.
