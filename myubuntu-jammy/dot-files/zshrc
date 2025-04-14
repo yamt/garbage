@@ -1,0 +1,18 @@
+if [ ${prompt} ]; then
+	bindkey -v
+	bindkey  up-line-or-history
+	bindkey ^N down-line-or-history
+	bindkey  history-incremental-search-backward
+	bindkey  history-incremental-search-forward
+	bindkey  push-line
+	bindkey ^_ undo
+	setopt extendedglob
+	setopt listtypes
+	setopt histignoredups
+	setopt noclobber
+	setopt bsdecho
+	setopt listpacked
+fi
+setopt SH_WORD_SPLIT
+
+autoload -U compinit;compinit
