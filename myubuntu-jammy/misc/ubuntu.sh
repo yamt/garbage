@@ -16,5 +16,5 @@ exec docker container run \
 --platform linux/amd64 \
 -v $(pwd):/work \
 ${DOCKER_OPTIONS} \
-yamt/ubuntu \
+yamt/ubuntu-jammy \
 "$@"

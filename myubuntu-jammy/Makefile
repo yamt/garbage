@@ -1,4 +1,4 @@
-NAME=ubuntu
+NAME=ubuntu-jammy
 BUILDER=mybuilder
 BUILDER_NODE=mybuilder-node
 
