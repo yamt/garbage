@@ -534,7 +534,7 @@ dump_reloc(int fd, size_t size)
                 uint16_t ste;
                 char *p;
                 size -= readstr(fd, &p);
-                printf("reloc symbol [%u] %s\n", i, p);
+                printf("reloc symbol [%u] \"%s\"\n", i, p);
                 free(p);
         }
 
@@ -598,7 +598,7 @@ dump_native(int fd, size_t *size)
         for (i = 0; i < count; i++) {
                 char *p;
                 *size -= readstr(fd, &p);
-                printf("native symbol [%u]: %s\n", i, p);
+                printf("native symbol [%u]: \"%s\"\n", i, p);
                 free(p);
         }
 }
