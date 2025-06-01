@@ -29,7 +29,7 @@ div_1(uint32_t crc)
 }
 
 static uint32_t
-div(uint32_t crc)
+div_8(uint32_t crc)
 {
         unsigned int i;
         for (i = 0; i < 8; i++) {
@@ -39,7 +39,7 @@ div(uint32_t crc)
 }
 
 static uint32_t
-undiv(uint32_t crc)
+undiv_8(uint32_t crc)
 {
         unsigned int i;
         for (i = 0; i < 8; i++) {
@@ -74,7 +74,7 @@ crc32_update(uint32_t crc, const void *p, size_t len)
         const uint8_t *const ep = cp + len;
         while (cp < ep) {
                 crc ^= *cp++;
-                crc = div(crc);
+                crc = div_8(crc);
         }
         return crc;
 }
@@ -93,7 +93,7 @@ crc32_undo_update(uint32_t crc, const void *p, size_t len)
         const uint8_t *const cp = p;
         const uint8_t *ep = cp + len;
         while (cp < ep) {
-                crc = undiv(crc);
+                crc = undiv_8(crc);
                 crc ^= *--ep;
         }
         return crc;
@@ -128,7 +128,7 @@ crc32_append(uint32_t crc1, uint32_t crc2, size_t crc2_len)
         t ^= crc32_init();
         size_t i;
         for (i = 0; i < crc2_len; i++) {
-                t = div(t);
+                t = div_8(t);
         }
         /*
          * the following crc32_undo_finalize and crc32_finalize
@@ -216,10 +216,10 @@ main(int argc, char **argv)
         assert(crc32_update(t, &t, 4) == 0); /* little endian assumed */
 
         t = INV;
-        t = div(t);
-        t = div(t);
-        t = div(t);
-        t = div(t);
+        t = div_8(t);
+        t = div_8(t);
+        t = div_8(t);
+        t = div_8(t);
         assert(t == 0x80000000);
 
         /* zeros following the initial ffffffff don't change the crc value */
