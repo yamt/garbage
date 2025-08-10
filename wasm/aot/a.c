@@ -16,7 +16,11 @@ uint64_t text_offset;
 uint64_t text_size;
 uint32_t module_func_count;
 
-static bool old = false;
+static enum format {
+        OLD, /* some old version i don't remember */
+        V4,  /* something around AOT_CURRENT_VERSION=4 */
+        V5,  /* AOT_CURRENT_VERSION=5, extended-const */
+} aot_format = V5;
 static bool gc = false;
 
 /* XXX little endian is assumed */
@@ -222,11 +226,11 @@ dump_target_info(int fd, size_t size)
         DUMP_U16(e_machine);
         DUMP_U32(e_version);
         DUMP_U32(e_flags);
-        if (old) {
-           DUMP_U32(reserved);
+        if (aot_format == OLD) {
+                DUMP_U32(reserved);
         } else {
-           DUMP_U64(feature_flags);
-           DUMP_U64(reserved);
+                DUMP_U64(feature_flags);
+                DUMP_U64(reserved);
         }
         char arch_str[16];
         size -= readbytes(fd, arch_str, sizeof(arch_str));
@@ -250,7 +254,7 @@ dump_init_data(int fd, size_t size)
         for (i = 0; i < init_data_count; i++) {
                 DUMP_U32(is_passive);
                 DUMP_U32(memory_index);
-                if (old) {
+                if (aot_format == OLD) {
                         DUMP_U32(init_expr_type);
                         DUMP_U64(init_expr_value);
                 } else {
@@ -272,7 +276,7 @@ dump_init_data(int fd, size_t size)
 
         DUMP_U32(table_count);
         for (i = 0; i < table_count; i++) {
-                if (old) {
+                if (aot_format == OLD) {
                         DUMP_U32(elem_type);
                         DUMP_U32(table_flags);
                         DUMP_U32(table_init_size);
@@ -293,10 +297,14 @@ dump_init_data(int fd, size_t size)
                 DUMP_U32(mode);
                 DUMP_U32(elem_type);
                 DUMP_U32(table_index);
-                DUMP_U32(init_expr_type);
-                DUMP_U64(init_expr_value);
+                if (aot_format == V5) {
+                        DUMP_INIT_EXPR();
+                } else {
+                        DUMP_U32(init_expr_type);
+                        DUMP_U64(init_expr_value);
+                }
 
-                if (old) {
+                if (aot_format == OLD) {
                         DUMP_U32(func_index_count);
                         skip(fd, func_index_count * 4);
                         size -= func_index_count * 4;
@@ -313,7 +321,7 @@ dump_init_data(int fd, size_t size)
                 }
         }
 
-        if (old) {
+        if (aot_format == OLD) {
                 DUMP_U32(func_type_count);
                 for (i = 0; i < func_type_count; i++) {
                         DUMP_U32(param_count);
@@ -384,7 +392,7 @@ dump_init_data(int fd, size_t size)
         for (i = 0; i < global_count; i++) {
                 DUMP_U8(type);
                 DUMP_U8(is_mutable);
-                if (old) {
+                if (aot_format == OLD) {
                         DUMP_U16(init_expr_type);
                         if (init_expr_type != 0xfd) {
                                 DUMP_U64(init_expr);
@@ -408,7 +416,7 @@ dump_init_data(int fd, size_t size)
         module_func_count = func_count;
         DUMP_U32(start_func_index);
 
-        if (old) {
+        if (aot_format == OLD) {
                 DUMP_U32(aux_data_end_global_index);
                 DUMP_U32(aux_data_end);
                 DUMP_U32(aux_heap_base_global_index);
