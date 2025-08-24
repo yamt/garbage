@@ -219,6 +219,7 @@ main(int argc, char **argv)
         printf("calling fn @ baz...\n");
         int (*fn1)(const char *) = fn;
         printf("fn(\"main\") = %d (expectd 4)\n", fn1("main"));
+        assert(fn1("main") == 4);
 
         void *(*get_printf_ptr)() = dlsym(h, "get_printf_ptr");
         if (get_printf_ptr == NULL) {
