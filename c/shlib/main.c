@@ -253,6 +253,15 @@ main(int argc, char **argv)
         assert((&__heap_base < &__stack_low) == (&__heap_end < &__stack_high));
         assert(&__stack_low <= (void *)__stack_pointer);
         assert((void *)__stack_pointer <= &__stack_high);
+
+        extern char *bar_heap_base(void);
+        extern char *bar_heap_end(void);
+        extern char *bar_stack_low(void);
+        extern char *bar_stack_high(void);
+        assert(&__heap_base == bar_heap_base());
+        assert(&__heap_end == bar_heap_end());
+        assert(&__stack_low == bar_stack_low());
+        assert(&__stack_high == bar_stack_high());
 }
 
 __attribute__((constructor(50))) static void

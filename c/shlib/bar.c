@@ -77,3 +77,36 @@ ctor(void)
         assert(n == 1004);
 #endif
 }
+
+/*
+ * weak to work around:
+ * https://github.com/llvm/llvm-project/issues/103592
+ */
+__attribute__((weak)) extern char __heap_base;
+__attribute__((weak)) extern char __heap_end;
+__attribute__((weak)) extern char __stack_low;
+__attribute__((weak)) extern char __stack_high;
+
+char *
+bar_heap_base(void)
+{
+        return &__heap_base;
+}
+
+char *
+bar_heap_end(void)
+{
+        return &__heap_end;
+}
+
+char *
+bar_stack_low(void)
+{
+        return &__stack_low;
+}
+
+char *
+bar_stack_high(void)
+{
+        return &__stack_high;
+}
