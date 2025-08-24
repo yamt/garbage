@@ -16,7 +16,7 @@ void (*foo_set_p)(int) = foo_set;
 extern char *optarg;
 
 /* try to override a function in libbar */
-#if defined(__wasi__)
+#if defined(__wasm__)
 __attribute__((export_name("func_in_bar")))
 #endif
 int
@@ -26,7 +26,7 @@ func_in_bar(int n)
         return n + 4;
 }
 
-#if defined(__wasi__)
+#if defined(__wasm__)
 __attribute__((export_name("func_in_main")))
 #endif
 const char *
@@ -37,7 +37,7 @@ func_in_main()
 
 extern int recurse_bar(int i);
 
-#if defined(__wasi__)
+#if defined(__wasm__)
 __attribute__((export_name("recurse_main")))
 #endif
 int
@@ -64,7 +64,7 @@ __attribute__((weak)) extern int weak_var;
 __attribute__((weak)) extern int weak_func();
 
 /* note: this export should not interfere dlopen/dlsym */
-#if defined(__wasi__)
+#if defined(__wasm__)
 __attribute__((export_name("fn")))
 #endif
 int
@@ -118,7 +118,7 @@ main(int argc, char **argv)
         printf("%d (expected 10 for flat namespace, 11 for two-level "
                "namespace)\n",
                func_in_foo(3));
-#if defined(__wasi__)
+#if defined(__wasm__)
         assert(func_in_foo(3) == 10);
 #endif
 

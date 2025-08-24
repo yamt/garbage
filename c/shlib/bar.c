@@ -64,7 +64,7 @@ ctor(void)
                "for flat namespace)\n",
                n);
         assert(n == 2004 || n == 2005);
-#if defined(__wasi__)
+#if defined(__wasm__)
         assert(n == 2004);
 #endif
 
@@ -73,7 +73,7 @@ ctor(void)
                "for flat namespace)\n",
                n);
         assert(n == 1004 || n == 1005);
-#if defined(__wasi__)
+#if defined(__wasm__)
         assert(n == 1004);
 #endif
 }
