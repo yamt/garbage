@@ -230,6 +230,8 @@ main(int argc, char **argv)
         printf("printf in baz: %p\n", get_printf_ptr());
         assert(printf == get_printf_ptr());
 
+#if defined(__wasm__)
+        printf("checking layout globals\n");
         /*
          * weak to work around:
          * https://github.com/llvm/llvm-project/issues/103592
@@ -244,13 +246,25 @@ main(int argc, char **argv)
         printf("__stack_low %p\n", &__stack_low);
         printf("__stack_high %p\n", &__stack_high);
         assert(&__heap_base != NULL);
+        /* emscripten doesn't seem to provide __heap_end */
+#if defined(__EMSCRIPTEN__)
+        assert(&__heap_end == NULL);
+#else
         assert(&__heap_end != NULL);
+#endif
         assert(&__stack_low != NULL);
         assert(&__stack_high != NULL);
         assert((char *)__stack_pointer != NULL);
+#if !defined(__EMSCRIPTEN__)
         assert(&__heap_base < &__heap_end);
+#endif
         assert(&__stack_low < &__stack_high);
+#if defined(__EMSCRIPTEN__)
+        assert((&__heap_base < &__stack_low) ==
+               (&__heap_base < &__stack_high));
+#else
         assert((&__heap_base < &__stack_low) == (&__heap_end < &__stack_high));
+#endif
         assert(&__stack_low <= (char *)__stack_pointer);
         assert((char *)__stack_pointer <= &__stack_high);
 
@@ -262,6 +276,7 @@ main(int argc, char **argv)
         assert(&__heap_end == bar_heap_end());
         assert(&__stack_low == bar_stack_low());
         assert(&__stack_high == bar_stack_high());
+#endif
 }
 
 __attribute__((constructor(50))) static void

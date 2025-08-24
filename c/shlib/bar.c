@@ -78,6 +78,7 @@ ctor(void)
 #endif
 }
 
+#if defined(__wasm__)
 /*
  * weak to work around:
  * https://github.com/llvm/llvm-project/issues/103592
@@ -110,3 +111,4 @@ bar_stack_high(void)
 {
         return &__stack_high;
 }
+#endif
