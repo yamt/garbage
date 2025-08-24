@@ -88,6 +88,8 @@ ${PIC} \
 -Xlinker --export=__stack_pointer \
 -Xlinker --export=__heap_base \
 -Xlinker --export=__heap_end \
+-Xlinker --export=__stack_low \
+-Xlinker --export=__stack_high \
 -Xlinker -mllvm \
 -Xlinker -debug \
 -z stack-size=16384 \

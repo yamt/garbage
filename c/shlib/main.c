@@ -229,6 +229,30 @@ main(int argc, char **argv)
         printf("printf in main: %p\n", printf);
         printf("printf in baz: %p\n", get_printf_ptr());
         assert(printf == get_printf_ptr());
+
+        /*
+         * weak to work around:
+         * https://github.com/llvm/llvm-project/issues/103592
+         */
+        __attribute__((weak)) extern char __heap_base;
+        __attribute__((weak)) extern char __heap_end;
+        __attribute__((weak)) extern char __stack_low;
+        __attribute__((weak)) extern char __stack_high;
+        extern uint32_t __stack_pointer __attribute__((address_space(1)));
+        printf("__heap_base %p\n", &__heap_base);
+        printf("__heap_end %p\n", &__heap_end);
+        printf("__stack_low %p\n", &__stack_low);
+        printf("__stack_high %p\n", &__stack_high);
+        assert(&__heap_base != NULL);
+        assert(&__heap_end != NULL);
+        assert(&__stack_low != NULL);
+        assert(&__stack_high != NULL);
+        assert((void *)__stack_pointer != NULL);
+        assert(&__heap_base < &__heap_end);
+        assert(&__stack_low < &__stack_high);
+        assert((&__heap_base < &__stack_low) == (&__heap_end < &__stack_high));
+        assert(&__stack_low <= (void *)__stack_pointer);
+        assert((void *)__stack_pointer <= &__stack_high);
 }
 
 __attribute__((constructor(50))) static void
