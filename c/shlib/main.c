@@ -247,12 +247,12 @@ main(int argc, char **argv)
         assert(&__heap_end != NULL);
         assert(&__stack_low != NULL);
         assert(&__stack_high != NULL);
-        assert((void *)__stack_pointer != NULL);
+        assert((char *)__stack_pointer != NULL);
         assert(&__heap_base < &__heap_end);
         assert(&__stack_low < &__stack_high);
         assert((&__heap_base < &__stack_low) == (&__heap_end < &__stack_high));
-        assert(&__stack_low <= (void *)__stack_pointer);
-        assert((void *)__stack_pointer <= &__stack_high);
+        assert(&__stack_low <= (char *)__stack_pointer);
+        assert((char *)__stack_pointer <= &__stack_high);
 
         extern char *bar_heap_base(void);
         extern char *bar_heap_end(void);
