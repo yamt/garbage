@@ -244,12 +244,9 @@ main(int argc, char **argv)
         static const char a64[] = "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa"
-                                  "aaaaaaaaaaaaaaaa"
-                                  "aaaaaaaaaaaaaaaa"
-                                  "aaaaaaaaaaaaaaaa"
-                                  "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa";
         size_t left = 1000000;
+        assert(strlen(a64) == 64);
         sha256_init(h);
         while (left >= 64) {
                 sha256_block(a64, h);
