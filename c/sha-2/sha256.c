@@ -1,5 +1,5 @@
 /*
- * SHA-256
+ * a straightforward implementation of SHA-256
  *
  * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
  */
