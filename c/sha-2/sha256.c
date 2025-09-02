@@ -194,6 +194,7 @@ sha256(const void *vp, size_t len, uint32_t h[8])
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 static void
 check1(const uint32_t a[8], const uint32_t b[8], unsigned int line)
@@ -262,15 +263,19 @@ main(int argc, char **argv)
         static const char abc[] = "abcdefghbcdefghicdefghijdefghijkefghijkl"
                                   "fghijklmghijklmnhijklmno";
         assert(strlen(abc) == 64); /* the following code assumes this */
+        time_t start = time(NULL);
         sha256_init(h);
         uint32_t i;
         for (i = 0; i < 16777216; i++) {
                 sha256_block(abc, h);
         }
         sha256_tail(a64, 0, 16777216 * 64, h);
+        time_t end = time(NULL);
         static const uint32_t h5[8] = {
                 0x50e72a0e, 0x26442fe2, 0x552dc393, 0x8ac58658,
                 0x228c0cbf, 0xb1d2ca87, 0x2ae43526, 0x6fcd055e,
         };
         check(h, h5);
+        printf("%g M byte per sec\n",
+               (double)16777216 * 64 / 1024 / 1024 / (end - start));
 }
