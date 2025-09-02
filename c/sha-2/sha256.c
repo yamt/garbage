@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "sha256.h"
 #include "table.h"
 
 static uint32_t
