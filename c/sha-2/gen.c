@@ -49,9 +49,9 @@ main(int argc, char **argv)
         } while (n < 64);
         unsigned int i;
 #if 0
-    for (i = 0; i < 64; i++) {
-        printf("%u-th prime = %u\n", i, primes[i]);
-    }
+        for (i = 0; i < 64; i++) {
+                printf("%u-th prime = %u\n", i, primes[i]);
+        }
 #endif
         assert(primes[63] == 311);
 
