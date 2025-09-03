@@ -133,11 +133,12 @@ sha256_block(const void *p, uint32_t h[8])
 }
 
 void
-sha256_tail(const void *p, size_t len, size_t total_len, uint32_t h[8])
+sha256_tail(const void *p, size_t len, uint64_t total_len, uint32_t h[8])
 {
         uint8_t tmp[64];
 
         assert(len < 64);
+        assert(total_len <= SHA256_MAX_MESSAGE_BYTES);
         if (len > 64 - 8 - 1) {
                 /* no room for message length. needs two blocks */
                 memcpy(tmp, p, len);
@@ -169,7 +170,7 @@ void
 sha256(const void *vp, size_t len, uint32_t h[8])
 {
         const uint8_t *p = vp;
-        const size_t total_len = len;
+        const uint64_t total_len = len;
 
         sha256_init(h);
 

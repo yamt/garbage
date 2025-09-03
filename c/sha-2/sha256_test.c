@@ -53,6 +53,7 @@ main(int argc, char **argv)
         };
         check(h, h3);
 
+        /* 1000000 "a"s */
         static const char a64[] = "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa"
@@ -71,6 +72,7 @@ main(int argc, char **argv)
         };
         check(h, h4);
 
+        /* 1073741824 byte data (note: this is larger than UINT32_MAX) */
         static const char abc[] = "abcdefghbcdefghicdefghijdefghijkefghijkl"
                                   "fghijklmghijklmnhijklmno";
         assert(strlen(abc) == 64); /* the following code assumes this */
