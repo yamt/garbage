@@ -3,6 +3,7 @@
  */
 
 #include <assert.h>
+#include <float.h>
 #include <inttypes.h>
 #include <math.h>
 #include <stdint.h>
@@ -20,12 +21,15 @@ fraction(double d)
                 uint64_t u;
         } u;
         u.d = d;
-        uint64_t exp = (u.u >> 52) & 0x7ff;
-        uint64_t frac = u.u & ((UINT64_C(1) << 52) - 1);
-        assert(exp >= 1023);
-        exp -= 1023;
-        assert(exp <= 20);
-        return frac >> (20 - exp);
+        const unsigned int bias = 1023;
+        const unsigned int bits = 32;
+        const uint64_t expmask = bias | (bias << 1);
+        uint64_t exp = (u.u >> (DBL_MANT_DIG - 1)) & expmask;
+        uint64_t frac = u.u & ((UINT64_C(1) << (DBL_MANT_DIG - 1)) - 1);
+        assert(exp >= bias);
+        exp -= bias;
+        assert(exp <= (DBL_MANT_DIG - 1 - bits));
+        return frac >> ((DBL_MANT_DIG - 1 - bits) - exp);
 }
 
 int
