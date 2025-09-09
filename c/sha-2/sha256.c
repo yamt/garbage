@@ -66,16 +66,36 @@ s1(uint32_t x)
         return rotr(x, 17) ^ rotr(x, 19) ^ shr(x, 10);
 }
 
+static uint32_t
+be32_decode(const uint8_t *p)
+{
+        return ((uint32_t)p[0] << 24) | ((uint32_t)p[1] << 16) |
+               ((uint32_t)p[2] << 8) | (uint32_t)p[3];
+}
+
+static void
+be32_encode(uint8_t *p, uint32_t v)
+{
+        p[0] = (v >> 24) & 0xff;
+        p[1] = (v >> 16) & 0xff;
+        p[2] = (v >> 8) & 0xff;
+        p[3] = (v >> 0) & 0xff;
+}
+
+static void
+be64_encode(uint8_t *p, uint64_t v)
+{
+        be32_encode(p, v >> 32);
+        be32_encode(p + 4, v & 0xffffffff);
+}
+
 static void
 init_w(const uint8_t *p, uint32_t w[64])
 {
         /* 6.2.2 1. */
         unsigned int i;
         for (i = 0; i < 16; i++) {
-                /* big endian */
-                w[i] = ((uint32_t)p[i * 4] << 24) |
-                       ((uint32_t)p[i * 4 + 1] << 16) |
-                       ((uint32_t)p[i * 4 + 2] << 8) | (uint32_t)p[i * 4 + 3];
+                w[i] = be32_decode(&p[i * 4]);
         }
         for (; i < 64; i++) {
                 w[i] = s1(w[i - 2]) + w[i - 7] + s0(w[i - 15]) + w[i - 16];
@@ -155,14 +175,7 @@ sha256_tail(const void *p, size_t len, uint64_t total_len, uint32_t h[8])
                 memset(tmp + len + 1, 0, 64 - (len + 1) - 8); /* padding */
         }
         uint64_t bitlen = total_len * 8;
-        tmp[64 - 8] = (bitlen >> 56) & 0xff;
-        tmp[64 - 7] = (bitlen >> 48) & 0xff;
-        tmp[64 - 6] = (bitlen >> 40) & 0xff;
-        tmp[64 - 5] = (bitlen >> 32) & 0xff;
-        tmp[64 - 4] = (bitlen >> 24) & 0xff;
-        tmp[64 - 3] = (bitlen >> 16) & 0xff;
-        tmp[64 - 2] = (bitlen >> 8) & 0xff;
-        tmp[64 - 1] = (bitlen >> 0) & 0xff;
+        be64_encode(&tmp[64 - 8], bitlen);
         sha256_block(tmp, h);
 }
 
