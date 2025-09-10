@@ -11,8 +11,8 @@ typedef uint64_t word;
 void
 sha512_print(const word h[8])
 {
-        printf("%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64
-               "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "\n",
+        printf("%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64
+               "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "%016" PRIx64 "\n",
                h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
 }
 
