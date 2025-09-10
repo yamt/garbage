@@ -126,8 +126,7 @@ update_h(const word w[MSG_SCHED_SIZE], word h[8])
 
         /* 6.4.2 3. */
         for (i = 0; i < MSG_SCHED_SIZE; i++) {
-                word t1 =
-                        t[7] + S1(t[4]) + ch(t[4], t[5], t[6]) + K[i] + w[i];
+                word t1 = t[7] + S1(t[4]) + ch(t[4], t[5], t[6]) + K[i] + w[i];
                 word t2 = S0(t[0]) + maj(t[0], t[1], t[2]);
 
                 t[7] = t[6];
@@ -192,7 +191,8 @@ sha512_tail(const void *p, size_t len, uint64_t total_len, word h[8])
                 /* last block */
                 memcpy(tmp, p, len);
                 tmp[len] = 0x80; /* 1-bit end of messgage + 7-bit padding */
-                memset(tmp + len + 1, 0, BLOCK_SIZE - (len + 1) - MSG_SIZE_SIZE); /* padding */
+                memset(tmp + len + 1, 0,
+                       BLOCK_SIZE - (len + 1) - MSG_SIZE_SIZE); /* padding */
         }
         be64_encode(&tmp[BLOCK_SIZE - MSG_SIZE_SIZE], total_len >> (64 - 3));
         be64_encode(&tmp[BLOCK_SIZE - MSG_SIZE_SIZE + 8], total_len << 3);
