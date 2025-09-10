@@ -2,6 +2,11 @@ cmake_minimum_required(VERSION 3.16)
 
 project(sha-2 LANGUAGES C)
 
+add_compile_options(-Wall -Wvla -Wdouble-promotion -Werror)
+
+#add_compile_options(-fsanitize=undefined)
+#add_link_options(-fsanitize=undefined)
+
 add_library(sha256 sha256.c)
 add_executable(sha256_cli sha256_cli.c sha256)
 add_executable(sha256_test sha256_test.c sha256)
