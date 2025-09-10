@@ -100,7 +100,7 @@ main(int argc, char **argv)
                                    "fghijklmghijklmnhijklmno";
         assert(strlen(abc2) ==
                BLOCK_SIZE); /* the following code assumes this */
-		assert(BLOCK_SIZE == 64 * 2);
+        assert(BLOCK_SIZE == 64 * 2);
         time_t start = time(NULL);
         sha512_init(h);
         uint32_t i;

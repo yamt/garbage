@@ -87,7 +87,8 @@ main(int argc, char **argv)
         /* 1073741824 byte data (note: this is larger than UINT32_MAX) */
         static const char abc[] = "abcdefghbcdefghicdefghijdefghijkefghijkl"
                                   "fghijklmghijklmnhijklmno";
-        assert(strlen(abc) == BLOCK_SIZE); /* the following code assumes this */
+        assert(strlen(abc) ==
+               BLOCK_SIZE); /* the following code assumes this */
         time_t start = time(NULL);
         sha256_init(h);
         uint32_t i;
