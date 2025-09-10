@@ -53,6 +53,15 @@ main(int argc, char **argv)
         };
         check(h, h3);
 
+        sha256("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklm"
+               "noijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
+               896 / 8, h);
+        static const uint32_t h6[8] = {
+                0xcf5b16a7, 0x78af8380, 0x036ce59e, 0x7b049237,
+                0x0b249b11, 0xe8f07a51, 0xafac4503, 0x7afee9d1,
+        };
+        check(h, h6);
+
         /* 1000000 "a"s */
         static const char a64[] = "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa"
