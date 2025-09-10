@@ -14,7 +14,7 @@
 
 typedef uint32_t word;
 #define WORD_SIZE 4
-#define BLOCK_SIZE 64
+#define BLOCK_SIZE SHA256_BLOCK_SIZE
 #define MSG_SIZE_SIZE 8
 #define MSG_SCHED_SIZE 64
 

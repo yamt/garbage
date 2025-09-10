@@ -6,7 +6,7 @@
 #include "sha512.h"
 
 typedef uint64_t word;
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE SHA512_BLOCK_SIZE
 
 void
 sha512_print(const word h[8])

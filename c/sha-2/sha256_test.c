@@ -7,8 +7,11 @@
 
 #include "sha256.h"
 
+typedef uint32_t word;
+#define BLOCK_SIZE SHA256_BLOCK_SIZE
+
 static void
-check1(const uint32_t a[8], const uint32_t b[8], unsigned int line)
+check1(const word a[8], const word b[8], unsigned int line)
 {
         unsigned int i;
         for (i = 0; i < 8; i++) {
@@ -25,21 +28,21 @@ check1(const uint32_t a[8], const uint32_t b[8], unsigned int line)
 int
 main(int argc, char **argv)
 {
-        uint32_t h[8];
+        word h[8];
 
         /*
          * test vectors from https://www.di-mgt.com.au/sha_testvectors.html
          */
 
         sha256("abc", 3, h);
-        static const uint32_t h1[8] = {
+        static const word h1[8] = {
                 0xba7816bf, 0x8f01cfea, 0x414140de, 0x5dae2223,
                 0xb00361a3, 0x96177a9c, 0xb410ff61, 0xf20015ad,
         };
         check(h, h1);
 
         sha256("", 0, h);
-        static const uint32_t h2[8] = {
+        static const word h2[8] = {
                 0xe3b0c442, 0x98fc1c14, 0x9afbf4c8, 0x996fb924,
                 0x27ae41e4, 0x649b934c, 0xa495991b, 0x7852b855,
         };
@@ -47,7 +50,7 @@ main(int argc, char **argv)
 
         sha256("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq",
                448 / 8, h);
-        static const uint32_t h3[8] = {
+        static const word h3[8] = {
                 0x248d6a61, 0xd20638b8, 0xe5c02693, 0x0c3e6039,
                 0xa33ce459, 0x64ff2167, 0xf6ecedd4, 0x19db06c1,
         };
@@ -56,7 +59,7 @@ main(int argc, char **argv)
         sha256("abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklm"
                "noijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
                896 / 8, h);
-        static const uint32_t h6[8] = {
+        static const word h6[8] = {
                 0xcf5b16a7, 0x78af8380, 0x036ce59e, 0x7b049237,
                 0x0b249b11, 0xe8f07a51, 0xafac4503, 0x7afee9d1,
         };
@@ -68,14 +71,14 @@ main(int argc, char **argv)
                                   "aaaaaaaaaaaaaaaa"
                                   "aaaaaaaaaaaaaaaa";
         size_t left = 1000000;
-        assert(strlen(a64) == 64);
+        assert(strlen(a64) == BLOCK_SIZE);
         sha256_init(h);
-        while (left >= 64) {
+        while (left >= BLOCK_SIZE) {
                 sha256_block(a64, h);
-                left -= 64;
+                left -= BLOCK_SIZE;
         }
         sha256_tail(a64, left, 1000000, h);
-        static const uint32_t h4[8] = {
+        static const word h4[8] = {
                 0xcdc76e5c, 0x9914fb92, 0x81a1c7e2, 0x84d73e67,
                 0xf1809a48, 0xa497200e, 0x046d39cc, 0xc7112cd0,
         };
@@ -84,7 +87,7 @@ main(int argc, char **argv)
         /* 1073741824 byte data (note: this is larger than UINT32_MAX) */
         static const char abc[] = "abcdefghbcdefghicdefghijdefghijkefghijkl"
                                   "fghijklmghijklmnhijklmno";
-        assert(strlen(abc) == 64); /* the following code assumes this */
+        assert(strlen(abc) == BLOCK_SIZE); /* the following code assumes this */
         time_t start = time(NULL);
         sha256_init(h);
         uint32_t i;

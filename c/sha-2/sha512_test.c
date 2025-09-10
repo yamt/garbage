@@ -8,7 +8,7 @@
 #include "sha512.h"
 
 typedef uint64_t word;
-#define BLOCK_SIZE 128
+#define BLOCK_SIZE SHA512_BLOCK_SIZE
 
 static void
 check1(const word a[8], const word b[8], unsigned int line)
@@ -100,6 +100,7 @@ main(int argc, char **argv)
                                    "fghijklmghijklmnhijklmno";
         assert(strlen(abc2) ==
                BLOCK_SIZE); /* the following code assumes this */
+		assert(BLOCK_SIZE == 64 * 2);
         time_t start = time(NULL);
         sha512_init(h);
         uint32_t i;
