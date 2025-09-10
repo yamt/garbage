@@ -35,11 +35,13 @@ be32_decode(const uint8_t *p)
                ((uint32_t)p[2] << 8) | (uint32_t)p[3];
 }
 
+#if WORD_SIZE == 8
 static uint64_t
 be64_decode(const uint8_t *p)
 {
         return ((uint64_t)be32_decode(p) << 32) | be32_decode(p + 4);
 }
+#endif
 
 static void
 be32_encode(uint8_t *p, uint32_t v)
