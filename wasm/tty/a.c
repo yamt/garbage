@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#if !defined(out)
+#define out stdout
+#endif
+
 #if defined(__wasi__)
 #include <wasi/api.h>
 
@@ -52,7 +56,7 @@ print_right_bits(uint64_t bits)
                 if ((bits & (UINT64_C(1) << i)) == 0) {
                         continue;
                 }
-                printf("\t%s\n", right_names[i]);
+                fprintf(out, "\t%s\n", right_names[i]);
         }
 }
 #endif
@@ -62,36 +66,38 @@ print_fd(int fd, const char *name)
 {
         bool unexpected = false;
         if (isatty(fd)) {
-                printf("%s is a tty\n", name);
+                fprintf(out, "%s is a tty\n", name);
         } else {
-                printf("%s is NOT a tty\n", name);
+                fprintf(out, "%s is NOT a tty\n", name);
                 unexpected = true;
         }
         int flags = fcntl(fd, F_GETFL);
         switch (flags & O_ACCMODE) {
         case O_RDONLY:
-                printf("%s is O_RDONLY\n", name);
+                fprintf(out, "%s is O_RDONLY\n", name);
                 break;
         case O_WRONLY:
-                printf("%s is O_WRONLY\n", name);
+                fprintf(out, "%s is O_WRONLY\n", name);
                 break;
         case O_RDWR:
-                printf("%s is O_RDWR\n", name);
+                fprintf(out, "%s is O_RDWR\n", name);
                 break;
         }
 #if defined(__wasi__)
         __wasi_fdstat_t sb;
         int r = __wasi_fd_fdstat_get(fd, &sb);
         if (r != 0) {
-                printf("__wasi_fd_fdstat_get on %s failed with %d\n", name, r);
+                fprintf(out, "__wasi_fd_fdstat_get on %s failed with %d\n",
+                        name, r);
                 unexpected = true;
         } else {
-                printf("%s fs_filetype %02x\n", name, (int)sb.fs_filetype);
-                printf("%s fs_rights_base %016" PRIx64 "\n", name,
-                       sb.fs_rights_base);
+                fprintf(out, "%s fs_filetype %02x\n", name,
+                        (int)sb.fs_filetype);
+                fprintf(out, "%s fs_rights_base %016" PRIx64 "\n", name,
+                        sb.fs_rights_base);
                 print_right_bits(sb.fs_rights_base);
-                printf("%s fs_rights_inheriting %016" PRIx64 "\n", name,
-                       sb.fs_rights_inheriting);
+                fprintf(out, "%s fs_rights_inheriting %016" PRIx64 "\n", name,
+                        sb.fs_rights_inheriting);
         }
 #endif
         return unexpected;
