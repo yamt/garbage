@@ -1,0 +1,4 @@
+# avoid numpy2 for intel mac
+numpy<2
+torch
+torchvision
