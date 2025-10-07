@@ -115,7 +115,6 @@ sha512(const void *vp, size_t len, word h[8])
                 sha512_block(p, h);
                 p += BLOCK_SIZE;
                 len -= BLOCK_SIZE;
-                continue;
         }
         sha512_tail(p, len, total_len, h);
 }

@@ -115,7 +115,6 @@ sha256(const void *vp, size_t len, word h[8])
                 sha256_block(p, h);
                 p += BLOCK_SIZE;
                 len -= BLOCK_SIZE;
-                continue;
         }
         sha256_tail(p, len, total_len, h);
 }
