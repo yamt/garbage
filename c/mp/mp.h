@@ -1,7 +1,9 @@
+typedef int coeff_t;
+
 struct bigint {
         unsigned int n;
         unsigned int max;
-        int *d;
+        coeff_t *d;
 };
 
 #define BASE 10

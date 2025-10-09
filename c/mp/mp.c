@@ -48,7 +48,7 @@ bigint_clear(struct bigint *a)
 void
 fix_carry(struct bigint *a)
 {
-        int c = 0;
+        coeff_t c = 0;
         unsigned int i;
         for (i = 0; i < a->n; i++) {
                 a->d[i] += c;
