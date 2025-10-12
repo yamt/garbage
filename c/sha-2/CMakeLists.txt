@@ -2,6 +2,10 @@ cmake_minimum_required(VERSION 3.16)
 
 project(sha-2 LANGUAGES C)
 
+set(CMAKE_C_STANDARD 90)
+set(CMAKE_C_STANDARD_REQUIRED NO)
+set(CMAKE_C_EXTENSIONS NO)
+
 add_compile_options(-Wall -Wvla -Wdouble-promotion -Werror)
 
 #add_compile_options(-fsanitize=undefined)
