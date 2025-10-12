@@ -126,17 +126,23 @@ bigint_str_free(char *p)
 int
 main(void)
 {
+        const char *a_str =
+                "12409715069012348970189741096590126450986902431123456";
+        const char *b_str =
+                "21434109785019758904721590874321400983729087987654";
         struct bigint i;
         struct bigint a;
         struct bigint b;
         bigint_init(&i);
         bigint_init(&a);
         bigint_init(&b);
-        bigint_from_str(&a, "123456");
-        bigint_from_str(&b, "987654");
+        bigint_from_str(&a, a_str);
+        bigint_from_str(&b, b_str);
         bigint_add(&a, &b, &i);
         char *p = bigint_to_str(&i);
         printf("result: %s\n", p);
+        assert(!strcmp(
+                p, "12431149178797368729094462687464447851970631519111110"));
         bigint_str_free(p);
         bigint_clear(&i);
         bigint_clear(&a);
