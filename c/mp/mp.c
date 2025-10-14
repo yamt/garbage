@@ -7,7 +7,7 @@
 
 #include "mp.h"
 
-static int
+static coeff_t
 dig(const struct bigint *a, unsigned int i)
 {
         if (i < a->n) {
