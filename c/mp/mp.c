@@ -45,23 +45,12 @@ bigint_clear(struct bigint *a)
         free(a->d);
 }
 
-void
-fix_carry(struct bigint *a)
+static coeff_t
+coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-        coeff_t c = 0;
-        unsigned int i;
-        for (i = 0; i < a->n; i++) {
-                a->d[i] += c;
-                c = 0;
-                if (a->d[i] >= BASE) {
-                        c = a->d[i] / BASE;
-                        a->d[i] -= BASE * c;
-                }
-        }
-        if (c != 0) {
-                assert(a->n < a->max);
-                a->d[a->n++] = c;
-        }
+        coeff_t c = a + b + carry_in;
+        *carry_out = c >= BASE;
+        return c % BASE;
 }
 
 int
@@ -75,11 +64,15 @@ bigint_add(const struct bigint *a, const struct bigint *b, struct bigint *c)
         if (ret != 0) {
                 return ret;
         }
+        coeff_t carry = 0;
         for (i = 0; i < n; i++) {
-                c->d[i] = dig(a, i) + dig(b, i);
+                c->d[i] = coeff_addc(dig(a, i), dig(b, i), carry, &carry);
         }
         c->n = n;
-        fix_carry(c);
+        if (carry) {
+                assert(c->n < c->max);
+                c->d[c->n++] = carry;
+        }
         return 0;
 }
 
