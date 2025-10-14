@@ -45,6 +45,30 @@ bigint_clear(struct bigint *a)
         free(a->d);
 }
 
+int
+bigint_cmp(const struct bigint *a, const struct bigint *b)
+{
+        if (a->n > b->n) {
+                return 1;
+        }
+        if (a->n < b->n) {
+                return -1;
+        }
+        unsigned int n = a->n;
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+                coeff_t av = a->d[n - 1 - i];
+                coeff_t bv = b->d[n - 1 - i];
+                if (av > bv) {
+                        return 1;
+                }
+                if (av < bv) {
+                        return -1;
+                }
+        }
+        return 0;
+}
+
 static coeff_t
 coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
@@ -76,26 +100,38 @@ bigint_add(const struct bigint *a, const struct bigint *b, struct bigint *c)
         return 0;
 }
 
-int
-bigint_cmp(const struct bigint *a, const struct bigint *b)
+static coeff_t
+coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-        if (a->n > b->n) {
-                return 1;
+        coeff_t c = a - b - carry_in;
+        if (c < 0) {
+                *carry_out = 1;
+                return c + BASE;
         }
-        if (a->n < b->n) {
-                return -1;
-        }
+        *carry_out = 0;
+        return c;
+}
+
+int
+bigint_sub(const struct bigint *a, const struct bigint *b, struct bigint *c)
+{
         unsigned int n = a->n;
         unsigned int i;
+        int ret;
+
+        assert(bigint_cmp(a, b) >= 0);
+        ret = bigint_alloc(c, n);
+        if (ret != 0) {
+                return ret;
+        }
+        coeff_t carry = 0;
         for (i = 0; i < n; i++) {
-                coeff_t av = a->d[n - 1 - i];
-                coeff_t bv = b->d[n - 1 - i];
-                if (av > bv) {
-                        return 1;
-                }
-                if (av < bv) {
-                        return -1;
-                }
+                c->d[i] = coeff_subc(dig(a, i), dig(b, i), carry, &carry);
+        }
+        c->n = n;
+        assert(carry == 0);
+        while (c->n > 0 && c->d[c->n - 1] == 0) {
+                c->n--;
         }
         return 0;
 }
@@ -147,12 +183,16 @@ main(void)
                 "12409715069012348970189741096590126450986902431123456";
         const char *b_str =
                 "21434109785019758904721590874321400983729087987654";
-        struct bigint i;
         struct bigint a;
         struct bigint b;
-        bigint_init(&i);
+        struct bigint s;
+        struct bigint d;
+        struct bigint zero;
         bigint_init(&a);
         bigint_init(&b);
+        bigint_init(&s);
+        bigint_init(&d);
+        bigint_init(&zero);
         assert(bigint_cmp(&a, &a) == 0);
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) == 0);
@@ -165,15 +205,22 @@ main(void)
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) > 0);
         assert(bigint_cmp(&b, &a) < 0);
-        bigint_add(&a, &b, &i);
-        assert(bigint_cmp(&i, &a) > 0);
-        assert(bigint_cmp(&i, &b) > 0);
-        char *p = bigint_to_str(&i);
+        bigint_add(&a, &b, &s);
+        assert(bigint_cmp(&s, &a) > 0);
+        assert(bigint_cmp(&s, &b) > 0);
+        char *p = bigint_to_str(&s);
         printf("result: %s\n", p);
         assert(!strcmp(
                 p, "12431149178797368729094462687464447851970631519111110"));
         bigint_str_free(p);
-        bigint_clear(&i);
+        bigint_sub(&s, &a, &d);
+        assert(bigint_cmp(&d, &b) == 0);
+        bigint_sub(&s, &zero, &d);
+        assert(bigint_cmp(&d, &s) == 0);
+        bigint_sub(&s, &s, &d);
+        assert(bigint_cmp(&d, &zero) == 0);
         bigint_clear(&a);
         bigint_clear(&b);
+        bigint_clear(&s);
+        bigint_clear(&d);
 }
