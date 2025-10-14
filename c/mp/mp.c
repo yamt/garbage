@@ -77,6 +77,30 @@ bigint_add(const struct bigint *a, const struct bigint *b, struct bigint *c)
 }
 
 int
+bigint_cmp(const struct bigint *a, const struct bigint *b)
+{
+        if (a->n > b->n) {
+                return 1;
+        }
+        if (a->n < b->n) {
+                return -1;
+        }
+        unsigned int n = a->n;
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+                coeff_t av = a->d[n - 1 - i];
+                coeff_t bv = b->d[n - 1 - i];
+                if (av > bv) {
+                        return 1;
+                }
+                if (av < bv) {
+                        return -1;
+                }
+        }
+        return 0;
+}
+
+int
 bigint_from_str(struct bigint *a, const char *p)
 {
 #if BASE != 10
@@ -129,9 +153,21 @@ main(void)
         bigint_init(&i);
         bigint_init(&a);
         bigint_init(&b);
+        assert(bigint_cmp(&a, &a) == 0);
+        assert(bigint_cmp(&b, &b) == 0);
+        assert(bigint_cmp(&a, &b) == 0);
+        assert(bigint_cmp(&b, &a) == 0);
         bigint_from_str(&a, a_str);
+        assert(bigint_cmp(&a, &b) > 0);
+        assert(bigint_cmp(&b, &a) < 0);
         bigint_from_str(&b, b_str);
+        assert(bigint_cmp(&a, &a) == 0);
+        assert(bigint_cmp(&b, &b) == 0);
+        assert(bigint_cmp(&a, &b) > 0);
+        assert(bigint_cmp(&b, &a) < 0);
         bigint_add(&a, &b, &i);
+        assert(bigint_cmp(&i, &a) > 0);
+        assert(bigint_cmp(&i, &b) > 0);
         char *p = bigint_to_str(&i);
         printf("result: %s\n", p);
         assert(!strcmp(
