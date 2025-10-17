@@ -1,6 +1,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,6 +44,27 @@ void
 bigint_clear(struct bigint *a)
 {
         free(a->d);
+}
+
+static bool
+is_normal(const struct bigint *a)
+{
+        if (a->n == 0) {
+                return true;
+        }
+        if (a->d[a->n - 1] == 0) {
+                return false;
+        }
+        unsigned int i;
+        for (i = 0; i < a->n; i++) {
+                if (a->d[i] < 0) {
+                        return false;
+                }
+                if (a->d[i] >= BASE) {
+                        return false;
+                }
+        }
+        return true;
 }
 
 int
@@ -136,6 +158,80 @@ bigint_sub(const struct bigint *a, const struct bigint *b, struct bigint *c)
         return 0;
 }
 
+static void
+mul1(const struct bigint *a, coeff_t n, struct bigint *c)
+{
+        assert(a->n < c->max);
+        if (n == 0) {
+                c->n = 0;
+                return;
+        }
+        unsigned int i;
+        coeff_t carry = 0;
+        for (i = 0; i < a->n; i++) {
+                coeff_t t = a->d[i] * n + carry;
+                c->d[i] = t % BASE;
+                carry = t / BASE;
+        }
+        c->n = a->n;
+        assert(c->n <= c->max);
+        if (carry > 0) {
+                assert(c->n < c->max);
+                c->d[c->n++] = carry;
+        }
+}
+
+int
+bigint_mul(const struct bigint *a, const struct bigint *b, struct bigint *c)
+{
+        assert(is_normal(a));
+        assert(is_normal(b));
+        if (b->n == 0) {
+                c->n = 0;
+                return 0;
+        }
+        struct bigint t;
+        int ret;
+        ret = bigint_alloc(c, a->n + b->n + 1);
+        if (ret != 0) {
+                return ret;
+        }
+        bigint_init(&t);
+        ret = bigint_alloc(&t, a->n + 1);
+        if (ret != 0) {
+                bigint_clear(&t);
+                return ret;
+        }
+        mul1(a, b->d[0], c);
+        assert(is_normal(c));
+        unsigned int i;
+        for (i = 1; i < b->n; i++) {
+                if (b->d[i] == 0) {
+                        continue;
+                }
+                mul1(a, b->d[i], &t);
+                assert(is_normal(&t));
+                /* c += (t << (base * i)) */
+                assert(c->n <= i + t.n);
+                assert(i + t.n <= c->max);
+                coeff_t carry = 0;
+                unsigned int j;
+                for (j = 0; j < t.n; j++) {
+                        c->d[i + j] = coeff_addc(dig(c, i + j), t.d[j], carry,
+                                                 &carry);
+                }
+                assert(c->n <= i + t.n);
+                c->n = i + t.n;
+                if (carry) {
+                        assert(c->n < c->max);
+                        c->d[c->n++] = carry;
+                }
+                assert(is_normal(c));
+        }
+        bigint_clear(&t);
+        return 0;
+}
+
 int
 bigint_from_str(struct bigint *a, const char *p)
 {
@@ -187,11 +283,15 @@ main(void)
         struct bigint b;
         struct bigint s;
         struct bigint d;
+        struct bigint prod;
         struct bigint zero;
+        int ret;
+
         bigint_init(&a);
         bigint_init(&b);
         bigint_init(&s);
         bigint_init(&d);
+        bigint_init(&prod);
         bigint_init(&zero);
         assert(bigint_cmp(&a, &a) == 0);
         assert(bigint_cmp(&b, &b) == 0);
@@ -219,8 +319,17 @@ main(void)
         assert(bigint_cmp(&d, &s) == 0);
         bigint_sub(&s, &s, &d);
         assert(bigint_cmp(&d, &zero) == 0);
+        ret = bigint_mul(&a, &b, &prod);
+        assert(ret == 0);
+        p = bigint_to_str(&prod);
+        printf("result: %s\n", p);
+        assert(!strcmp(p,
+                       "265991195190024741725449308469883623294768538550582409"
+                       "197459854227188973713824150108575888873477812224"));
+        bigint_str_free(p);
         bigint_clear(&a);
         bigint_clear(&b);
         bigint_clear(&s);
         bigint_clear(&d);
+        bigint_clear(&prod);
 }
