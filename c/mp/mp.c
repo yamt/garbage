@@ -17,7 +17,7 @@ dig(const struct bigint *a, unsigned int i)
         return 0;
 }
 
-int
+static int
 bigint_alloc(struct bigint *a, unsigned int max_digits)
 {
         if (max_digits <= a->max) {
