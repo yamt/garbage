@@ -8,6 +8,10 @@
 
 #include "mp.h"
 
+#define ctassert(a) _Static_assert(a, #a)
+
+ctassert(COEFF_MAX == BASE - 1);
+
 static coeff_t
 dig(const struct bigint *a, unsigned int i)
 {
@@ -94,8 +98,13 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
 static coeff_t
 coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
+        ctassert(BASE * 2 < COEFF_TYPE_MAX);
+        assert(0 <= carry_in);
+        assert(carry_in <= 1);
         coeff_t c = a + b + carry_in;
         *carry_out = c >= BASE;
+        assert(0 <= *carry_out);
+        assert(*carry_out <= 1);
         return c % BASE;
 }
 
@@ -125,6 +134,8 @@ bigint_add(const struct bigint *a, const struct bigint *b, struct bigint *c)
 static coeff_t
 coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
+        assert(0 <= carry_in);
+        assert(carry_in <= 1);
         coeff_t c = a - b - carry_in;
         if (c < 0) {
                 *carry_out = 1;
@@ -169,6 +180,7 @@ mul1(const struct bigint *a, coeff_t n, struct bigint *c)
         unsigned int i;
         coeff_t carry = 0;
         for (i = 0; i < a->n; i++) {
+                ctassert(COEFF_MAX * COEFF_MAX + COEFF_MAX <= COEFF_TYPE_MAX);
                 coeff_t t = a->d[i] * n + carry;
                 c->d[i] = t % BASE;
                 carry = t / BASE;

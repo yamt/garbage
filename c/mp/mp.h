@@ -1,5 +1,7 @@
 typedef signed char coeff_t;
 #define BASE 10
+#define COEFF_MAX 9
+#define COEFF_TYPE_MAX 127
 
 struct bigint {
         unsigned int n;
