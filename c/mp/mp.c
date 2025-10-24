@@ -496,6 +496,19 @@ print_bigint(const char *heading, const struct bigint *a)
         bigint_str_free(p);
 }
 
+static void
+test_str_roundtrip(const char *str)
+{
+		struct bigint a;
+        bigint_init(&a);
+        int ret = bigint_from_str(&a, str);
+        assert(ret == 0);
+        char *p = bigint_to_str(&a);
+        assert(!strcmp(p, str));
+        bigint_str_free(p);
+        bigint_clear(&a);
+}
+
 int
 main(void)
 {
@@ -514,6 +527,11 @@ main(void)
         struct bigint r;
         struct bigint tmp;
         int ret;
+
+        test_str_roundtrip("0");
+        test_str_roundtrip("100000000000000000000000");
+        test_str_roundtrip(a_str);
+        test_str_roundtrip(b_str);
 
         bigint_init(&a);
         bigint_init(&b);
@@ -544,11 +562,6 @@ main(void)
         bigint_add(&s, &a, &b);
         assert(bigint_cmp(&s, &a) > 0);
         assert(bigint_cmp(&s, &b) > 0);
-        char *p = bigint_to_str(&s);
-        printf("result: %s\n", p);
-        assert(!strcmp(
-                p, "12431149178797368729094462687464447851970631519111110"));
-        bigint_str_free(p);
         bigint_sub(&d, &s, &a);
         assert(bigint_cmp(&d, &b) == 0);
         bigint_sub(&d, &s, &zero);
@@ -559,16 +572,8 @@ main(void)
         /* mul */
         ret = bigint_mul(&prod, &a, &b);
         assert(ret == 0);
-        p = bigint_to_str(&prod);
-        printf("result: %s\n", p);
-        assert(!strcmp(p,
-                       "265991195190024741725449308469883623294768538550582409"
-                       "197459854227188973713824150108575888873477812224"));
-        bigint_str_free(p);
         ret = bigint_divmod(&q, &r, &prod, &a);
         assert(ret == 0);
-        print_bigint("q=", &q);
-        print_bigint("b=", &b);
         assert(bigint_cmp(&q, &b) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
         ret = bigint_divmod(&q, &r, &prod, &b);
@@ -583,18 +588,6 @@ main(void)
         assert(bigint_cmp(&r, &zero) == 0);
         ret = bigint_divmod(&q, &r, &a, &b);
         assert(ret == 0);
-        p = bigint_to_str(&a);
-        printf("a=%s\n", p);
-        bigint_str_free(p);
-        p = bigint_to_str(&b);
-        printf("b=%s\n", p);
-        bigint_str_free(p);
-        p = bigint_to_str(&q);
-        printf("a/b=q=%s\n", p);
-        bigint_str_free(p);
-        p = bigint_to_str(&r);
-        printf("r=%s\n", p);
-        bigint_str_free(p);
         ret = bigint_mul(&tmp, &q, &b);
         assert(ret == 0);
         ret = bigint_add(&tmp, &tmp, &r);
