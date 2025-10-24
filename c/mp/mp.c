@@ -15,6 +15,17 @@
 
 ctassert(COEFF_MAX == BASE - 1);
 
+static const struct bigint zero = {
+        .n = 0,
+};
+static const struct bigint one = {
+        .n = 1,
+        .d =
+                (coeff_t[]){
+                        1,
+                },
+};
+
 static coeff_t
 dig(const struct bigint *a, unsigned int i)
 {
@@ -577,8 +588,6 @@ main(void)
         struct bigint s;
         struct bigint d;
         struct bigint prod;
-        struct bigint zero;
-        struct bigint one;
         struct bigint q;
         struct bigint r;
         struct bigint tmp;
@@ -595,14 +604,10 @@ main(void)
         bigint_init(&s);
         bigint_init(&d);
         bigint_init(&prod);
-        bigint_init(&zero);
-        bigint_init(&one);
         bigint_init(&q);
         bigint_init(&r);
         bigint_init(&tmp);
         bigint_init(&tmp2);
-        ret = bigint_set_uint(&one, 1);
-        assert(ret == 0);
         assert(bigint_cmp(&a, &a) == 0);
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) == 0);
@@ -673,9 +678,15 @@ main(void)
         print_bigint("b        = ", &b);
         print_bigint("gcd(a,b) = ", &tmp);
 
-        ret = bigint_from_str(&a, "533509908571101979294464811598952141168153495025132870832519126598141168533509908571101979294464811598952141168");
+        ret = bigint_from_str(
+                &a, "533509908571101979294464811598952141168153495025132870832"
+                    "519126598141168533509908571101979294464811598952141168");
         assert(ret == 0);
-        ret = bigint_from_str(&b, "533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168000");
+        ret = bigint_from_str(
+                &b, "533509908571101979294464811598952141168533509908571101979"
+                    "294464811598952141168533509908571101979294464811598952141"
+                    "168533509908571101979294464811598952141168533509908571101"
+                    "979294464811598952141168000");
         assert(ret == 0);
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
@@ -695,6 +706,4 @@ main(void)
         bigint_clear(&r);
         bigint_clear(&tmp);
         bigint_clear(&tmp2);
-        bigint_clear(&zero);
-        bigint_clear(&one);
 }
