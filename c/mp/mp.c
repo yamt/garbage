@@ -261,7 +261,7 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
                 k++;
         }
         if (k > 0) {
-                if (a->n > 0 && (a->d[a->n - 1] << k) >= BASE) {
+                if (a->n > 0) {
                         int ret = bigint_alloc(a, a->n + 1);
                         if (ret != 0) {
                                 return ret;
