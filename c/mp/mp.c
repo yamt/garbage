@@ -251,15 +251,11 @@ static int
 div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
 {
         assert(b->n != 0);
-        coeff_t msw = b->d[b->n - 1];
-        if (msw >= BASE / 2) {
-                *kp = 0;
-                return 0;
-        }
-        /* XXX this is broken because BASE might not be a power of two */
-        unsigned int k = 1;
-        while ((msw << k) < BASE / 2) {
+
+        unsigned int k = 0;
+        while (b->d[b->n - 1] < BASE / 2) {
                 k++;
+                mul1(b, b, 2);
         }
         if (k > 0) {
                 if (a->n > 0) {
@@ -269,7 +265,6 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
                         }
                 }
                 mul1(a, a, 1 << k);
-                mul1(b, b, 1 << k);
         }
         *kp = k;
         return 0;
