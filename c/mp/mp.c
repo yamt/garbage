@@ -328,6 +328,11 @@ bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
                 goto fail;
         }
         unsigned int n = b.n;
+        if (r->n < n) {
+                q->n = 0;
+                ret = bigint_set(r, a);
+                goto fail;
+        }
         unsigned int m = r->n - n;
         ret = bigint_alloc(q, m + 1);
         if (ret != 0) {
@@ -347,32 +352,34 @@ bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
         } else {
                 q->n = m;
         }
-        unsigned int j = m - 1;
-        do {
-                coeff_t q_j =
-                        (r->d[n + j] * BASE + r->d[n + j - 1]) / b.d[n - 1];
-                if (q_j > BASE - 1) {
-                        q_j = BASE - 1;
-                }
-                /* tmp = (BASE ** j) * b */
-                ret = shift_left_words(&tmp, &b, j);
-                if (ret != 0) {
-                        goto fail;
-                }
-                /* tmp2 = q_j * tmp */
-                ret = bigint_mul_uint(&tmp2, &tmp, q_j);
-                if (ret != 0) {
-                        goto fail;
-                }
-                while (bigint_cmp(r, &tmp2) < 0) {
-                        q_j--;
-                        ret = bigint_sub(&tmp2, &tmp2, &tmp);
+        if (m > 0) {
+                unsigned int j = m - 1;
+                do {
+                        coeff_t q_j = (r->d[n + j] * BASE + r->d[n + j - 1]) /
+                                      b.d[n - 1];
+                        if (q_j > BASE - 1) {
+                                q_j = BASE - 1;
+                        }
+                        /* tmp = (BASE ** j) * b */
+                        ret = shift_left_words(&tmp, &b, j);
+                        if (ret != 0) {
+                                goto fail;
+                        }
+                        /* tmp2 = q_j * tmp */
+                        ret = bigint_mul_uint(&tmp2, &tmp, q_j);
+                        if (ret != 0) {
+                                goto fail;
+                        }
+                        while (bigint_cmp(r, &tmp2) < 0) {
+                                q_j--;
+                                ret = bigint_sub(&tmp2, &tmp2, &tmp);
+                                assert(ret == 0);
+                        }
+                        ret = bigint_sub(r, r, &tmp2);
                         assert(ret == 0);
-                }
-                ret = bigint_sub(r, r, &tmp2);
-                assert(ret == 0);
-                q->d[j] = q_j;
-        } while (j-- > 0);
+                        q->d[j] = q_j;
+                } while (j-- > 0);
+        }
         ret = 0;
         assert(is_normal(q));
         assert(is_normal(r));
@@ -479,6 +486,16 @@ bigint_str_free(char *p)
         free(p);
 }
 
+/* tests */
+
+static void
+print_bigint(const char *heading, const struct bigint *a)
+{
+        char *p = bigint_to_str(a);
+        printf("%s%s\n", heading, p);
+        bigint_str_free(p);
+}
+
 int
 main(void)
 {
@@ -492,6 +509,7 @@ main(void)
         struct bigint d;
         struct bigint prod;
         struct bigint zero;
+        struct bigint one;
         struct bigint q;
         struct bigint r;
         struct bigint tmp;
@@ -503,9 +521,12 @@ main(void)
         bigint_init(&d);
         bigint_init(&prod);
         bigint_init(&zero);
+        bigint_init(&one);
         bigint_init(&q);
         bigint_init(&r);
         bigint_init(&tmp);
+        ret = bigint_set_uint(&one, 1);
+        assert(ret == 0);
         assert(bigint_cmp(&a, &a) == 0);
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) == 0);
@@ -518,6 +539,8 @@ main(void)
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) > 0);
         assert(bigint_cmp(&b, &a) < 0);
+
+        /* add and sub */
         bigint_add(&s, &a, &b);
         assert(bigint_cmp(&s, &a) > 0);
         assert(bigint_cmp(&s, &b) > 0);
@@ -532,6 +555,8 @@ main(void)
         assert(bigint_cmp(&d, &s) == 0);
         bigint_sub(&d, &s, &s);
         assert(bigint_cmp(&d, &zero) == 0);
+
+        /* mul */
         ret = bigint_mul(&prod, &a, &b);
         assert(ret == 0);
         p = bigint_to_str(&prod);
@@ -540,6 +565,22 @@ main(void)
                        "265991195190024741725449308469883623294768538550582409"
                        "197459854227188973713824150108575888873477812224"));
         bigint_str_free(p);
+        ret = bigint_divmod(&q, &r, &prod, &a);
+        assert(ret == 0);
+        print_bigint("q=", &q);
+        print_bigint("b=", &b);
+        assert(bigint_cmp(&q, &b) == 0);
+        assert(bigint_cmp(&r, &zero) == 0);
+        ret = bigint_divmod(&q, &r, &prod, &b);
+        assert(ret == 0);
+        assert(bigint_cmp(&q, &a) == 0);
+        assert(bigint_cmp(&r, &zero) == 0);
+
+        /* divmod */
+        ret = bigint_divmod(&q, &r, &a, &one);
+        assert(ret == 0);
+        assert(bigint_cmp(&q, &a) == 0);
+        assert(bigint_cmp(&r, &zero) == 0);
         ret = bigint_divmod(&q, &r, &a, &b);
         assert(ret == 0);
         p = bigint_to_str(&a);
@@ -556,9 +597,25 @@ main(void)
         bigint_str_free(p);
         ret = bigint_mul(&tmp, &q, &b);
         assert(ret == 0);
-        ret = bigint_add(&tmp, &tmp, &q);
+        ret = bigint_add(&tmp, &tmp, &r);
         assert(ret == 0);
-        assert(bigint_cmp(&tmp, &a));
+        assert(bigint_cmp(&tmp, &a) == 0);
+
+        ret = bigint_divmod(&q, &r, &b, &a);
+        assert(ret == 0);
+        assert(bigint_cmp(&q, &zero) == 0);
+        assert(bigint_cmp(&r, &b) == 0);
+
+        ret = bigint_divmod(&q, &r, &a, &a);
+        assert(ret == 0);
+        assert(bigint_cmp(&q, &one) == 0);
+        assert(bigint_cmp(&r, &zero) == 0);
+
+        ret = bigint_divmod(&q, &r, &b, &b);
+        assert(ret == 0);
+        assert(bigint_cmp(&q, &one) == 0);
+        assert(bigint_cmp(&r, &zero) == 0);
+
         bigint_clear(&a);
         bigint_clear(&b);
         bigint_clear(&s);
@@ -567,4 +624,6 @@ main(void)
         bigint_clear(&q);
         bigint_clear(&r);
         bigint_clear(&tmp);
+        bigint_clear(&zero);
+        bigint_clear(&one);
 }
