@@ -12,11 +12,20 @@ struct bigint {
 void bigint_init(struct bigint *a);
 void bigint_clear(struct bigint *a);
 int bigint_cmp(const struct bigint *a, const struct bigint *b);
-int bigint_add(const struct bigint *a, const struct bigint *b,
-               struct bigint *c);
-int bigint_sub(const struct bigint *a, const struct bigint *b,
-               struct bigint *c);
-int bigint_mul(const struct bigint *a, const struct bigint *b,
-               struct bigint *c);
+
+/* c = a (op) b */
+int bigint_add(struct bigint *c, const struct bigint *a,
+               const struct bigint *b);
+int bigint_sub(struct bigint *c, const struct bigint *a,
+               const struct bigint *b);
+int bigint_mul(struct bigint *c, const struct bigint *a,
+               const struct bigint *b);
+int bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
+                  const struct bigint *b);
+
+int bigint_set(struct bigint *d, const struct bigint *s);
+int bigint_set_uint(struct bigint *a, coeff_t v);
+int bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b);
+
 int bigint_from_str(struct bigint *a, const char *p);
 void bigint_str_free(char *p);

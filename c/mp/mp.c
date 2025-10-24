@@ -1,3 +1,6 @@
+/*
+ * https://members.loria.fr/PZimmermann/mca/mca-cup-0.5.9.pdf
+ */
 
 #include <assert.h>
 #include <errno.h>
@@ -109,7 +112,7 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 }
 
 int
-bigint_add(const struct bigint *a, const struct bigint *b, struct bigint *c)
+bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
         unsigned int n = (a->n > b->n) ? a->n : b->n;
         unsigned int i;
@@ -146,7 +149,7 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 }
 
 int
-bigint_sub(const struct bigint *a, const struct bigint *b, struct bigint *c)
+bigint_sub(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
         unsigned int n = a->n;
         unsigned int i;
@@ -170,7 +173,7 @@ bigint_sub(const struct bigint *a, const struct bigint *b, struct bigint *c)
 }
 
 static void
-mul1(const struct bigint *a, coeff_t n, struct bigint *c)
+mul1(struct bigint *c, const struct bigint *a, coeff_t n)
 {
         assert(a->n < c->max);
         if (n == 0) {
@@ -194,7 +197,7 @@ mul1(const struct bigint *a, coeff_t n, struct bigint *c)
 }
 
 int
-bigint_mul(const struct bigint *a, const struct bigint *b, struct bigint *c)
+bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
         assert(is_normal(a));
         assert(is_normal(b));
@@ -214,14 +217,14 @@ bigint_mul(const struct bigint *a, const struct bigint *b, struct bigint *c)
                 bigint_clear(&t);
                 return ret;
         }
-        mul1(a, b->d[0], c);
+        mul1(c, a, b->d[0]);
         assert(is_normal(c));
         unsigned int i;
         for (i = 1; i < b->n; i++) {
                 if (b->d[i] == 0) {
                         continue;
                 }
-                mul1(a, b->d[i], &t);
+                mul1(&t, a, b->d[i]);
                 assert(is_normal(&t));
                 /* c += (t << (base * i)) */
                 assert(c->n <= i + t.n);
@@ -241,6 +244,171 @@ bigint_mul(const struct bigint *a, const struct bigint *b, struct bigint *c)
                 assert(is_normal(c));
         }
         bigint_clear(&t);
+        return 0;
+}
+
+static int
+div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
+{
+        assert(b->n != 0);
+        coeff_t msw = b->d[b->n - 1];
+        if (msw >= BASE / 2) {
+                *kp = 0;
+                return 0;
+        }
+        unsigned int k = 1;
+        while ((msw << k) < BASE / 2) {
+                k++;
+        }
+        if (a->n > 0 && (a->d[a->n] << k) >= BASE) {
+                int ret = bigint_alloc(a, a->n + 1);
+                if (ret != 0) {
+                        return ret;
+                }
+        }
+        mul1(a, a, 1 << k);
+        mul1(b, b, 1 << k);
+        *kp = k;
+        return 0;
+}
+
+static int
+shift_words(struct bigint *d, const struct bigint*s, unsigned int n)
+{
+		assert(d != s);
+		int ret = bigint_alloc(d, s->n + n);
+        if (ret != 0) {
+            return ret;
+        }
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+            d->d[i] = 0;
+        }
+        for (; i < s->n + n; i++) {
+            d->d[i] = s->d[i - n];
+        }
+        d->n = s->n + n;
+        return 0;
+}
+
+int
+bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
+              const struct bigint *b0)
+{
+        struct bigint b;
+        struct bigint tmp;
+        struct bigint tmp2;
+        unsigned int k;
+        int ret;
+
+        bigint_init(&b);
+        bigint_init(&tmp);
+        bigint_init(&tmp2);
+        ret = bigint_set(r, a);
+        if (ret != 0) {
+                goto fail;
+        }
+        ret = bigint_set(&b, b0);
+        if (ret != 0) {
+                goto fail;
+        }
+        ret = div_normalize(r, &b, &k);
+        if (ret != 0) {
+                goto fail;
+        }
+
+        unsigned int n = b.n;
+        unsigned int m = r->n - n;
+        ret = bigint_alloc(q, m + 1);
+        if (ret != 0) {
+            return ret;
+        }
+        /* tmp = (BASE ** m) * b */
+        ret = shift_words(&tmp, &b, m);
+        if (ret != 0) {
+                goto fail;
+        }
+        int cmp = bigint_cmp(r, &tmp);
+        if (cmp >= 0) {
+                q->d[m] = 1;
+                q->n = m + 1;
+                ret = bigint_sub(r, r, &tmp);
+                assert(ret == 0);
+        } else {
+                q->d[m] = 0;
+                q->n = m;
+        }
+		unsigned int j = m - 1;
+        do {
+                coeff_t q_j = (r->d[n + j] * BASE + r->d[n + j - 1]) / b.d[n - 1];
+                if (q_j > BASE - 1) {
+                    q_j = BASE - 1;
+                }
+                /* tmp = (BASE ** j) * b */
+                ret = shift_words(&tmp, &b, j);
+                if (ret != 0) {
+                    goto fail;
+                }
+                /* tmp2 = q_j * tmp */
+                ret = bigint_mul_uint(&tmp2, &tmp, q_j);
+                if (ret != 0) {
+                    goto fail;
+                }
+                while (bigint_cmp(r, &tmp2) < 0) {
+                    q_j--;
+                    ret = bigint_sub(&tmp2, &tmp2, &tmp);
+                    assert(ret == 0);
+                }
+                q->d[j] = q_j;
+        } while (j-- > 0);
+        ret = 0;
+fail:
+        bigint_clear(&b);
+        bigint_clear(&tmp);
+        bigint_clear(&tmp2);
+        return ret;
+}
+
+int
+bigint_set(struct bigint *d, const struct bigint *s)
+{
+        int ret = bigint_alloc(d, s->n);
+        if (ret != 0) {
+                return ret;
+        }
+        unsigned int i;
+        for (i = 0; i < s->n; i++) {
+                d->d[i] = s->d[i];
+        }
+        d->n = s->n;
+        return 0;
+}
+
+int
+bigint_set_uint(struct bigint *a, coeff_t v)
+{
+        assert(v < BASE);
+        if (v == 0) {
+                a->n = 0;
+                return 0;
+        }
+        int ret = bigint_alloc(a, 1);
+        if (ret != 0) {
+                return ret;
+        }
+        a->d[0] = v;
+        a->n = 1;
+        return 0;
+}
+
+int
+bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b)
+{
+        int ret = bigint_alloc(d, a->n + 1);
+        if (ret != 0) {
+                return ret;
+        }
+        mul1(d, a, b);
         return 0;
 }
 
@@ -297,6 +465,8 @@ main(void)
         struct bigint d;
         struct bigint prod;
         struct bigint zero;
+        struct bigint q;
+        struct bigint r;
         int ret;
 
         bigint_init(&a);
@@ -305,6 +475,8 @@ main(void)
         bigint_init(&d);
         bigint_init(&prod);
         bigint_init(&zero);
+        bigint_init(&q);
+        bigint_init(&r);
         assert(bigint_cmp(&a, &a) == 0);
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) == 0);
@@ -317,7 +489,7 @@ main(void)
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) > 0);
         assert(bigint_cmp(&b, &a) < 0);
-        bigint_add(&a, &b, &s);
+        bigint_add(&s, &a, &b);
         assert(bigint_cmp(&s, &a) > 0);
         assert(bigint_cmp(&s, &b) > 0);
         char *p = bigint_to_str(&s);
@@ -325,13 +497,13 @@ main(void)
         assert(!strcmp(
                 p, "12431149178797368729094462687464447851970631519111110"));
         bigint_str_free(p);
-        bigint_sub(&s, &a, &d);
+        bigint_sub(&d, &s, &a);
         assert(bigint_cmp(&d, &b) == 0);
-        bigint_sub(&s, &zero, &d);
+        bigint_sub(&d, &s, &zero);
         assert(bigint_cmp(&d, &s) == 0);
-        bigint_sub(&s, &s, &d);
+        bigint_sub(&d, &s, &s);
         assert(bigint_cmp(&d, &zero) == 0);
-        ret = bigint_mul(&a, &b, &prod);
+        ret = bigint_mul(&prod, &a, &b);
         assert(ret == 0);
         p = bigint_to_str(&prod);
         printf("result: %s\n", p);
@@ -339,9 +511,13 @@ main(void)
                        "265991195190024741725449308469883623294768538550582409"
                        "197459854227188973713824150108575888873477812224"));
         bigint_str_free(p);
+        ret = bigint_divmod(&q, &r, &a, &b);
+        assert(ret != 0);
         bigint_clear(&a);
         bigint_clear(&b);
         bigint_clear(&s);
         bigint_clear(&d);
         bigint_clear(&prod);
+        bigint_clear(&q);
+        bigint_clear(&r);
 }
