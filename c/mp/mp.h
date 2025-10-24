@@ -20,7 +20,7 @@ int bigint_sub(struct bigint *c, const struct bigint *a,
                const struct bigint *b);
 int bigint_mul(struct bigint *c, const struct bigint *a,
                const struct bigint *b);
-int bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
+int bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                   const struct bigint *b);
 
 int bigint_set(struct bigint *d, const struct bigint *s);

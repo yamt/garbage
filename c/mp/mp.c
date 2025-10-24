@@ -256,6 +256,7 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
                 *kp = 0;
                 return 0;
         }
+        /* XXX this is broken because BASE might not be a power of two */
         unsigned int k = 1;
         while ((msw << k) < BASE / 2) {
                 k++;
@@ -300,9 +301,11 @@ shift_left_words(struct bigint *d, const struct bigint *s, unsigned int n)
 }
 
 int
-bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
+bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
               const struct bigint *b0)
 {
+        assert(q != b0);
+        assert(r != b0);
         struct bigint b;
         struct bigint tmp;
         struct bigint tmp2;
@@ -319,6 +322,11 @@ bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
         if (ret != 0) {
                 goto fail;
         }
+        if (bigint_cmp(a, b0) < 0) {
+                q->n = 0;
+                ret = 0;
+                goto fail;
+        }
         ret = bigint_set(&b, b0);
         if (ret != 0) {
                 goto fail;
@@ -328,15 +336,11 @@ bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
                 goto fail;
         }
         unsigned int n = b.n;
-        if (r->n < n) {
-                q->n = 0;
-                ret = bigint_set(r, a);
-                goto fail;
-        }
+        assert(r->n >= n);
         unsigned int m = r->n - n;
         ret = bigint_alloc(q, m + 1);
         if (ret != 0) {
-                return ret;
+                goto fail;
         }
         /* tmp = (BASE ** m) * b */
         ret = shift_left_words(&tmp, &b, m);
@@ -387,14 +391,16 @@ bigint_divmod(struct bigint *q, struct bigint *r, const struct bigint *a,
                 /* r = r / (2 ** k) */
                 ret = bigint_set_uint(&tmp, 1 << k);
                 if (ret != 0) {
-                        return 0;
+                        goto fail;
                 }
-                ret = bigint_divmod(r, &tmp2, r, &tmp);
+                ret = bigint_divrem(r, &tmp2, r, &tmp);
                 if (ret != 0) {
-                        return 0;
+                        goto fail;
                 }
                 assert(tmp2.n == 0); /* should be an exact division */
         }
+        assert(is_normal(q));
+        assert(is_normal(r));
 fail:
         bigint_clear(&b);
         bigint_clear(&tmp);
@@ -462,6 +468,10 @@ bigint_from_str(struct bigint *a, const char *p)
                 a->d[i] = p[n - i - 1] - '0';
         }
         a->n = n;
+        if (a->d[a->n - 1] == 0) {
+                a->n--;
+        }
+        assert(is_normal(a));
         return 0;
 }
 
@@ -471,6 +481,13 @@ bigint_to_str(const struct bigint *a)
 #if BASE != 10
 #error notyet
 #endif
+        assert(is_normal(a));
+        if (a->n == 0) {
+                char *p = malloc(2);
+                p[0] = '0';
+                p[1] = 0;
+                return p;
+        }
         char *p = malloc(a->n + 1);
         unsigned int i;
         for (i = 0; i < a->n; i++) {
@@ -491,15 +508,59 @@ bigint_str_free(char *p)
 static void
 print_bigint(const char *heading, const struct bigint *a)
 {
+        assert(is_normal(a));
         char *p = bigint_to_str(a);
         printf("%s%s\n", heading, p);
         bigint_str_free(p);
 }
 
+int
+gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
+{
+        const struct bigint *a = a0;
+        const struct bigint *b = b0;
+        struct bigint q;
+        struct bigint t[3];
+        unsigned int i;
+        int ret;
+
+        bigint_init(&q);
+        for (i = 0; i < 3; i++) {
+                bigint_init(&t[i]);
+        }
+
+        i = 0;
+        while (1) {
+                print_bigint("a  =", a);
+                print_bigint("b  =", b);
+                ret = bigint_divrem(&q, &t[i], a, b);
+                if (ret != 0) {
+                        goto quit;
+                }
+                print_bigint("a/b=", &q);
+                print_bigint("a%b=", &t[i]);
+                if (t[i].n == 0) {
+                        break;
+                }
+                a = b;
+                b = &t[i];
+                i = (i + 1) % 3;
+        };
+        ret = bigint_set(c, b);
+        assert(ret != 0 || is_normal(c));
+
+quit:
+        bigint_clear(&q);
+        for (i = 0; i < 3; i++) {
+                bigint_clear(&t[i]);
+        }
+        return ret;
+}
+
 static void
 test_str_roundtrip(const char *str)
 {
-		struct bigint a;
+        struct bigint a;
         bigint_init(&a);
         int ret = bigint_from_str(&a, str);
         assert(ret == 0);
@@ -572,21 +633,21 @@ main(void)
         /* mul */
         ret = bigint_mul(&prod, &a, &b);
         assert(ret == 0);
-        ret = bigint_divmod(&q, &r, &prod, &a);
+        ret = bigint_divrem(&q, &r, &prod, &a);
         assert(ret == 0);
         assert(bigint_cmp(&q, &b) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
-        ret = bigint_divmod(&q, &r, &prod, &b);
+        ret = bigint_divrem(&q, &r, &prod, &b);
         assert(ret == 0);
         assert(bigint_cmp(&q, &a) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
 
-        /* divmod */
-        ret = bigint_divmod(&q, &r, &a, &one);
+        /* divrem */
+        ret = bigint_divrem(&q, &r, &a, &one);
         assert(ret == 0);
         assert(bigint_cmp(&q, &a) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
-        ret = bigint_divmod(&q, &r, &a, &b);
+        ret = bigint_divrem(&q, &r, &a, &b);
         assert(ret == 0);
         ret = bigint_mul(&tmp, &q, &b);
         assert(ret == 0);
@@ -594,20 +655,26 @@ main(void)
         assert(ret == 0);
         assert(bigint_cmp(&tmp, &a) == 0);
 
-        ret = bigint_divmod(&q, &r, &b, &a);
+        ret = bigint_divrem(&q, &r, &b, &a);
         assert(ret == 0);
         assert(bigint_cmp(&q, &zero) == 0);
         assert(bigint_cmp(&r, &b) == 0);
 
-        ret = bigint_divmod(&q, &r, &a, &a);
+        ret = bigint_divrem(&q, &r, &a, &a);
         assert(ret == 0);
         assert(bigint_cmp(&q, &one) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
 
-        ret = bigint_divmod(&q, &r, &b, &b);
+        ret = bigint_divrem(&q, &r, &b, &b);
         assert(ret == 0);
         assert(bigint_cmp(&q, &one) == 0);
         assert(bigint_cmp(&r, &zero) == 0);
+
+        ret = gcd(&tmp, &a, &b);
+        assert(ret == 0);
+        print_bigint("a=", &a);
+        print_bigint("b=", &b);
+        print_bigint("gcd=", &tmp);
 
         bigint_clear(&a);
         bigint_clear(&b);
