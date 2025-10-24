@@ -582,6 +582,7 @@ main(void)
         struct bigint q;
         struct bigint r;
         struct bigint tmp;
+        struct bigint tmp2;
         int ret;
 
         test_str_roundtrip("0");
@@ -599,6 +600,7 @@ main(void)
         bigint_init(&q);
         bigint_init(&r);
         bigint_init(&tmp);
+        bigint_init(&tmp2);
         ret = bigint_set_uint(&one, 1);
         assert(ret == 0);
         assert(bigint_cmp(&a, &a) == 0);
@@ -671,6 +673,19 @@ main(void)
         print_bigint("b=", &b);
         print_bigint("gcd=", &tmp);
 
+        ret = bigint_from_str(&a, "153495025132870832519126598141168");
+        assert(ret == 0);
+        ret = bigint_from_str(&b, "533509908571101979294464811598952141168");
+        assert(ret == 0);
+        ret = gcd(&tmp, &a, &b);
+        assert(ret == 0);
+        print_bigint("a=", &a);
+        print_bigint("b=", &b);
+        print_bigint("gcd=", &tmp);
+        ret = bigint_from_str(&tmp2, "1975308624");
+        assert(ret == 0);
+        assert(bigint_cmp(&tmp, &tmp2) == 0);
+
         bigint_clear(&a);
         bigint_clear(&b);
         bigint_clear(&s);
@@ -679,6 +694,7 @@ main(void)
         bigint_clear(&q);
         bigint_clear(&r);
         bigint_clear(&tmp);
+        bigint_clear(&tmp2);
         bigint_clear(&zero);
         bigint_clear(&one);
 }
