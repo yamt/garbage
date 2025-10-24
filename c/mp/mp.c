@@ -526,14 +526,14 @@ gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
 
         i = 0;
         while (1) {
-                print_bigint("a  =", a);
-                print_bigint("b  =", b);
+                // print_bigint("a  =", a);
+                // print_bigint("b  =", b);
                 ret = bigint_divrem(&q, &t[i], a, b);
                 if (ret != 0) {
                         goto quit;
                 }
-                print_bigint("a/b=", &q);
-                print_bigint("a%b=", &t[i]);
+                // print_bigint("a/b=", &q);
+                // print_bigint("a%b=", &t[i]);
                 if (t[i].n == 0) {
                         break;
                 }
@@ -669,19 +669,19 @@ main(void)
 
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
-        print_bigint("a=", &a);
-        print_bigint("b=", &b);
-        print_bigint("gcd=", &tmp);
+        print_bigint("a        = ", &a);
+        print_bigint("b        = ", &b);
+        print_bigint("gcd(a,b) = ", &tmp);
 
-        ret = bigint_from_str(&a, "153495025132870832519126598141168");
+        ret = bigint_from_str(&a, "533509908571101979294464811598952141168153495025132870832519126598141168533509908571101979294464811598952141168");
         assert(ret == 0);
-        ret = bigint_from_str(&b, "533509908571101979294464811598952141168");
+        ret = bigint_from_str(&b, "533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168533509908571101979294464811598952141168000");
         assert(ret == 0);
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
-        print_bigint("a=", &a);
-        print_bigint("b=", &b);
-        print_bigint("gcd=", &tmp);
+        print_bigint("a        = ", &a);
+        print_bigint("b        = ", &b);
+        print_bigint("gcd(a,b) = ", &tmp);
         ret = bigint_from_str(&tmp2, "1975308624");
         assert(ret == 0);
         assert(bigint_cmp(&tmp, &tmp2) == 0);
