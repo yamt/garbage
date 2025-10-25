@@ -25,7 +25,7 @@ static const struct bigint one = {
                         1,
                 },
 };
-#if BASE == 10
+#if COEFF_MAX == 9
 static const struct bigint ten = {
         .n = 2,
         .d =
@@ -35,7 +35,7 @@ static const struct bigint ten = {
                 },
 };
 #endif
-#if BASE > 10
+#if COEFF_MAX >= 10
 static const struct bigint ten = {
         .n = 1,
         .d =
@@ -97,7 +97,7 @@ is_normal(const struct bigint *a)
                 if (a->d[i] < 0) {
                         return false;
                 }
-                if (a->d[i] >= BASE) {
+                if (a->d[i] > COEFF_MAX) {
                         return false;
                 }
         }
@@ -131,11 +131,13 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
 static coeff_t
 coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-        ctassert(BASE * 2 < COEFF_TYPE_MAX);
+        ctassert(COEFF_MAX < COEFF_TYPE_MAX);
+        ctassert(COEFF_MAX < COEFF_TYPE_MAX / 2);
+        ctassert(COEFF_MAX * 2 < COEFF_TYPE_MAX);
         assert(0 <= carry_in);
         assert(carry_in <= 1);
         coeff_t c = a + b + carry_in;
-        *carry_out = c >= BASE;
+        *carry_out = c > COEFF_MAX;
         assert(0 <= *carry_out);
         assert(*carry_out <= 1);
         return c % BASE;
@@ -410,8 +412,8 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
 #endif
                         coeff_t q_j = (r->d[n + j] * BASE + r->d[n + j - 1]) /
                                       b.d[n - 1];
-                        if (q_j > BASE - 1) {
-                                q_j = BASE - 1;
+                        if (q_j > COEFF_MAX) {
+                                q_j = COEFF_MAX;
                         }
                         /* tmp = (BASE ** j) * b */
                         ret = shift_left_words(&tmp, &b, j);
