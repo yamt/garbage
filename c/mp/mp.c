@@ -177,6 +177,8 @@ bigint_sub(struct bigint *c, const struct bigint *a, const struct bigint *b)
         }
         c->n = n;
         assert(carry == 0);
+
+        /* normalize */
         while (c->n > 0 && c->d[c->n - 1] == 0) {
                 c->n--;
         }
@@ -344,6 +346,18 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         unsigned int n = b.n;
         assert(r->n >= n);
         unsigned int m = r->n - n;
+#if !defined(NDEBUG)
+        /* assert(r < 2 * (BASE ** m) * b) */
+        ret = shift_left_words(&tmp, &b, m);
+        if (ret != 0) {
+                goto fail;
+        }
+        ret = bigint_add(&tmp, &tmp, &tmp);
+        if (ret != 0) {
+                goto fail;
+        }
+        assert(bigint_cmp(r, &tmp) < 0);
+#endif
         ret = bigint_alloc(q, m + 1);
         if (ret != 0) {
                 goto fail;
@@ -365,6 +379,14 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         if (m > 0) {
                 unsigned int j = m - 1;
                 do {
+#if !defined(NDEBUG) && 0
+                        /* assert(r < (BASE ** (j + 1)) * b) */
+                        ret = shift_left_words(&tmp, &b, j + 1);
+                        if (ret != 0) {
+                                goto fail;
+                        }
+                        assert(bigint_cmp(r, &b) < 0);
+#endif
                         coeff_t q_j = (r->d[n + j] * BASE + r->d[n + j - 1]) /
                                       b.d[n - 1];
                         if (q_j > BASE - 1) {
@@ -393,6 +415,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         ret = 0;
         assert(is_normal(q));
         assert(is_normal(r));
+        assert(bigint_cmp(r, &b) < 0);
         if (k > 0 && r->n != 0) {
                 /* r = r / (2 ** k) */
                 ret = bigint_set_uint(&tmp, 1 << k);
