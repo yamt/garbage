@@ -25,6 +25,25 @@ static const struct bigint one = {
                         1,
                 },
 };
+#if BASE == 10
+static const struct bigint ten = {
+        .n = 2,
+        .d =
+                (coeff_t[]){
+                        0,
+                        1,
+                },
+};
+#endif
+#if BASE > 10
+static const struct bigint ten = {
+        .n = 1,
+        .d =
+                (coeff_t[]){
+                        10,
+                },
+};
+#endif
 
 static coeff_t
 dig(const struct bigint *a, unsigned int i)
@@ -212,9 +231,11 @@ mul1(struct bigint *c, const struct bigint *a, coeff_t n)
 int
 bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
+        assert(c != a);
+        assert(c != b);
         assert(is_normal(a));
         assert(is_normal(b));
-        if (b->n == 0) {
+        if (a->n == 0 || b->n == 0) {
                 c->n = 0;
                 return 0;
         }
@@ -484,9 +505,7 @@ bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b)
 int
 bigint_from_str(struct bigint *a, const char *p)
 {
-#if BASE != 10
-#error notyet
-#endif
+#if BASE == 10
         size_t n = strlen(p);
         int ret = bigint_alloc(a, n);
         if (ret != 0) {
@@ -502,14 +521,58 @@ bigint_from_str(struct bigint *a, const char *p)
         }
         assert(is_normal(a));
         return 0;
+#else
+        size_t n = strlen(p);
+        int ret;
+
+        struct bigint tmp;
+        bigint_init(&tmp);
+        a->n = 0; /* a = 0 */
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+                /* tmp = a * 10 */
+                ret = bigint_mul(&tmp, a, &ten);
+                if (ret != 0) {
+                        goto fail;
+                }
+                /* a = digit */
+                ret = bigint_set_uint(a, p[i] - '0');
+                if (ret != 0) {
+                        goto fail;
+                }
+                /* a = a + tmp */
+                ret = bigint_add(a, a, &tmp);
+                if (ret != 0) {
+                        goto fail;
+                }
+        }
+        ret = 0;
+        assert(is_normal(a));
+fail:
+        bigint_clear(&tmp);
+        return ret;
+#endif
+}
+
+static size_t
+estimate_ndigits(const struct bigint *a)
+{
+        assert(is_normal(a));
+        if (a->n == 0) {
+                return 1;
+        }
+#if BASE == 10
+        return a->n;
+#else
+        /* l(10) = 2.30258509299404568401 */
+        return a->n * LOG_BASE / 2.30258509299404568401 + 1;
+#endif
 }
 
 char *
 bigint_to_str(const struct bigint *a)
 {
-#if BASE != 10
-#error notyet
-#endif
+#if BASE == 10
         assert(is_normal(a));
         if (a->n == 0) {
                 char *p = malloc(2);
@@ -524,6 +587,52 @@ bigint_to_str(const struct bigint *a)
         }
         p[i] = 0;
         return p;
+#else
+        assert(is_normal(a));
+        size_t sz = estimate_ndigits(a) + 1;
+        char *p = malloc(sz);
+        if (p == NULL) {
+                return NULL;
+        }
+        if (a->n == 0) {
+                p[0] = '0';
+                p[1] = 0;
+                return p;
+        }
+        struct bigint q;
+        struct bigint r;
+        int ret;
+        bigint_init(&q);
+        bigint_init(&r);
+
+        unsigned int n = sz;
+        ret = bigint_set(&q, a);
+        if (ret != 0) {
+                goto fail;
+        }
+        p[--n] = 0;
+        do {
+                assert(n > 0);
+                ret = bigint_divrem(&q, &r, &q, &ten);
+                if (ret != 0) {
+                        goto fail;
+                }
+                assert(r.n <= 1);
+                char ch = '0' + dig(&r, 0);
+                p[--n] = ch;
+        } while (q.n != 0);
+        if (n > 0) {
+                memmove(p, &p[n], sz - n);
+        }
+        goto done;
+fail:
+        free(p);
+        p = NULL;
+done:
+        bigint_clear(&q);
+        bigint_clear(&r);
+        return p;
+#endif
 }
 
 void
@@ -594,6 +703,8 @@ test_str_roundtrip(const char *str)
         int ret = bigint_from_str(&a, str);
         assert(ret == 0);
         char *p = bigint_to_str(&a);
+        printf("expected %s\n", str);
+        printf("actual   %s\n", p);
         assert(!strcmp(p, str));
         bigint_str_free(p);
         bigint_clear(&a);

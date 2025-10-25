@@ -1,5 +1,6 @@
 typedef signed char coeff_t;
 #define BASE 10
+#define LOG_BASE 2.30258509299404568401 /* l(BASE) */
 #define COEFF_MAX 9
 #define COEFF_TYPE_MAX 127
 
