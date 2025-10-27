@@ -168,15 +168,29 @@ crc32_adjust(uint32_t crc, uint32_t target_crc, uint8_t tail[4])
 #include <stdio.h>
 #include <string.h>
 
+static void
+le32_encode(uint8_t *p, uint32_t v)
+{
+        p[0] = (v >> 0) & 0xff;
+        p[1] = (v >> 8) & 0xff;
+        p[2] = (v >> 16) & 0xff;
+        p[3] = (v >> 24) & 0xff;
+}
+
 void
 test(const void *p, size_t len, uint32_t crc)
 {
         assert(crc32(p, len) == crc);
         uint32_t tmp = crc32_update(crc32_init(), p, len);
         assert(crc32_finalize(tmp) == crc);
-        assert(crc32_update(tmp, &tmp, 4) == 0); /* little endian assumed */
-        assert(crc32_finalize(crc32_update(tmp, &crc, 4)) ==
-               CRC0); /* little endian assumed */
+        uint8_t le32[4];
+        le32_encode(le32, tmp);
+        assert(crc32_update(tmp, le32, 4) == 0);
+        uint8_t tail[4];
+        crc32_adjust(crc, crc32_finalize(0), tail);
+        assert(!memcmp(le32, tail, 4));
+        le32_encode(le32, crc);
+        assert(crc32_finalize(crc32_update(tmp, le32, 4)) == CRC0);
         assert(crc32_undo_update(crc32_undo_finalize(crc), p, len) ==
                crc32_init());
 
@@ -194,10 +208,12 @@ test(const void *p, size_t len, uint32_t crc)
                               crc32_undo_finalize(crc3), "foobarbaz", 9)));
         assert(crc3 == crc32_finalize(crc32_update(tmp, "foobarbaz", 9)));
 
-        uint8_t tail[4];
         crc32_adjust(crc, 0x12345678, tail);
-        uint32_t crc4 = crc32(tail, 4);
-        assert(crc32_append(crc, crc4, 4) == 0x12345678);
+        assert(crc32_append(crc, crc32(tail, 4), 4) == 0x12345678);
+        crc32_adjust(crc, 0, tail);
+        assert(crc32_append(crc, crc32(tail, 4), 4) == 0);
+        crc32_adjust(crc, 0xffffffff, tail);
+        assert(crc32_append(crc, crc32(tail, 4), 4) == 0xffffffff);
 }
 
 int
@@ -212,8 +228,10 @@ main(int argc, char **argv)
         assert(crc32("\0\0\0\0", 4) == CRC0);
 
         uint32_t t = crc32_init();
+        uint8_t le32[4];
         t = crc32_update(t, "message", 7);
-        assert(crc32_update(t, &t, 4) == 0); /* little endian assumed */
+        le32_encode(le32, t);
+        assert(crc32_update(t, le32, 4) == 0);
 
         t = INV;
         t = div_8(t);
