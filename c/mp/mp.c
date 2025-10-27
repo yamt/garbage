@@ -57,6 +57,18 @@ dig(const struct bigint *a, unsigned int i)
 static coeff_t
 coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
+#if COEFF_MAX == COEFF_TYPE_MAX
+        coeff_t t;
+        coeff_t carry = 0;
+        if (__builtin_add_overflow(a, b, &t)) {
+                carry = 1;
+        }
+        if (__builtin_add_overflow(t, carry_in, &t)) {
+                carry = 1;
+        }
+        *carry_out = carry;
+        return t;
+#else
         ctassert(COEFF_MAX < COEFF_TYPE_MAX);
         ctassert(COEFF_MAX < COEFF_TYPE_MAX / 2);
         ctassert(COEFF_MAX * 2 < COEFF_TYPE_MAX);
@@ -67,11 +79,24 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
         assert(0 <= *carry_out);
         assert(*carry_out <= 1);
         return c % BASE;
+#endif
 }
 
 static coeff_t
 coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
+#if COEFF_MAX == COEFF_TYPE_MAX
+        coeff_t t;
+        coeff_t carry = 0;
+        if (__builtin_sub_overflow(a, b, &t)) {
+                carry = 1;
+        }
+        if (__builtin_sub_overflow(t, carry_in, &t)) {
+                carry = 1;
+        }
+        *carry_out = carry;
+        return t;
+#else
         assert(0 <= carry_in);
         assert(carry_in <= 1);
         coeff_t c = a - b - carry_in;
@@ -81,12 +106,26 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
         }
         *carry_out = 0;
         return c;
+#endif
+}
+
+static coeff_t
+coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
+{
+        ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
+        assert(a <= COEFF_MAX);
+        assert(b <= COEFF_MAX);
+        assert(carry_in <= COEFF_MAX);
+        uintmax_t prod = (uintmax_t)a * b + carry_in;
+        *highp = prod / BASE;
+        return prod % BASE;
 }
 
 static coeff_t
 coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 {
-        return (dividend_high * BASE + dividend_low) / divisor;
+        ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
+        return ((uintmax_t)dividend_high * BASE + dividend_low) / divisor;
 }
 
 static int
@@ -125,14 +164,17 @@ is_normal(const struct bigint *a)
                 return true;
         }
         if (a->d[a->n - 1] == 0) {
+                printf("d[%u] = %zd\n", a->n - 1, (intmax_t)a->d[a->n - 1]);
                 return false;
         }
         unsigned int i;
         for (i = 0; i < a->n; i++) {
                 if (a->d[i] < 0) {
+                        printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
                 if (a->d[i] > COEFF_MAX) {
+                        printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
         }
@@ -215,18 +257,17 @@ bigint_sub(struct bigint *c, const struct bigint *a, const struct bigint *b)
 static void
 mul1(struct bigint *c, const struct bigint *a, coeff_t n)
 {
+        assert(is_normal(a));
         if (n == 0) {
                 c->n = 0;
                 return;
         }
-        assert(a->n < c->max || a->n == 0 || a->d[a->n - 1] * n < BASE);
+        assert(a->n < c->max || a->n == 0 ||
+               a->d[a->n - 1] * n <= COEFF_TYPE_MAX);
         unsigned int i;
         coeff_t carry = 0;
         for (i = 0; i < a->n; i++) {
-                ctassert(COEFF_MAX * COEFF_MAX + COEFF_MAX <= COEFF_TYPE_MAX);
-                coeff_t t = a->d[i] * n + carry;
-                c->d[i] = t % BASE;
-                carry = t / BASE;
+                c->d[i] = coeff_mul(&carry, a->d[i], n, carry);
         }
         c->n = a->n;
         assert(c->n <= c->max);
@@ -234,6 +275,7 @@ mul1(struct bigint *c, const struct bigint *a, coeff_t n)
                 assert(c->n < c->max);
                 c->d[c->n++] = carry;
         }
+        assert(is_normal(c));
 }
 
 int
@@ -484,7 +526,7 @@ bigint_set(struct bigint *d, const struct bigint *s)
 int
 bigint_set_uint(struct bigint *a, coeff_t v)
 {
-        assert(v < BASE);
+        assert(v <= COEFF_MAX);
         if (v == 0) {
                 a->n = 0;
                 return 0;
@@ -501,7 +543,7 @@ bigint_set_uint(struct bigint *a, coeff_t v)
 int
 bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b)
 {
-        assert(b < BASE);
+        assert(b <= COEFF_MAX);
         int ret = bigint_alloc(d, a->n + 1);
         if (ret != 0) {
                 return ret;
