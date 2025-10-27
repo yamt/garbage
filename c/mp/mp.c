@@ -164,17 +164,17 @@ is_normal(const struct bigint *a)
                 return true;
         }
         if (a->d[a->n - 1] == 0) {
-                printf("d[%u] = %zd\n", a->n - 1, (intmax_t)a->d[a->n - 1]);
+                // printf("d[%u] = %zd\n", a->n - 1, (intmax_t)a->d[a->n - 1]);
                 return false;
         }
         unsigned int i;
         for (i = 0; i < a->n; i++) {
                 if (a->d[i] < 0) {
-                        printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
+                        // printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
                 if (a->d[i] > COEFF_MAX) {
-                        printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
+                        // printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
         }
