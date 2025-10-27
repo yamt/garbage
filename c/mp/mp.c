@@ -54,6 +54,41 @@ dig(const struct bigint *a, unsigned int i)
         return 0;
 }
 
+static coeff_t
+coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
+{
+        ctassert(COEFF_MAX < COEFF_TYPE_MAX);
+        ctassert(COEFF_MAX < COEFF_TYPE_MAX / 2);
+        ctassert(COEFF_MAX * 2 < COEFF_TYPE_MAX);
+        assert(0 <= carry_in);
+        assert(carry_in <= 1);
+        coeff_t c = a + b + carry_in;
+        *carry_out = c > COEFF_MAX;
+        assert(0 <= *carry_out);
+        assert(*carry_out <= 1);
+        return c % BASE;
+}
+
+static coeff_t
+coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
+{
+        assert(0 <= carry_in);
+        assert(carry_in <= 1);
+        coeff_t c = a - b - carry_in;
+        if (c < 0) {
+                *carry_out = 1;
+                return c + BASE;
+        }
+        *carry_out = 0;
+        return c;
+}
+
+static coeff_t
+coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
+{
+        return (dividend_high * BASE + dividend_low) / divisor;
+}
+
 static int
 bigint_alloc(struct bigint *a, unsigned int max_digits)
 {
@@ -128,21 +163,6 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
         return 0;
 }
 
-static coeff_t
-coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
-{
-        ctassert(COEFF_MAX < COEFF_TYPE_MAX);
-        ctassert(COEFF_MAX < COEFF_TYPE_MAX / 2);
-        ctassert(COEFF_MAX * 2 < COEFF_TYPE_MAX);
-        assert(0 <= carry_in);
-        assert(carry_in <= 1);
-        coeff_t c = a + b + carry_in;
-        *carry_out = c > COEFF_MAX;
-        assert(0 <= *carry_out);
-        assert(*carry_out <= 1);
-        return c % BASE;
-}
-
 int
 bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
@@ -164,20 +184,6 @@ bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
                 c->d[c->n++] = carry;
         }
         return 0;
-}
-
-static coeff_t
-coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
-{
-        assert(0 <= carry_in);
-        assert(carry_in <= 1);
-        coeff_t c = a - b - carry_in;
-        if (c < 0) {
-                *carry_out = 1;
-                return c + BASE;
-        }
-        *carry_out = 0;
-        return c;
 }
 
 int
@@ -410,8 +416,8 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                         }
                         assert(bigint_cmp(r, &b) < 0);
 #endif
-                        coeff_t q_j = (r->d[n + j] * BASE + r->d[n + j - 1]) /
-                                      b.d[n - 1];
+                        coeff_t q_j = coeff_div(r->d[n + j], r->d[n + j - 1],
+                                                b.d[n - 1]);
                         if (q_j > COEFF_MAX) {
                                 q_j = COEFF_MAX;
                         }
