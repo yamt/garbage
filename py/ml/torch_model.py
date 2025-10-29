@@ -16,6 +16,8 @@ class Network(nn.Module):
         x = self.linear1(x)
         x = F.sigmoid(x)
         x = self.linear2(x)
+        # revisit: pytorch seems to recommend to combine
+        # the last actiaviton function with the cost function
         x = F.sigmoid(x)
         return x
 
