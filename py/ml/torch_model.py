@@ -34,13 +34,8 @@ def test(n, data, answers):
         return sum(int(a == b) for a, b in zip(r, answers))
 
 
-o = None
-
-
 def sgd(n, data, answers, rate):
-    global o
-    if o is None:
-        o = optim.SGD(n.parameters(), lr=rate)
+    o = optim.SGD(n.parameters(), lr=rate)
     answers = torch.from_numpy(answers)
     answers.requires_grad = True
     data = torch.from_numpy(data)
