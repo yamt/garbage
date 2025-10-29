@@ -2,24 +2,32 @@ import numpy as np
 import itertools
 import random
 
-# import model
-import torch_model as model
+import model
+#import torch_model as model
 
 # https://www.askpython.com/python/examples/load-and-plot-mnist-dataset-in-python
 from keras.datasets import mnist
 
 (train_data, train_answers), (test_data, test_answers) = mnist.load_data()
-test_data = test_data.astype(np.float32)
-test_answers = test_answers.astype(np.float32)
-train_data = train_data.reshape(-1, 28 * 28).astype(np.float32).T / 255.0
-test_data = [
-    np.array(d, dtype=np.float32).reshape(28 * 28, 1) / 255.0 for d in test_data
-]
+test_answers = test_answers.astype(int)
+train_data = train_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
+train_answers = train_answers.astype(int)
+test_data = test_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
+#test_data = test_data.astype(np.float32)
+#test_data = [
+#    np.array(d, dtype=np.float32).reshape(28 * 28, 1) / 255.0 for d in test_data
+#]
+
+
+print(f"train_data shape {train_data.shape}")
+print(f"train_answers shape {train_answers.shape}")
+print(f"test_data shape {test_data.shape}")
+print(f"test_answers shape {test_answers.shape}")
 
 
 n = model.Network([28 * 28, 30, 10])
-# r = model.test(n, test_data, test_answers)
-# print(r)  # expected to be 10% or so
+r = model.test(n, test_data, test_answers)
+print(r)  # expected to be 10% or so
 # print(model.feed_forward(n, test_data[0]))
 
 
@@ -29,13 +37,14 @@ def chunk(it, n):
 
 
 def onehot(a):
-    return np.identity(10, dtype=np.float32)[a].T
+    return np.identity(10, dtype=np.float32)[a]
 
 
 train_answers_a = onehot(train_answers)
+assert train_answers_a.shape == (train_answers.shape[0], 10)
 
 learning_rate = 3.0
-batch_size = 10
+batch_size = 15
 epoches = 30
 
 ix = list(range(0, train_data.shape[1]))
@@ -43,7 +52,7 @@ for e in range(0, epoches):
     print(f"epoch {e} start")
     random.shuffle(ix)
     for ch in chunk(ix, batch_size):
-        model.sgd(n, train_data.T[ch].T, train_answers_a.T[ch].T, learning_rate)
+        model.sgd(n, train_data[ch], train_answers_a[ch], learning_rate)
     r = model.test(n, test_data, test_answers)
     total = len(test_data)
     print(f"epoch {e} end, {r}/{total} ({r / total * 100:.2f}%) (data)")
