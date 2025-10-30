@@ -1,6 +1,7 @@
 import numpy as np
 import itertools
 import random
+import time
 
 # import model
 import torch_model as model
@@ -41,12 +42,16 @@ epoches = 30
 ix = list(range(0, train_data.shape[1]))
 for e in range(0, epoches):
     print(f"epoch {e} start")
+    start_time = time.perf_counter()
     random.shuffle(ix)
     for ch in chunk(ix, batch_size):
         model.sgd(n, train_data.T[ch].T, train_answers_a.T[ch].T, learning_rate)
     r = model.test(n, test_data, test_answers)
     total = len(test_data)
-    print(f"epoch {e} end, {r}/{total} ({r / total * 100:.2f}%) (data)")
+    end_time = time.perf_counter()
+    print(
+        f"epoch {e} end, {end_time - start_time:.2f} sec, {r}/{total} ({r / total * 100:.2f}%) (data)"
+    )
     # for ch in chunk(data, 10000):
     #     a, b = zip(*ch)
     #     r = model.test(n, a, [np.argmax(c) for c in b])
