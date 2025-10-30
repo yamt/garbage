@@ -3,8 +3,9 @@ import itertools
 import random
 import time
 
-# import model
-import torch_model as model
+import model
+
+# import torch_model as model
 
 # https://www.askpython.com/python/examples/load-and-plot-mnist-dataset-in-python
 from keras.datasets import mnist
