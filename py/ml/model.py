@@ -50,8 +50,11 @@ def feed_forward(n, a):
 
 def test(n, data, answers):
     assert len(data) == len(answers)
-    r = [np.argmax(feed_forward(n, d.reshape(28 * 28, 1))) for d in data]
-    return sum(int(a == b) for a, b in zip(r, answers))
+    r = feed_forward(n, data.T)
+    r = r.T
+    r = np.argmax(r, axis=1)
+    # return sum(int(a == b) for a, b in zip(r, answers))
+    return np.sum(r == answers)
 
 
 def assert_same_shape(la, lb):
