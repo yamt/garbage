@@ -146,6 +146,7 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
         {                                                                     \
                 .n = 0                                                        \
         }
+
 #define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
