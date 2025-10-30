@@ -534,6 +534,20 @@ fail:
 }
 
 int
+bigint_is_zero(const struct bigint *a)
+{
+        assert(is_normal(a));
+        return a->n == 0;
+}
+
+void
+bigint_set_zero(struct bigint *a)
+{
+        a->n = 0;
+        assert(bigint_is_zero(a));
+}
+
+int
 bigint_from_str(struct bigint *a, const char *p)
 {
 #if BASE == 10

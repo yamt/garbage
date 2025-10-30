@@ -40,5 +40,8 @@ int bigint_set(struct bigint *d, const struct bigint *s);
 int bigint_set_uint(struct bigint *a, coeff_t v);
 int bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b);
 
+int bigint_is_zero(const struct bigint *a);
+void bigint_set_zero(struct bigint *a);
+
 int bigint_from_str(struct bigint *a, const char *p);
 void bigint_str_free(char *p);
