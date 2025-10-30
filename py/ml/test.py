@@ -11,17 +11,21 @@ import model
 from keras.datasets import mnist
 
 (train_data, train_answers), (test_data, test_answers) = mnist.load_data()
-test_data = test_data.astype(np.float32)
-test_answers = test_answers.astype(np.float32)
-train_data = train_data.reshape(-1, 28 * 28).astype(np.float32).T / 255.0
-test_data = [
-    np.array(d, dtype=np.float32).reshape(28 * 28, 1) / 255.0 for d in test_data
-]
+test_answers = test_answers.astype(int)
+train_data = train_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
+train_answers = train_answers.astype(int)
+test_data = test_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
+
+
+print(f"train_data shape {train_data.shape}")
+print(f"train_answers shape {train_answers.shape}")
+print(f"test_data shape {test_data.shape}")
+print(f"test_answers shape {test_answers.shape}")
 
 
 n = model.Network([28 * 28, 30, 10])
-# r = model.test(n, test_data, test_answers)
-# print(r)  # expected to be 10% or so
+r = model.test(n, test_data, test_answers)
+print(f"initial accuracy: {r} ({r / len(test_data) * 100:.2f}%) (expected: 10%)")
 # print(model.feed_forward(n, test_data[0]))
 
 
@@ -31,22 +35,23 @@ def chunk(it, n):
 
 
 def onehot(a):
-    return np.identity(10, dtype=np.float32)[a].T
+    return np.identity(10, dtype=np.float32)[a]
 
 
 train_answers_a = onehot(train_answers)
+assert train_answers_a.shape == (train_answers.shape[0], 10)
 
 learning_rate = 3.0
 batch_size = 10
 epoches = 30
 
-ix = list(range(0, train_data.shape[1]))
+ix = list(range(0, train_data.shape[0]))
 for e in range(0, epoches):
     print(f"epoch {e} start")
     start_time = time.perf_counter()
     random.shuffle(ix)
     for ch in chunk(ix, batch_size):
-        model.sgd(n, train_data.T[ch].T, train_answers_a.T[ch].T, learning_rate)
+        model.sgd(n, train_data[ch], train_answers_a[ch], learning_rate)
     r = model.test(n, test_data, test_answers)
     total = len(test_data)
     end_time = time.perf_counter()

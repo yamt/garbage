@@ -56,7 +56,7 @@ def feed_forward(n, a):
 
 def test(n, data, answers):
     assert len(data) == len(answers)
-    r = [np.argmax(feed_forward(n, d)) for d in data]
+    r = [np.argmax(feed_forward(n, d.reshape(28 * 28, 1))) for d in data]
     return sum(int(a == b) for a, b in zip(r, answers))
 
 
@@ -81,8 +81,6 @@ def cost_derivative(output, desired):
 
 
 def back_propagation(n, d, desired):
-    assert d.shape[1] == desired.shape[1]
-
     acts, zs = feed_forward_full(n, d)
 
     n_w = [None] * len(n.weights)
@@ -104,9 +102,11 @@ def back_propagation(n, d, desired):
 def sgd(n, data, answers, rate):
     assert data.ndim == 2
     assert answers.ndim == 2
-    assert data.shape[1] == answers.shape[1]
-    batch_size = data.shape[1]
+    batch_size = data.shape[0]
+    assert answers.shape[0] == batch_size
     rate = rate / batch_size
+    data = data.T
+    answers = answers.T
     delta_n_w, delta_n_b = back_propagation(n, data, answers)
     n_w = delta_n_w
     n_b = [np.sum(a, axis=1).reshape(-1, 1) for a in delta_n_b]
