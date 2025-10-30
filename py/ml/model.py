@@ -18,12 +18,8 @@ def dot(a, b):
 
 class Network:
     def __init__(self, sizes):
-        self.biases = [np.random.randn(1, y) for y in sizes[1:]]
-        self.weights = [np.random.randn(x, y) for x, y in zip(sizes[:-1], sizes[1:])]
-
-
-def assert_shape(a, shape):
-    assert a.shape == shape, f"unexpected shape {a.shape} != expected shape {shape}"
+        self.biases = [np.random.randn(y, 1) for y in sizes[1:]]
+        self.weights = [np.random.randn(y, x) for x, y in zip(sizes[:-1], sizes[1:])]
 
 
 def feed_forward_full(n, d):
@@ -33,15 +29,11 @@ def feed_forward_full(n, d):
     a = d
     acts.append(a)
     for w, b in zip(n.weights, n.biases):
-        (count, ninputs) = a.shape
-        noutputs = w.shape[1]
-        assert_shape(w, (ninputs, noutputs))
-        assert_shape(b, (1, noutputs))
-        z = dot(a, w) + b
-        assert_shape(z, (count, noutputs))
+        assert len(w) == len(b)
+        assert len(b[0]) == 1
+        z = dot(w, a) + b
         zs.append(z)
         a = sigmoid(z)
-        assert_shape(a, (count, noutputs))
         acts.append(a)
 
     assert len(acts) - 1 == len(zs)
@@ -63,18 +55,14 @@ def feed_forward(n, a):
 
 
 def test(n, data, answers):
-    assert data.ndim == 2
-    assert answers.ndim == 1
-    assert data.shape[0] == answers.shape[0]
-    r = feed_forward(n, data)
-    r = np.argmax(r, axis=1)
-    return sum(int(a == b) for a, b in zip(r, list(answers)))
+    assert len(data) == len(answers)
+    r = [np.argmax(feed_forward(n, d)) for d in data]
+    return sum(int(a == b) for a, b in zip(r, answers))
 
 
 def assert_same_shape(la, lb):
-    #for a, b in zip(la, lb):
-    #    assert a.shape == b.shape
-    pass
+    for a, b in zip(la, lb):
+        assert a.shape == b.shape
 
 
 def add_list(a, b):
@@ -93,13 +81,9 @@ def cost_derivative(output, desired):
 
 
 def back_propagation(n, d, desired):
-    assert d.ndim == 2
-    assert desired.ndim == 2
-    count = d.shape[0]
-    assert desired.shape[0] == count
+    assert d.shape[1] == desired.shape[1]
 
     acts, zs = feed_forward_full(n, d)
-    assert_shape(acts[-1], desired.shape)
 
     n_w = [None] * len(n.weights)
     n_b = [None] * len(n.biases)
@@ -107,12 +91,10 @@ def back_propagation(n, d, desired):
 
     # note: "*" here is a hadamard product
     delta = cost_derivative(acts[-1], desired) * sigmoid_prime(zs[-1])
-    assert delta.shape[0] == count
     n_w[-1] = dot(delta, acts[-1 - 1].T)
     n_b[-1] = delta
     for l in range(2, len(acts)):
         delta = dot(n.weights[-l + 1].T, delta) * sigmoid_prime(zs[-l])
-        assert delta.shape[0] == count
         n_w[-l] = dot(delta, acts[-l - 1].T)
         n_b[-l] = delta
 
@@ -122,7 +104,7 @@ def back_propagation(n, d, desired):
 def sgd(n, data, answers, rate):
     assert data.ndim == 2
     assert answers.ndim == 2
-    assert data.shape[0] == answers.shape[0]
+    assert data.shape[1] == answers.shape[1]
     batch_size = data.shape[1]
     rate = rate / batch_size
     delta_n_w, delta_n_b = back_propagation(n, data, answers)
