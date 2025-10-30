@@ -26,7 +26,7 @@ print(f"test_answers shape {test_answers.shape}")
 n = model.Network([28 * 28, 30, 10])
 r = model.test(n, test_data, test_answers)
 print(f"initial accuracy: {r} ({r / len(test_data) * 100:.2f}%) (expected: 10%)")
-# print(model.feed_forward(n, test_data[0]))
+print(model.feed_forward(n, test_data[:1]))
 
 
 def chunk(it, n):
@@ -67,26 +67,35 @@ for e in range(0, epoches):
     #     print(test_answers[i])
 
 
+for ix in range(10):
+    r = model.feed_forward(n, test_data[ix : ix + 1])[0]
+    # print(f"{r}")
+    ans_ix = np.argmax(r)
+    print(f"[{ix}] expected {test_answers[ix]} actual {ans_ix} ({r[ans_ix]:.3f})")
+
+
 def plot_errors():
     from matplotlib import pyplot as plt
 
-    def plot(ax, d, desired, actual):
+    def plot(ax, d, ix, desired, actual):
         c = d.copy().reshape(28, 28)
         ax.imshow(c, cmap=plt.get_cmap("gray"))
-        ax.set_title(f"label {desired}\ninferred {actual}")
+        ax.set_title(f"ix {ix}\nlabel {desired}\ninferred {actual}")
 
     data = list(zip(test_data, test_answers))
-    random.shuffle(data)
+    # random.shuffle(data)
     rows = 5
     cols = 10
     fig, axes = plt.subplots(rows, cols, squeeze=False, tight_layout=True)
     x = y = 0
-    for d, desired in data:
+    for ix, (d, desired) in enumerate(data):
         ax = axes[y, x]
-        actual = np.argmax(model.feed_forward(n, d))
+        r = model.feed_forward(n, d.reshape(1, -1))[0]
+        actual = np.argmax(r)
         if desired == actual:
             continue
-        plot(ax, d, desired, actual)
+        print(f"[{ix}] {r}")
+        plot(ax, d, ix, desired, actual)
         x += 1
         if x >= cols:
             x = 0
@@ -96,4 +105,4 @@ def plot_errors():
     plt.show()
 
 
-# plot_errors()
+plot_errors()

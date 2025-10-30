@@ -44,14 +44,13 @@ def feed_forward_full(n, d):
 
 
 def feed_forward(n, a):
-    acts, zs = feed_forward_full(n, a)
-    return acts[-1]
+    acts, zs = feed_forward_full(n, a.T)
+    return acts[-1].T
 
 
 def test(n, data, answers):
     assert len(data) == len(answers)
-    r = feed_forward(n, data.T)
-    r = r.T
+    r = feed_forward(n, data)
     r = np.argmax(r, axis=1)
     # return sum(int(a == b) for a, b in zip(r, answers))
     return np.sum(r == answers)
