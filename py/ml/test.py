@@ -7,15 +7,44 @@ import model
 
 # import torch_model as model
 
-# https://www.askpython.com/python/examples/load-and-plot-mnist-dataset-in-python
-from keras.datasets import mnist
 
-(train_data, train_answers), (test_data, test_answers) = mnist.load_data()
+def mnist_via_torchvision():
+    import torchvision
+
+    train_dataset = torchvision.datasets.MNIST(root="data", train=True, download=True)
+    test_dataset = torchvision.datasets.MNIST(root="data", train=False, download=True)
+
+    def to_ndarray(dataset):
+        imgs = []
+        labels = []
+        for img, label in dataset:
+            imgs.append(np.array(img))
+            labels.append(label)
+        return np.stack(imgs), np.stack(labels)
+
+    return to_ndarray(train_dataset), to_ndarray(test_dataset)
+
+
+def mnist_via_keras():
+    # https://www.askpython.com/python/examples/load-and-plot-mnist-dataset-in-python
+    from keras.datasets import mnist
+
+    return mnist.load_data()
+
+
+mnist = mnist_via_torchvision
+# mnist = mnist_via_keras
+
+print(f"preparing MNIST dataset...")
+start_time = time.perf_counter()
+(train_data, train_answers), (test_data, test_answers) = mnist()
+end_time = time.perf_counter()
+print(f"MNIST dataset loaded, {end_time - start_time:.2f} sec")
+
 test_answers = test_answers.astype(int)
 train_data = train_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
 train_answers = train_answers.astype(int)
 test_data = test_data.reshape(-1, 28 * 28).astype(np.float32) / 255.0
-
 
 print(f"train_data shape {train_data.shape}")
 print(f"train_answers shape {train_answers.shape}")
