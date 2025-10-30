@@ -44,4 +44,5 @@ int bigint_is_zero(const struct bigint *a);
 void bigint_set_zero(struct bigint *a);
 
 int bigint_from_str(struct bigint *a, const char *p);
+char *bigint_to_str(const struct bigint *a);
 void bigint_str_free(char *p);
