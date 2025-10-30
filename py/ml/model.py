@@ -23,6 +23,9 @@ class Network:
 
 
 def feed_forward_full(n, d):
+    # acts[0]: inputs of the network
+    # acts[l+1]: activations of layer l (l=0,1,2,...)
+    # zs[l]: weighted inputs of layer l
     assert d.ndim == 2
     acts = []
     zs = []
@@ -76,11 +79,16 @@ def sub_list_rate(a, b, rate):
 
 
 def cost_derivative(output, desired):
-    # partial derivative of quadratic cost function
+    # partial derivative of our cost function.
+    #
+    # our cost function is quadratic cost function (aka MSE):
+    #    C = norm(desired - output) ^ 2 / 2
     return output - desired
 
 
 def back_propagation(n, d, desired):
+    d = d.T
+    desired = desired.T
     acts, zs = feed_forward_full(n, d)
 
     n_w = [None] * len(n.weights)
@@ -105,8 +113,6 @@ def sgd(n, data, answers, rate):
     batch_size = data.shape[0]
     assert answers.shape[0] == batch_size
     rate = rate / batch_size
-    data = data.T
-    answers = answers.T
     delta_n_w, delta_n_b = back_propagation(n, data, answers)
     n_w = delta_n_w
     n_b = [np.sum(a, axis=1).reshape(-1, 1) for a in delta_n_b]
