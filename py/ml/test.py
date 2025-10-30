@@ -105,4 +105,4 @@ def plot_errors():
     plt.show()
 
 
-plot_errors()
+# plot_errors()
