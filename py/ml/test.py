@@ -70,7 +70,7 @@ def onehot(a):
 train_answers_a = onehot(train_answers)
 assert train_answers_a.shape == (train_answers.shape[0], 10)
 
-learning_rate = 3.0
+learning_rate = 0.3
 batch_size = 10
 epoches = 30
 

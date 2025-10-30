@@ -100,7 +100,6 @@ def sgd(n, data, answers, rate):
     assert answers.ndim == 2
     batch_size = data.shape[0]
     assert answers.shape[0] == batch_size
-    rate = rate / batch_size
     delta_n_w, delta_n_b = back_propagation(n, data, answers)
     n_w = delta_n_w
     n_b = [np.sum(a, axis=1).reshape(-1, 1) for a in delta_n_b]
