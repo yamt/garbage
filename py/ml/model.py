@@ -48,15 +48,6 @@ def feed_forward(n, a):
     return acts[-1]
 
 
-# def feed_forward(n, a):
-#    for w, b in zip(n.weights, n.biases):
-#        assert len(w) == len(b)
-#        assert len(b[0]) == 1
-#        z = dot(w, a) + b
-#        a = sigmoid(z)
-#    return a
-
-
 def test(n, data, answers):
     assert len(data) == len(answers)
     r = [np.argmax(feed_forward(n, d.reshape(28 * 28, 1))) for d in data]
@@ -66,11 +57,6 @@ def test(n, data, answers):
 def assert_same_shape(la, lb):
     for a, b in zip(la, lb):
         assert a.shape == b.shape
-
-
-def add_list(a, b):
-    assert_same_shape(a, b)
-    return [x + y for x, y in zip(a, b)]
 
 
 def sub_list_rate(a, b, rate):
