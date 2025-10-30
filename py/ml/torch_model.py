@@ -49,3 +49,7 @@ def sgd(n, data, answers, rate):
     loss = F.mse_loss(r, answers)
     loss.backward()
     o.step()
+
+
+print(f"setting torch threads {torch.get_num_threads()} -> 1")
+torch.set_num_threads(1)
