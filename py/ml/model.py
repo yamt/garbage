@@ -1,11 +1,10 @@
 import numpy as np
-
-# from scipy.special import expit
+from scipy.special import expit
 
 
 def sigmoid(x):
-    # return expit(x)
-    return 1.0 / (1.0 + np.exp(-x))
+    # return 1.0 / (1.0 + np.exp(-x))
+    return expit(x)
 
 
 def sigmoid_prime(x):
