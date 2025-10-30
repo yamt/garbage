@@ -23,26 +23,29 @@ class Network(nn.Module):
 
 
 def feed_forward(n, a):
-    return n(torch.from_numpy(a).T)
+    return n(torch.from_numpy(a)).detach().numpy()
 
 
 def test(n, data, answers):
     assert len(data) == len(answers)
+    data = torch.from_numpy(data)
+    answers = torch.from_numpy(answers)
     n.eval()
     with torch.no_grad():
-        r = [np.argmax(feed_forward(n, d)) for d in data]
-        return sum(int(a == b) for a, b in zip(r, answers))
+        r = n(data)
+        r = torch.argmax(r, axis=1)
+        return torch.sum(r == answers)
 
 
 def sgd(n, data, answers, rate):
-    o = optim.SGD(n.parameters(), lr=rate)
     answers = torch.from_numpy(answers)
     answers.requires_grad = True
     data = torch.from_numpy(data)
     data.requires_grad = True
-    n.train()
+    o = optim.SGD(n.parameters(), lr=rate)
     o.zero_grad()
-    r = n(data.T)
+    n.train()
+    r = n(data)
     loss = F.mse_loss(r, answers)
     loss.backward()
     o.step()
