@@ -138,8 +138,8 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 
 #define NO_ERROR(call)                                                        \
         do {                                                                  \
-                ret = call;                                                   \
-                assert(ret == 0);                                             \
+                int ret2 = call;                                              \
+                assert(ret2 == 0);                                            \
         } while (0)
 
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
