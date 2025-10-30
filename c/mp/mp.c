@@ -142,6 +142,11 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
                 assert(ret2 == 0);                                            \
         } while (0)
 
+#define BIGINT_INITIALIZER                                                    \
+        {                                                                     \
+                .n = 0                                                        \
+        }
+#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
 #define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
@@ -312,8 +317,7 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
                 c->n = 0;
                 return 0;
         }
-        struct bigint t;
-        bigint_init(&t);
+        BIGINT_DEFINE(t);
         int ret;
         BIGINT_ALLOC(c, a->n + b->n + 1);
         BIGINT_ALLOC(&t, a->n + 1);
@@ -403,18 +407,15 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
 {
         assert(q != b0);
         assert(r != b0);
-        struct bigint b;
-        struct bigint tmp;
-        struct bigint tmp2;
+        BIGINT_DEFINE(b);
+        BIGINT_DEFINE(tmp);
+        BIGINT_DEFINE(tmp2);
         unsigned int k;
         int ret;
 
         assert(is_normal(a));
         assert(is_normal(b0));
         assert(b0->n != 0); /* XXX report division-by-zero? */
-        bigint_init(&b);
-        bigint_init(&tmp);
-        bigint_init(&tmp2);
         BIGINT_SET(r, a);
         if (bigint_cmp(a, b0) < 0) {
                 q->n = 0;
@@ -553,8 +554,7 @@ fail:
         size_t n = strlen(p);
         int ret;
 
-        struct bigint tmp;
-        bigint_init(&tmp);
+        BIGINT_DEFINE(tmp);
         a->n = 0; /* a = 0 */
         unsigned int i;
         for (i = 0; i < n; i++) {
@@ -615,11 +615,9 @@ bigint_to_str(const struct bigint *a)
                 p[1] = 0;
                 return p;
         }
-        struct bigint q;
-        struct bigint r;
+        BIGINT_DEFINE(q);
+        BIGINT_DEFINE(r);
         int ret;
-        bigint_init(&q);
-        bigint_init(&r);
 
         unsigned int n = sz;
         BIGINT_SET(&q, a);
@@ -667,12 +665,11 @@ gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
 {
         const struct bigint *a = a0;
         const struct bigint *b = b0;
-        struct bigint q;
+        BIGINT_DEFINE(q);
         struct bigint t[3];
         unsigned int i;
         int ret;
 
-        bigint_init(&q);
         for (i = 0; i < 3; i++) {
                 bigint_init(&t[i]);
         }
@@ -705,8 +702,7 @@ fail:
 static void
 test_str_roundtrip(const char *str)
 {
-        struct bigint a;
-        bigint_init(&a);
+        BIGINT_DEFINE(a);
         int ret = bigint_from_str(&a, str);
         assert(ret == 0);
         char *p = bigint_to_str(&a);
