@@ -884,18 +884,15 @@ int
 factorial(struct bigint *a, const struct bigint *n)
 {
         BIGINT_DEFINE(c);
-        BIGINT_DEFINE(t);
         int ret;
         BIGINT_SET_UINT1(a, 1);
         BIGINT_SET(&c, n);
         while (!bigint_is_zero(&c)) {
-                BIGINT_MUL(&t, a, &c);
-                BIGINT_SET(a, &t);
+                BIGINT_MUL(a, a, &c);
                 BIGINT_SUB_NOFAIL(&c, &c, &one);
         }
 fail:
         bigint_clear(&c);
-        bigint_clear(&t);
         return ret;
 }
 
