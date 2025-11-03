@@ -48,8 +48,9 @@ int bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                   const struct bigint *b);
 
 int bigint_set(struct bigint *d, const struct bigint *s);
-int bigint_set_uint(struct bigint *a, coeff_t v);
-int bigint_mul_uint(struct bigint *d, const struct bigint *a, coeff_t b);
+int bigint_set_uint(struct bigint *a, unsigned int v);
+int bigint_set_uint1(struct bigint *a, coeff_t v);
+int bigint_mul_uint1(struct bigint *d, const struct bigint *a, coeff_t b);
 
 int bigint_is_zero(const struct bigint *a);
 void bigint_set_zero(struct bigint *a);
