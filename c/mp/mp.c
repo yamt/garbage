@@ -503,7 +503,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         unsigned int k;
         int ret;
 
-        COPY_IF(q == b0 || r != b0, b0, b1);
+        COPY_IF(q == b0 || r == b0, b0, b1);
         assert(is_normal(a));
         assert(is_normal(b0));
         assert(b0->n != 0); /* XXX report division-by-zero? */
