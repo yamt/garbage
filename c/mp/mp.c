@@ -556,10 +556,8 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                         q_j = coeff_div(high, low, divisor);
                         assert(q_j <= COEFF_MAX);
                 }
-                /* tmp = (BASE ** j) * b */
-                SHIFT_LEFT_WORDS(&tmp, &b, j);
-                /* tmp2 = q_j * tmp */
-                BIGINT_MUL_UINT1(&tmp2, &tmp, q_j);
+                SHIFT_LEFT_WORDS(&tmp, &b, j);      /* tmp = (BASE ** j) * b */
+                BIGINT_MUL_UINT1(&tmp2, &tmp, q_j); /* tmp2 = q_j * tmp */
                 while (bigint_cmp(r, &tmp2) < 0) {
                         q_j--;
                         BIGINT_SUB_NOFAIL(&tmp2, &tmp2, &tmp);
