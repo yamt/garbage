@@ -17,24 +17,24 @@
 ctassert(COEFF_MAX == BASE - 1);
 #endif
 
-#define BIGINT_INITIALIZER                                                    \
+#define BIGINT_INITIALIZER0                                                   \
         {                                                                     \
                 .n = 0                                                        \
         }
 
-#define BIGINT_INITIALIZER2(N, ...)                                           \
+#define BIGINT_INITIALIZER(N, ...)                                            \
         {                                                                     \
                 .n = N, .d = (coeff_t[]){__VA_ARGS__},                        \
         }
 
-static const struct bigint zero = BIGINT_INITIALIZER;
-static const struct bigint one = BIGINT_INITIALIZER2(1, 1);
-static const struct bigint base = BIGINT_INITIALIZER2(2, 0, 1);
+static const struct bigint zero = BIGINT_INITIALIZER0;
+static const struct bigint one = BIGINT_INITIALIZER(1, 1);
+static const struct bigint base = BIGINT_INITIALIZER(2, 0, 1);
 #if COEFF_MAX == 9
-static const struct bigint ten = BIGINT_INITIALIZER2(2, 0, 1);
+static const struct bigint ten = BIGINT_INITIALIZER(2, 0, 1);
 #endif
 #if COEFF_MAX >= 10
-static const struct bigint ten = BIGINT_INITIALIZER2(1, 10);
+static const struct bigint ten = BIGINT_INITIALIZER(1, 10);
 #endif
 
 static coeff_t
@@ -225,7 +225,7 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
                         a = &a0;                                              \
                 }                                                             \
         } while (false)
-#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER
+#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
 #define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
@@ -985,8 +985,8 @@ main(void)
         {
                 BIGINT_DEFINE(q);
                 BIGINT_DEFINE(r);
-                struct bigint a = BIGINT_INITIALIZER2(3, 8, 0, 9);
-                struct bigint b = BIGINT_INITIALIZER2(2, 2, 9);
+                struct bigint a = BIGINT_INITIALIZER(3, 8, 0, 9);
+                struct bigint b = BIGINT_INITIALIZER(2, 2, 9);
                 print_bigint("dividend ", &a);
                 print_bigint("divisor  ", &b);
                 ret = bigint_divrem(&q, &r, &a, &b);
@@ -999,8 +999,8 @@ main(void)
         {
                 BIGINT_DEFINE(q);
                 BIGINT_DEFINE(r);
-                struct bigint a = BIGINT_INITIALIZER2(3, 0, 1, 8);
-                struct bigint b = BIGINT_INITIALIZER2(2, 9, 9);
+                struct bigint a = BIGINT_INITIALIZER(3, 0, 1, 8);
+                struct bigint b = BIGINT_INITIALIZER(2, 9, 9);
                 print_bigint("dividend ", &a);
                 print_bigint("divisor  ", &b);
                 ret = bigint_divrem(&q, &r, &a, &b);
