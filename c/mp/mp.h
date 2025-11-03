@@ -33,6 +33,12 @@ struct bigint {
         coeff_t *d;
 };
 
+/* constants */
+extern const struct bigint g_zero;
+extern const struct bigint g_one;
+extern const struct bigint g_base;
+extern const struct bigint g_ten;
+
 void bigint_init(struct bigint *a);
 void bigint_clear(struct bigint *a);
 int bigint_cmp(const struct bigint *a, const struct bigint *b);

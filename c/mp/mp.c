@@ -27,14 +27,14 @@ ctassert(COEFF_MAX == BASE - 1);
                 .n = N, .d = (coeff_t[]){__VA_ARGS__},                        \
         }
 
-static const struct bigint zero = BIGINT_INITIALIZER0;
-static const struct bigint one = BIGINT_INITIALIZER(1, 1);
-static const struct bigint base = BIGINT_INITIALIZER(2, 0, 1);
+const struct bigint g_zero = BIGINT_INITIALIZER0;
+const struct bigint g_one = BIGINT_INITIALIZER(1, 1);
+const struct bigint g_base = BIGINT_INITIALIZER(2, 0, 1);
 #if COEFF_MAX == 9
-static const struct bigint ten = BIGINT_INITIALIZER(2, 0, 1);
+const struct bigint g_ten = BIGINT_INITIALIZER(2, 0, 1);
 #endif
 #if COEFF_MAX >= 10
-static const struct bigint ten = BIGINT_INITIALIZER(1, 10);
+const struct bigint g_ten = BIGINT_INITIALIZER(1, 10);
 #endif
 
 static coeff_t
@@ -640,7 +640,7 @@ bigint_set_uint(struct bigint *a, uintmax_t v)
                 if (v == 0) {
                         break;
                 }
-                BIGINT_MUL(&bb, &bb, &base); /* bb *= BASE */
+                BIGINT_MUL(&bb, &bb, &g_base); /* bb *= BASE */
         }
 fail:
         bigint_clear(&t);
@@ -702,7 +702,7 @@ fail:
         a->n = 0; /* a = 0 */
         unsigned int i;
         for (i = 0; i < n; i++) {
-                BIGINT_MUL(&tmp, a, &ten);       /* tmp = a * 10 */
+                BIGINT_MUL(&tmp, a, &g_ten);     /* tmp = a * 10 */
                 BIGINT_SET_UINT1(a, p[i] - '0'); /* a = digit */
                 BIGINT_ADD(a, a, &tmp);          /* a = a + tmp */
         }
@@ -760,7 +760,7 @@ bigint_to_str(const struct bigint *a)
         p[--n] = 0;
         do {
                 assert(n > 0);
-                BIGINT_DIVREM(&q, &r, &q, &ten);
+                BIGINT_DIVREM(&q, &r, &q, &g_ten);
                 assert(r.n <= 1);
                 char ch = '0' + dig(&r, 0);
                 p[--n] = ch;
@@ -858,7 +858,7 @@ factorial(struct bigint *a, const struct bigint *n)
         BIGINT_SET(&c, n);
         while (!bigint_is_zero(&c)) {
                 BIGINT_MUL(a, a, &c);
-                BIGINT_SUB_NOFAIL(&c, &c, &one);
+                BIGINT_SUB_NOFAIL(&c, &c, &g_one);
         }
 fail:
         bigint_clear(&c);
@@ -1037,10 +1037,10 @@ main(void)
         assert(bigint_cmp(&s, &b) > 0);
         bigint_sub(&d, &s, &a);
         assert(bigint_cmp(&d, &b) == 0);
-        bigint_sub(&d, &s, &zero);
+        bigint_sub(&d, &s, &g_zero);
         assert(bigint_cmp(&d, &s) == 0);
         bigint_sub(&d, &s, &s);
-        assert(bigint_cmp(&d, &zero) == 0);
+        assert(bigint_cmp(&d, &g_zero) == 0);
 
         /* mul */
         ret = bigint_mul(&prod, &a, &b);
@@ -1048,17 +1048,17 @@ main(void)
         ret = bigint_divrem(&q, &r, &prod, &a);
         assert(ret == 0);
         assert(bigint_cmp(&q, &b) == 0);
-        assert(bigint_cmp(&r, &zero) == 0);
+        assert(bigint_cmp(&r, &g_zero) == 0);
         ret = bigint_divrem(&q, &r, &prod, &b);
         assert(ret == 0);
         assert(bigint_cmp(&q, &a) == 0);
-        assert(bigint_cmp(&r, &zero) == 0);
+        assert(bigint_cmp(&r, &g_zero) == 0);
 
         /* divrem */
-        ret = bigint_divrem(&q, &r, &a, &one);
+        ret = bigint_divrem(&q, &r, &a, &g_one);
         assert(ret == 0);
         assert(bigint_cmp(&q, &a) == 0);
-        assert(bigint_cmp(&r, &zero) == 0);
+        assert(bigint_cmp(&r, &g_zero) == 0);
         ret = bigint_divrem(&q, &r, &a, &b);
         assert(ret == 0);
         ret = bigint_mul(&tmp, &q, &b);
@@ -1069,18 +1069,18 @@ main(void)
 
         ret = bigint_divrem(&q, &r, &b, &a);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &zero) == 0);
+        assert(bigint_cmp(&q, &g_zero) == 0);
         assert(bigint_cmp(&r, &b) == 0);
 
         ret = bigint_divrem(&q, &r, &a, &a);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &one) == 0);
-        assert(bigint_cmp(&r, &zero) == 0);
+        assert(bigint_cmp(&q, &g_one) == 0);
+        assert(bigint_cmp(&r, &g_zero) == 0);
 
         ret = bigint_divrem(&q, &r, &b, &b);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &one) == 0);
-        assert(bigint_cmp(&r, &zero) == 0);
+        assert(bigint_cmp(&q, &g_one) == 0);
+        assert(bigint_cmp(&r, &g_zero) == 0);
 
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
