@@ -732,22 +732,6 @@ estimate_ndigits(const struct bigint *a)
 char *
 bigint_to_str(const struct bigint *a)
 {
-#if BASE == 10
-        assert(is_normal(a));
-        if (a->n == 0) {
-                char *p = malloc(2);
-                p[0] = '0';
-                p[1] = 0;
-                return p;
-        }
-        char *p = malloc(a->n + 1);
-        unsigned int i;
-        for (i = 0; i < a->n; i++) {
-                p[i] = a->d[a->n - i - 1] + '0';
-        }
-        p[i] = 0;
-        return p;
-#else
         assert(is_normal(a));
         size_t sz = estimate_ndigits(a) + 1;
         char *p = malloc(sz);
@@ -759,6 +743,14 @@ bigint_to_str(const struct bigint *a)
                 p[1] = 0;
                 return p;
         }
+#if BASE == 10
+        unsigned int i;
+        for (i = 0; i < a->n; i++) {
+                p[i] = a->d[a->n - i - 1] + '0';
+        }
+        p[i] = 0;
+        return p;
+#else
         BIGINT_DEFINE(q);
         BIGINT_DEFINE(r);
         int ret;
