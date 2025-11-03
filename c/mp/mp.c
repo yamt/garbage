@@ -1034,6 +1034,35 @@ main(void)
                 bigint_clear(&q);
                 bigint_clear(&r);
         }
+        {
+                BIGINT_DEFINE(q);
+                BIGINT_DEFINE(r);
+                struct bigint a = {
+                        .n = 3,
+                        .d =
+                                (coeff_t[]){
+                                        0,
+                                        1,
+                                        8,
+                                },
+                };
+                struct bigint b = {
+                        .n = 2,
+                        .d =
+                                (coeff_t[]){
+                                        9,
+                                        9,
+                                },
+                };
+                print_bigint("dividend ", &a);
+                print_bigint("divisor  ", &b);
+                ret = bigint_divrem(&q, &r, &a, &b);
+                assert(ret == 0);
+                assert_eq(&q, "8");
+                assert_eq(&r, "18");
+                bigint_clear(&q);
+                bigint_clear(&r);
+        }
 #endif
 
         test_str_roundtrip("0");
