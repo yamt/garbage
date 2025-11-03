@@ -538,36 +538,34 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         } else {
                 q->n = m;
         }
-        if (m > 0) {
+        for (; m > 0; m--) {
                 unsigned int j = m - 1;
-                do {
 #if !defined(NDEBUG) && 0
-                        /* assert(r < (BASE ** (j + 1)) * b) */
-                        SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
-                        assert(bigint_cmp(r, &b) < 0);
+                /* assert(r < (BASE ** (j + 1)) * b) */
+                SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
+                assert(bigint_cmp(r, &b) < 0);
 #endif
-                        coeff_t q_j;
-                        coeff_t high = r->d[n + j];
-                        coeff_t divisor = b.d[n - 1];
-                        assert(high <= divisor);
-                        if (high >= divisor) {
-                                q_j = COEFF_MAX;
-                        } else {
-                                coeff_t low = r->d[n + j - 1];
-                                q_j = coeff_div(high, low, divisor);
-                                assert(q_j <= COEFF_MAX);
-                        }
-                        /* tmp = (BASE ** j) * b */
-                        SHIFT_LEFT_WORDS(&tmp, &b, j);
-                        /* tmp2 = q_j * tmp */
-                        BIGINT_MUL_UINT1(&tmp2, &tmp, q_j);
-                        while (bigint_cmp(r, &tmp2) < 0) {
-                                q_j--;
-                                BIGINT_SUB_NOFAIL(&tmp2, &tmp2, &tmp);
-                        }
-                        BIGINT_SUB_NOFAIL(r, r, &tmp2);
-                        q->d[j] = q_j;
-                } while (j-- > 0);
+                coeff_t q_j;
+                coeff_t high = r->d[n + j];
+                coeff_t divisor = b.d[n - 1];
+                assert(high <= divisor);
+                if (high >= divisor) {
+                        q_j = COEFF_MAX;
+                } else {
+                        coeff_t low = r->d[n + j - 1];
+                        q_j = coeff_div(high, low, divisor);
+                        assert(q_j <= COEFF_MAX);
+                }
+                /* tmp = (BASE ** j) * b */
+                SHIFT_LEFT_WORDS(&tmp, &b, j);
+                /* tmp2 = q_j * tmp */
+                BIGINT_MUL_UINT1(&tmp2, &tmp, q_j);
+                while (bigint_cmp(r, &tmp2) < 0) {
+                        q_j--;
+                        BIGINT_SUB_NOFAIL(&tmp2, &tmp2, &tmp);
+                }
+                BIGINT_SUB_NOFAIL(r, r, &tmp2);
+                q->d[j] = q_j;
         }
         ret = 0;
         assert(is_normal(q));
