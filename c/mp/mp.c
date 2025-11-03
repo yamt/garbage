@@ -643,7 +643,7 @@ fail:
 }
 
 int
-bigint_set_uint(struct bigint *a, unsigned int v)
+bigint_set_uint(struct bigint *a, uintmax_t v)
 {
 #if defined(BASE)
         if (v <= COEFF_MAX) {
@@ -655,7 +655,7 @@ bigint_set_uint(struct bigint *a, unsigned int v)
         bigint_set_zero(a);
         BIGINT_SET_UINT1(&bb, 1); /* bb = 1 */
         while (true) {
-                unsigned int d = v % BASE;
+                coeff_t d = v % BASE;
                 BIGINT_SET_UINT1(&t, d);
                 BIGINT_MUL(&t, &t, &bb);
                 BIGINT_ADD(a, a, &t); /* a += d * bb */
