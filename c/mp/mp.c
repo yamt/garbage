@@ -519,14 +519,14 @@ int
 bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
               const struct bigint *b0)
 {
-        assert(q != b0);
-        assert(r != b0);
         BIGINT_DEFINE(b);
+        BIGINT_DEFINE(b1);
         BIGINT_DEFINE(tmp);
         BIGINT_DEFINE(tmp2);
         unsigned int k;
         int ret;
 
+        COPY_IF(q == b0 || r != b0, b0, b1);
         assert(is_normal(a));
         assert(is_normal(b0));
         assert(b0->n != 0); /* XXX report division-by-zero? */
@@ -606,6 +606,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         assert(is_normal(r));
 fail:
         bigint_clear(&b);
+        bigint_clear(&b1);
         bigint_clear(&tmp);
         bigint_clear(&tmp2);
         return ret;
