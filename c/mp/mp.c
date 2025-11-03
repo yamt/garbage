@@ -547,10 +547,16 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                         SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
                         assert(bigint_cmp(r, &b) < 0);
 #endif
-                        coeff_t q_j = coeff_div(r->d[n + j], r->d[n + j - 1],
-                                                b.d[n - 1]);
-                        if (q_j > COEFF_MAX) {
+                        coeff_t q_j;
+                        coeff_t high = r->d[n + j];
+                        coeff_t divisor = b.d[n - 1];
+                        assert(high <= divisor);
+                        if (high >= divisor) {
                                 q_j = COEFF_MAX;
+                        } else {
+                                coeff_t low = r->d[n + j - 1];
+                                q_j = coeff_div(high, low, divisor);
+                                assert(q_j <= COEFF_MAX);
                         }
                         /* tmp = (BASE ** j) * b */
                         SHIFT_LEFT_WORDS(&tmp, &b, j);
@@ -886,6 +892,20 @@ fail:
         return ret;
 }
 
+void
+assert_eq(const struct bigint *a, const char *str)
+{
+        char *p = bigint_to_str(a);
+        assert(p != NULL);
+        if (strcmp(p, str)) {
+                printf("unexpected value\n");
+                printf("    actual  : %s\n", p);
+                printf("    expected: %s\n", str);
+                abort();
+        }
+        bigint_str_free(p);
+}
+
 int
 main(void)
 {
@@ -931,6 +951,37 @@ main(void)
         assert(t == 0);
         t = coeff_div(0, 0, 10000);
         assert(t == 0);
+#endif
+#if BASE == 10
+        {
+                BIGINT_DEFINE(q);
+                BIGINT_DEFINE(r);
+                struct bigint a = {
+                        .n = 3,
+                        .d =
+                                (coeff_t[]){
+                                        8,
+                                        0,
+                                        9,
+                                },
+                };
+                struct bigint b = {
+                        .n = 2,
+                        .d =
+                                (coeff_t[]){
+                                        2,
+                                        9,
+                                },
+                };
+                print_bigint("dividend ", &a);
+                print_bigint("divisor  ", &b);
+                ret = bigint_divrem(&q, &r, &a, &b);
+                assert(ret == 0);
+                assert_eq(&q, "9");
+                assert_eq(&r, "80");
+                bigint_clear(&q);
+                bigint_clear(&r);
+        }
 #endif
 
         test_str_roundtrip("0");
