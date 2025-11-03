@@ -1,5 +1,5 @@
-#if !defined(BASE)
-#define BASE 4294967296
+#if !defined(BASE) && !defined(BASE_BITS)
+#define BASE_BITS 32
 #endif
 
 #if BASE == 10
@@ -7,13 +7,24 @@ typedef signed char coeff_t;
 #define LOG_BASE 2.30258509299404568401 /* l(BASE) */
 #define COEFF_MAX 9
 #define COEFF_TYPE_MAX 127
-#elif BASE == 4294967296
+#elif BASE_BITS == 32
 #include <stdint.h>
 
 typedef uint32_t coeff_t;
+#define BASE 4294967296                  /* 2^32 */
 #define LOG_BASE 22.18070977791824990135 /* l(2^32) */
+#define COEFF_BITS 32
 #define COEFF_MAX UINT32_MAX
 #define COEFF_TYPE_MAX UINT32_MAX
+#elif BASE_BITS == 64
+#include <stdint.h>
+
+typedef uint64_t coeff_t;
+#undef BASE /* 2^64, which is not likely representable */
+#define LOG_BASE 44.36141955583649980270 /* l(2^64) */
+#define COEFF_BITS 64
+#define COEFF_MAX UINT64_MAX
+#define COEFF_TYPE_MAX UINT64_MAX
 #endif
 
 struct bigint {

@@ -13,7 +13,9 @@
 
 #define ctassert(a) _Static_assert(a, #a)
 
+#if defined(BASE)
 ctassert(COEFF_MAX == BASE - 1);
+#endif
 
 static const struct bigint zero = {
         .n = 0,
@@ -64,7 +66,7 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
                 carry = 1;
         }
         if (__builtin_add_overflow(t, carry_in, &t)) {
-                carry = 1;
+                carry++;
         }
         *carry_out = carry;
         return t;
@@ -112,6 +114,7 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 static coeff_t
 coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
 {
+#if UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
         ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
         assert(a <= COEFF_MAX);
         assert(b <= COEFF_MAX);
@@ -119,13 +122,96 @@ coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
         uintmax_t prod = (uintmax_t)a * b + carry_in;
         *highp = prod / BASE;
         return prod % BASE;
+#else
+        /* revisit: use mulq on x86 */
+        ctassert(COEFF_BITS / 2 * 2 == COEFF_BITS);
+        const unsigned int hbits = COEFF_BITS / 2;
+        const unsigned int hmask = ((coeff_t)1 << hbits) - 1;
+        coeff_t a_high = a >> hbits;
+        coeff_t a_low = a & hmask;
+        coeff_t b_high = b >> hbits;
+        coeff_t b_low = b & hmask;
+        /*
+         * a * b
+         * = ((a_high << hbits) + a_low) * ((b_high << hbits) + b_low)
+         * = ((a_high * b_high) << (2 * hbits))
+         *   + ((a_high * b_low) << hbits)
+         *   + ((a_low * b_high) << hbits)
+         *   + (a_low * b_low)
+         */
+        coeff_t high = a_high * b_high;
+        coeff_t hl = a_high * b_low;
+        coeff_t lh = a_low * b_high;
+        coeff_t low = a_low * b_low;
+        coeff_t carry;
+        low = coeff_addc(low, ((hl & hmask) << hbits), carry_in, &carry);
+        high = coeff_addc(high, (hl >> hbits) & hmask, carry, &carry);
+        assert(carry == 0);
+        low = coeff_addc(low, ((lh & hmask) << hbits), 0, &carry);
+        high = coeff_addc(high, (lh >> hbits) & hmask, carry, &carry);
+        assert(carry == 0);
+        *highp = high;
+        return low;
+#endif
 }
 
 static coeff_t
 coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 {
+        assert(dividend_high < divisor);
+#if UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
         ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
-        return ((uintmax_t)dividend_high * BASE + dividend_low) / divisor;
+        uintmax_t q =
+                ((uintmax_t)dividend_high * BASE + dividend_low) / divisor;
+        assert(q <= COEFF_MAX);
+        return q;
+#else
+        /* revisit: use divq on x86 */
+        coeff_t h = dividend_high;
+        coeff_t l = dividend_low;
+        coeff_t q = 0;
+        unsigned int shift = COEFF_BITS;
+        while (h != 0 || l != 0) {
+                while (shift > 0 && h < (coeff_t)1 << (COEFF_BITS - 1)) {
+                        /* revisit: optimize with ffs? */
+                        shift--;
+                        assert((h << 1) >> 1 == h);
+                        h <<= 1;
+                        h |= l >> (COEFF_BITS - 1);
+                        l <<= 1;
+                }
+                if (h >= divisor) {
+                        assert(shift < COEFF_BITS);
+                        coeff_t n = h / divisor;
+                        h -= n * divisor;
+                        assert((n << shift) >> shift == n);
+                        q += n << shift;
+                        // printf("%zx %zu << %zu\n", (uintmax_t)q,
+                        // (uintmax_t)n, (uintmax_t)shift);
+                } else if (shift == 0) {
+                        break;
+                } else {
+                        shift--;
+                        h <<= 1; /* overflow */
+                        h |= l >> (COEFF_BITS - 1);
+                        l <<= 1;
+                        assert(h < divisor);
+                        h -= divisor; /* underflow */
+                        q += (coeff_t)1 << shift;
+                        // printf("%zx %zu << %zu\n", (uintmax_t)q,
+                        // (uintmax_t)1, (uintmax_t)shift);
+                }
+        }
+        assert(shift > 0 || h < divisor); /* note: h is reminder here */
+        assert(l == 0);
+#if !defined(NDEBUG)
+        coeff_t tmp_high;
+        coeff_t tmp_low = coeff_mul(&tmp_high, q, divisor, h);
+        assert(tmp_high == dividend_high);
+        assert(tmp_low == dividend_low);
+#endif
+        return q;
+#endif
 }
 
 #define HANDLE_ERROR(call)                                                    \
@@ -361,7 +447,12 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
 
         unsigned int k = 0;
         int ret;
-        while (b->d[b->n - 1] < BASE / 2) {
+#if defined(BASE)
+#define HALF_BASE (BASE / 2)
+#else
+#define HALF_BASE ((coeff_t)1 << (BASE_BITS - 1))
+#endif
+        while (b->d[b->n - 1] < HALF_BASE) {
                 k++;
                 mul1(b, b, 2);
         }
@@ -369,7 +460,7 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
                 if (a->n > 0) {
                         BIGINT_ALLOC(a, a->n + 1);
                 }
-                mul1(a, a, 1 << k);
+                mul1(a, a, (coeff_t)1 << k);
         }
         *kp = k;
         return 0;
@@ -479,7 +570,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         assert(bigint_cmp(r, &b) < 0);
         if (k > 0 && r->n != 0) {
                 /* r = r / (2 ** k) */
-                BIGINT_SET_UINT(&tmp, 1 << k);
+                BIGINT_SET_UINT(&tmp, (coeff_t)1 << k);
                 BIGINT_DIVREM(r, &tmp2, r, &tmp);
                 assert(tmp2.n == 0); /* should be an exact division */
         }
@@ -729,6 +820,73 @@ test_str_roundtrip(const char *str)
 }
 
 int
+factorial(struct bigint *a, const struct bigint *n)
+{
+        BIGINT_DEFINE(c);
+        BIGINT_DEFINE(t);
+        int ret;
+        BIGINT_SET_UINT(a, 1);
+        BIGINT_SET(&c, n);
+        while (!bigint_is_zero(&c)) {
+                BIGINT_MUL(&t, a, &c);
+                BIGINT_SET(a, &t);
+                BIGINT_SUB_NOFAIL(&c, &c, &one);
+        }
+fail:
+        bigint_clear(&c);
+        bigint_clear(&t);
+        return ret;
+}
+
+#include <time.h>
+
+uint64_t
+timestamp(void)
+{
+        struct timespec tv;
+        clock_gettime(CLOCK_REALTIME, &tv);
+        return (uint64_t)tv.tv_sec * 1000000000 + tv.tv_nsec;
+}
+
+int
+bench(void)
+{
+        unsigned int num = 10000;
+        printf("calculating %u!...\n", num);
+        BIGINT_DEFINE(a);
+        BIGINT_DEFINE(n);
+        int ret;
+        BIGINT_SET_UINT(&n, num);
+        uint64_t start_time = timestamp();
+        ret = factorial(&a, &n);
+        if (ret != 0) {
+                goto fail;
+        }
+        uint64_t end_time = timestamp();
+        printf("took %.03f sec\n",
+               (double)(end_time - start_time) / 1000000000);
+#if 0
+        char *ap = bigint_to_str(&a);
+        if (ap == NULL) {
+                goto fail;
+        }
+        char *np = bigint_to_str(&n);
+        if (np == NULL) {
+                bigint_str_free(ap);
+                goto fail;
+        }
+        printf("%s! = %s\n", np, ap);
+        bigint_str_free(ap);
+        bigint_str_free(np);
+#endif
+fail:
+        bigint_clear(&a);
+        bigint_clear(&n);
+        printf("ret %d\n", ret);
+        return ret;
+}
+
+int
 main(void)
 {
         const char *a_str =
@@ -745,6 +903,35 @@ main(void)
         struct bigint tmp;
         struct bigint tmp2;
         int ret;
+
+#if BASE_BITS == 64
+        coeff_t high;
+        coeff_t low = coeff_mul(&high, 0xffffffffffffffff, 0xffffffffffffffff,
+                                0xffffffffffffffff);
+        assert(high == 0xffffffffffffffff);
+        assert(low == 0);
+        coeff_t t = coeff_div(0xFFFFFFFFFFFFFFFE, 0x1, 0xFFFFFFFFFFFFFFFF);
+        assert(t == 0xFFFFFFFFFFFFFFFF);
+        t = coeff_div(0, 0xFFFFFFFFFFFFFFFE, 0xFFFFFFFFFFFFFFFF);
+        assert(t == 0);
+        t = coeff_div(100, 0xFFFFFFFFFFFFFFFF, 0xFFFFFFFFFFFFFFFF);
+        assert(t == 101);
+        t = coeff_div(0xFFFFFFFF00000000, 0, 0xFFFFFFFFFFFFFFFF);
+        assert(t == 0xFFFFFFFF00000000);
+        t = coeff_div(99, 0xFFFFFFFFFFFFFFFF, 100);
+        assert(t == 0xFFFFFFFFFFFFFFFF);
+        t = coeff_div(0x119A529501BEF42E, 0x55F88ADF038312C9,
+                      0x43210FE1424432DD);
+        assert(t == 0x43210FE1424432DD);
+        t = coeff_div(0x119A52, 0x55F88ADF038312C9, 0x43210FE14);
+        assert(t == 0x43210EF0E0969);
+        t = coeff_div(0, 9123456789012346, 10000);
+        assert(t == 912345678901);
+        t = coeff_div(0, 9999, 10000);
+        assert(t == 0);
+        t = coeff_div(0, 0, 10000);
+        assert(t == 0);
+#endif
 
         test_str_roundtrip("0");
         test_str_roundtrip("100000000000000000000000");
@@ -858,4 +1045,6 @@ main(void)
         bigint_clear(&r);
         bigint_clear(&tmp);
         bigint_clear(&tmp2);
+
+        bench();
 }
