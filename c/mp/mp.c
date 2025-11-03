@@ -17,42 +17,24 @@
 ctassert(COEFF_MAX == BASE - 1);
 #endif
 
-static const struct bigint zero = {
-        .n = 0,
-};
-static const struct bigint one = {
-        .n = 1,
-        .d =
-                (coeff_t[]){
-                        1,
-                },
-};
-static const struct bigint base = {
-        .n = 2,
-        .d =
-                (coeff_t[]){
-                        0,
-                        1,
-                },
-};
+#define BIGINT_INITIALIZER                                                    \
+        {                                                                     \
+                .n = 0                                                        \
+        }
+
+#define BIGINT_INITIALIZER2(N, ...)                                           \
+        {                                                                     \
+                .n = N, .d = (coeff_t[]){__VA_ARGS__},                        \
+        }
+
+static const struct bigint zero = BIGINT_INITIALIZER;
+static const struct bigint one = BIGINT_INITIALIZER2(1, 1);
+static const struct bigint base = BIGINT_INITIALIZER2(2, 0, 1);
 #if COEFF_MAX == 9
-static const struct bigint ten = {
-        .n = 2,
-        .d =
-                (coeff_t[]){
-                        0,
-                        1,
-                },
-};
+static const struct bigint ten = BIGINT_INITIALIZER2(2, 0, 1);
 #endif
 #if COEFF_MAX >= 10
-static const struct bigint ten = {
-        .n = 1,
-        .d =
-                (coeff_t[]){
-                        10,
-                },
-};
+static const struct bigint ten = BIGINT_INITIALIZER2(1, 10);
 #endif
 
 static coeff_t
@@ -235,11 +217,6 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
                 int ret2 = call;                                              \
                 assert(ret2 == 0);                                            \
         } while (0)
-
-#define BIGINT_INITIALIZER                                                    \
-        {                                                                     \
-                .n = 0                                                        \
-        }
 
 #define COPY_IF(cond, a, a0)                                                  \
         do {                                                                  \
@@ -1008,23 +985,8 @@ main(void)
         {
                 BIGINT_DEFINE(q);
                 BIGINT_DEFINE(r);
-                struct bigint a = {
-                        .n = 3,
-                        .d =
-                                (coeff_t[]){
-                                        8,
-                                        0,
-                                        9,
-                                },
-                };
-                struct bigint b = {
-                        .n = 2,
-                        .d =
-                                (coeff_t[]){
-                                        2,
-                                        9,
-                                },
-                };
+                struct bigint a = BIGINT_INITIALIZER2(3, 8, 0, 9);
+                struct bigint b = BIGINT_INITIALIZER2(2, 2, 9);
                 print_bigint("dividend ", &a);
                 print_bigint("divisor  ", &b);
                 ret = bigint_divrem(&q, &r, &a, &b);
@@ -1037,23 +999,8 @@ main(void)
         {
                 BIGINT_DEFINE(q);
                 BIGINT_DEFINE(r);
-                struct bigint a = {
-                        .n = 3,
-                        .d =
-                                (coeff_t[]){
-                                        0,
-                                        1,
-                                        8,
-                                },
-                };
-                struct bigint b = {
-                        .n = 2,
-                        .d =
-                                (coeff_t[]){
-                                        9,
-                                        9,
-                                },
-                };
+                struct bigint a = BIGINT_INITIALIZER2(3, 0, 1, 8);
+                struct bigint b = BIGINT_INITIALIZER2(2, 9, 9);
                 print_bigint("dividend ", &a);
                 print_bigint("divisor  ", &b);
                 ret = bigint_divrem(&q, &r, &a, &b);
