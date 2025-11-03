@@ -528,10 +528,8 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         assert(bigint_cmp(r, &tmp) < 0);
 #endif
         BIGINT_ALLOC(q, m + 1);
-        /* tmp = (BASE ** m) * b */
-        SHIFT_LEFT_WORDS(&tmp, &b, m);
-        int cmp = bigint_cmp(r, &tmp);
-        if (cmp >= 0) {
+        SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (BASE ** m) * b */
+        if (bigint_cmp(r, &tmp) >= 0) {
                 q->d[m] = 1;
                 q->n = m + 1;
                 BIGINT_SUB(r, r, &tmp);
@@ -999,6 +997,11 @@ main(void)
                 bigint_clear(&r);
         }
 #endif
+
+        assert(is_normal(&g_zero));
+        assert(is_normal(&g_one));
+        assert(is_normal(&g_ten));
+        assert(is_normal(&g_base));
 
         test_str_roundtrip("0");
         test_str_roundtrip("100000000000000000000000");
