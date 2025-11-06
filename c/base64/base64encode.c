@@ -143,16 +143,26 @@ base64encode(const void *restrict src, size_t srclen, char *restrict dst)
         }
 }
 
+#include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
 
 int
 main(int argc, char **argv)
 {
-        const char *p = argv[1];
-        size_t sz = strlen(p);
-        size_t bsz = base64size(sz);
-        char buf[bsz];
-        base64encode(p, sz, buf);
-        printf("%.*s\n", (int)bsz, buf);
+        while (true) {
+                uint8_t buf[3 * 100];
+                char ebuf[4 * 100];
+                ssize_t ssz = read(STDIN_FILENO, buf, sizeof(buf));
+                if (ssz == -1) {
+                        fprintf(stderr, "read error\n");
+                        exit(1);
+                }
+                if (ssz == 0) {
+                        break;
+                }
+                base64encode(buf, ssz, ebuf);
+                write(STDOUT_FILENO, ebuf, base64size(ssz));
+        }
 }
