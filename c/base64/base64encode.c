@@ -28,12 +28,12 @@
 #error endian is not known
 #endif
 
-#define BASE64_ASSERT(cond) __builtin_assume(cond)
+#define BASE64_ASSUME(cond) __builtin_assume(cond)
 
 static uint8_t
 conv_to_char(uint8_t x)
 {
-        BASE64_ASSERT(x < 64);
+        BASE64_ASSUME(x < 64);
         static const char table[64] = {
                 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
                 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V',
@@ -83,7 +83,7 @@ convert(uint32_t x)
 static uint32_t
 pad(uint32_t x, unsigned int srclen)
 {
-        BASE64_ASSERT(srclen > 0 && srclen <= 3);
+        BASE64_ASSUME(srclen > 0 && srclen <= 3);
         union {
                 uint32_t u32;
                 uint8_t u8[4];
@@ -101,7 +101,7 @@ pad(uint32_t x, unsigned int srclen)
 static void
 enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
 {
-        BASE64_ASSERT(srclen > 0 && srclen <= 3);
+        BASE64_ASSUME(srclen > 0 && srclen <= 3);
 
         uint32_t x = loadbe(p);
         x = expand(x);
@@ -117,7 +117,7 @@ size_t
 base64size(size_t srclen)
 {
         size_t bsz = (srclen + 2) / 3 * 4;
-        BASE64_ASSERT(srclen / 3 == bsz / 4 || srclen / 3 + 1 == bsz / 4);
+        BASE64_ASSUME(srclen / 3 == bsz / 4 || srclen / 3 + 1 == bsz / 4);
         return bsz;
 }
 
@@ -134,7 +134,7 @@ base64encode(const void *restrict src, size_t srclen, char *restrict dst)
                 dst += 4;
         }
         size_t tail = srclen - n * 3;
-        BASE64_ASSERT(0 <= tail && tail < 3);
+        BASE64_ASSUME(0 <= tail && tail < 3);
         if (tail > 0) {
                 uint8_t tmp[3];
                 memset(tmp, 0, sizeof(tmp));
