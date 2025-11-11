@@ -1,4 +1,9 @@
 /*
+ * this library does not rely on NUL termination of 'src'.
+ * 'srclen' should not include the terminating NUL.
+ */
+
+/*
  * return large enough buffer size to decode a srclen-bytes base64 string.
  * it can be a few (0-2) bytes larger than what base64decode_size_exact()
  * returns.
