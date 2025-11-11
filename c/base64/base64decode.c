@@ -41,6 +41,7 @@
 static int
 storebe3(uint8_t dst[3], uint32_t x, unsigned int len)
 {
+        BASE64_ASSUME((x & 0xff000000) == 0);
         dst[0] = x >> 16;
         if (len == 1) {
                 return (x & 0xffff) != 0;
