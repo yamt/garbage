@@ -2,7 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(base64 LANGUAGES C)
 
+if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL GNU)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wvla -Werror")
+endif()
 
 add_library(base64decode base64decode.c)
 set_property(TARGET base64decode PROPERTY PUBLIC_HEADER base64decode.h)
