@@ -5,4 +5,15 @@ project(base64 LANGUAGES C)
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wvla -Werror")
 
 add_library(base64decode base64decode.c)
+set_property(TARGET base64decode PROPERTY PUBLIC_HEADER base64decode.h)
+
+install(TARGETS base64decode
+        EXPORT base64decode
+        PUBLIC_HEADER DESTINATION include)
+
 add_library(base64encode base64encode.c)
+set_property(TARGET base64encode PROPERTY PUBLIC_HEADER base64encode.h)
+
+install(TARGETS base64encode
+        EXPORT base64encode
+        PUBLIC_HEADER DESTINATION include)
