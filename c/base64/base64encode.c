@@ -153,7 +153,7 @@ base64encode(const void *restrict src, size_t srclen, char *restrict dst)
 #include <unistd.h>
 
 int
-main(int argc, char **argv)
+main(void)
 {
         while (true) {
                 uint8_t buf[3 * 100];

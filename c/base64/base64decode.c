@@ -304,7 +304,7 @@ base64decode(const void *restrict src, size_t srclen, void *restrict dst,
 #include <unistd.h>
 
 int
-main(int argc, char **argv)
+main(void)
 {
         while (true) {
                 uint8_t buf[4 * 100];
