@@ -1,6 +1,11 @@
 /*
  * return large enough buffer size to decode a srclen-bytes base64 string.
  * it can be a few bytes larger than the decoded data.
+ *
+ * this returns a large enough size even for an invalid base64 string.
+ * ie. a size larger than or equal to the max possible bytes which
+ * base64decode can write out to the dst buffer before it detects
+ * the encoding error and returns -1.
  */
 size_t base64decode_size(size_t srclen);
 
@@ -8,8 +13,9 @@ size_t base64decode_size(size_t srclen);
  * return the exact size of the decoded data
  *
  * this returns a large enough size even for an invalid base64 string.
- * (the max possible bytes which base64decode can write out to
- * the dst buffer before it detects the encoding error and returns -1.)
+ * ie. a size larger than or equal to the max possible bytes which
+ * base64decode can write out to the dst buffer before it detects
+ * the encoding error and returns -1.
  */
 size_t base64decode_size_exact(const void *src, size_t srclen);
 
