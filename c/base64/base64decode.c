@@ -38,18 +38,19 @@
 #define BASE64_ASSUME(cond) assert(cond)
 #endif
 
-static void
+static int
 storebe3(uint8_t dst[3], uint32_t x, unsigned int len)
 {
         dst[0] = x >> 16;
         if (len == 1) {
-                return;
+                return (x & 0xffff) != 0;
         }
         dst[1] = x >> 8;
         if (len == 2) {
-                return;
+                return (x & 0xff) != 0;
         }
         dst[2] = x;
+        return 0;
 }
 
 static uint8_t
@@ -243,7 +244,9 @@ dec4(const uint8_t p[4], uint8_t dst[3], unsigned int *lenp)
         x = byteswap(x);
 #endif
         x = shrink(x);
-        storebe3(dst, x, len);
+        if (storebe3(dst, x, len)) {
+                return -1;
+        }
         *lenp = len;
         return 0;
 }
@@ -333,6 +336,9 @@ tests(void)
         assert(!memcmp(dbuf, "xxxxx", 5));
         assert(base64decode("aa=a", 4, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("aaa=", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 3, "xx", 2));
+        memset(dbuf, 'x', 5);
         assert(base64decode("YQ==aaaa", 8, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf + 1, "xxxx", 4));
         memset(dbuf, 'x', 5);
