@@ -186,6 +186,7 @@ conv_from_char(uint8_t x)
 static uint32_t
 shrink(uint32_t x)
 {
+        BASE64_ASSERT((x & 0x80808080) == 0);
         return ((x & 0x3f000000) >> 6) | ((x & 0x003f0000) >> 4) |
                ((x & 0x00003f00) >> 2) | (x & 0x0000003f);
 }
