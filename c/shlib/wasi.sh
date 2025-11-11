@@ -3,7 +3,7 @@
 set -e
 set -x
 
-WASI_SDK=${WASI_SDK:-/opt/wasi-sdk-24.0}
+WASI_SDK=${WASI_SDK:-/opt/wasi-sdk-28.0}
 CC=${WASI_SDK}/bin/clang
 WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 
@@ -15,11 +15,12 @@ WASI_SYSROOT=${WASI_SDK}/share/wasi-sysroot
 #WASI_SYSROOT=/Users/yamamoto/git/wasi-libc/sysroot
 
 #LLVM_HOME=/Volumes/PortableSSD/llvm/llvm
-LLVM_HOME=/Volumes/PortableSSD/llvm/build
+#LLVM_HOME=/Volumes/PortableSSD/llvm/build
 #LLVM_HOME=/Volumes/PortableSSD/git/component-linking-demo/wasi-sdk/build/install/opt/wasi-sdk
 #RESOURCE_DIR=/Volumes/PortableSSD/llvm/llvm/lib/clang/17
-RESOURCE_DIR=${WASI_SDK}/lib/clang/18
-CC=${LLVM_HOME}/bin/clang
+#RESOURCE_DIR=${WASI_SDK}/lib/clang/18
+#CC=${LLVM_HOME}/bin/clang
+RESOURCE_DIR=$(${CC} -print-resource-dir)
 CFLAGS="${CFLAGS} --sysroot ${WASI_SYSROOT}"
 CFLAGS="${CFLAGS} -resource-dir ${RESOURCE_DIR}"
 
@@ -46,7 +47,8 @@ CLIBLINKFLAGS="-shared -fvisibility=default -Wl,--unresolved-symbols=import-dyna
 
 CPICFLAGS="${CFLAGS} -fPIC"
 
-${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -Wl,-mllvm,-debug -o libbar.so bar.c
+#${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -Wl,-mllvm,-debug -o libbar.so bar.c
+${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbar.so bar.c
 # see the comment in native.sh
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libfoo.so foo.c libbar.so
 ${CC} ${CPICFLAGS} ${CLINKFLAGS} ${CLIBLINKFLAGS} -o libbaz.so baz.c
@@ -90,8 +92,6 @@ ${PIC} \
 -Xlinker --export=__heap_end \
 -Xlinker --export=__stack_low \
 -Xlinker --export=__stack_high \
--Xlinker -mllvm \
--Xlinker -debug \
 -z stack-size=16384 \
 -o main.wasi.non-pie \
 main.c \
