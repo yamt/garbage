@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "base64decode.h"
+
 #if !defined(__has_builtin)
 #define __has_builtin(a) 0
 #endif
@@ -294,6 +296,8 @@ base64decode(const void *restrict src, size_t srclen, void *restrict dst,
         return 0;
 }
 
+#if defined(TEST)
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -322,3 +326,5 @@ main(int argc, char **argv)
                 write(STDOUT_FILENO, dbuf, dsize);
         }
 }
+
+#endif /* defined(TEST) */

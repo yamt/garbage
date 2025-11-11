@@ -2,6 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 
+#include "base64encode.h"
+
 #if !defined(__has_builtin)
 #define __has_builtin(a) 0
 #endif
@@ -114,7 +116,7 @@ enc3(const uint8_t p[3], char dst[4], unsigned int srclen)
 }
 
 size_t
-base64size(size_t srclen)
+base64encode_size(size_t srclen)
 {
         size_t bsz = (srclen + 2) / 3 * 4;
         BASE64_ASSUME(srclen / 3 == bsz / 4 || srclen / 3 + 1 == bsz / 4);
@@ -143,6 +145,8 @@ base64encode(const void *restrict src, size_t srclen, char *restrict dst)
         }
 }
 
+#if defined(TEST)
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -163,6 +167,8 @@ main(int argc, char **argv)
                         break;
                 }
                 base64encode(buf, ssz, ebuf);
-                write(STDOUT_FILENO, ebuf, base64size(ssz));
+                write(STDOUT_FILENO, ebuf, base64encode_size(ssz));
         }
 }
+
+#endif /* defined(TEST) */
