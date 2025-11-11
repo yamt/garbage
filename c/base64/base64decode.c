@@ -255,6 +255,10 @@ size_t
 base64decode_size_exact(const void *src, size_t srclen)
 {
         size_t sz = base64decode_size(srclen);
+        if (sz == 0 || sz / 3 * 4 != srclen) {
+                return sz; /* invalid base64 */
+        }
+        BASE64_ASSERT(srclen >= 4);
         const uint8_t *p = src;
         if (p[srclen - 1] == '=') {
                 if (p[srclen - 2] == '=') {
@@ -321,23 +325,28 @@ tests(void)
         assert(!memcmp(dbuf, "xxxxx", 5));
         assert(base64decode("====", 4, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("aa=a", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf, "xxxxx", 5));
         assert(base64decode("YQ==aaaa", 8, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
         assert(base64decode("YQ==aaaa", 4, dbuf, &dsize) == 0);
         assert(dsize == 1 && !memcmp(dbuf, "axxxx", 5));
+        memset(dbuf, 'x', 5);
         assert(base64decode("YWI=aaaa", 4, dbuf, &dsize) == 0);
         assert(dsize == 2 && !memcmp(dbuf, "abxxx", 5));
+        memset(dbuf, 'x', 5);
         assert(base64decode("YWJjaaaa", 4, dbuf, &dsize) == 0);
         assert(dsize == 3 && !memcmp(dbuf, "abcxx", 5));
 
         assert(base64decode_size(0) == 0);
-        assert(base64decode_size(1) == 0);
-        assert(base64decode_size(2) == 0);
-        assert(base64decode_size(3) == 0);
+        assert(base64decode_size(1) == 0); /* invalid base64 */
+        assert(base64decode_size(2) == 0); /* invalid base64 */
+        assert(base64decode_size(3) == 0); /* invalid base64 */
         assert(base64decode_size(4) == 3);
-        assert(base64decode_size(5) == 3);
-        assert(base64decode_size(6) == 3);
-        assert(base64decode_size(7) == 3);
+        assert(base64decode_size(5) == 3); /* invalid base64 */
+        assert(base64decode_size(6) == 3); /* invalid base64 */
+        assert(base64decode_size(7) == 3); /* invalid base64 */
         assert(base64decode_size(8) == 6);
 
         assert(base64decode_size_exact("", 0) == 0);
@@ -345,7 +354,11 @@ tests(void)
         assert(base64decode_size_exact("Y===", 4) == 1); /* invalid base64 */
         assert(base64decode_size_exact("YQ==", 4) == 1);
         assert(base64decode_size_exact("YWI=", 4) == 2);
+        assert(base64decode_size_exact("YW=I", 4) == 3); /* invalid base64 */
         assert(base64decode_size_exact("YWJj", 4) == 3);
+        assert(base64decode_size_exact("===", 3) == 0); /* invalid base64 */
+        assert(base64decode_size_exact("==", 2) == 0);  /* invalid base64 */
+        assert(base64decode_size_exact("=", 1) == 0);   /* invalid base64 */
         assert(base64decode_size_exact("YWJjZA==", 8) == 4);
 }
 

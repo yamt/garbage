@@ -1,6 +1,7 @@
 /*
  * return large enough buffer size to decode a srclen-bytes base64 string.
- * it can be a few bytes larger than the decoded data.
+ * it can be a few (0-2) bytes larger than what base64decode_size_exact()
+ * returns.
  *
  * this returns a large enough size even for an invalid base64 string.
  * ie. a size larger than or equal to the max possible bytes which
