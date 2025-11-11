@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -31,7 +32,11 @@
 #error endian is not known
 #endif
 
-#define BASE64_ASSERT(cond) __builtin_assume(cond)
+#if defined(NDEBUG)
+#define BASE64_ASSUME(cond) __builtin_assume(cond)
+#else
+#define BASE64_ASSUME(cond) assert(cond)
+#endif
 
 static void
 storebe3(uint8_t dst[3], uint32_t x, unsigned int len)
@@ -186,7 +191,7 @@ conv_from_char(uint8_t x)
 static uint32_t
 shrink(uint32_t x)
 {
-        BASE64_ASSERT((x & 0x80808080) == 0);
+        BASE64_ASSUME((x & 0x80808080) == 0);
         return ((x & 0x3f000000) >> 6) | ((x & 0x003f0000) >> 4) |
                ((x & 0x00003f00) >> 2) | (x & 0x0000003f);
 }
@@ -194,8 +199,8 @@ shrink(uint32_t x)
 static uint32_t
 byteswap(uint32_t x)
 {
-        return ((x << 24) & 0x3f000000) | ((x << 8) & 0x003f0000) |
-               ((x >> 8) & 0x00003f00) | ((x >> 24) & 0x0000003f);
+        return ((x << 24) & 0xff000000) | ((x << 8) & 0x00ff0000) |
+               ((x >> 8) & 0x0000ff00) | ((x >> 24) & 0x000000ff);
 }
 
 static int
@@ -233,6 +238,7 @@ dec4(const uint8_t p[4], uint8_t dst[3], unsigned int *lenp)
         if (convert_from_chars(&x, p, &len)) {
                 return -1;
         }
+        BASE64_ASSUME((x & 0x80808080) == 0);
 #if LITTLE_ENDIAN
         x = byteswap(x);
 #endif
@@ -259,7 +265,7 @@ base64decode_size_exact(const void *src, size_t srclen)
         if (sz == 0 || sz / 3 * 4 != srclen) {
                 return sz; /* invalid base64 */
         }
-        BASE64_ASSERT(srclen >= 4);
+        BASE64_ASSUME(srclen >= 4);
         const uint8_t *p = src;
         if (p[srclen - 1] == '=') {
                 if (p[srclen - 2] == '=') {
@@ -303,7 +309,6 @@ base64decode(const void *restrict src, size_t srclen, void *restrict dst,
 
 #if defined(TEST)
 
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

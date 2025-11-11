@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <string.h>
@@ -30,7 +31,11 @@
 #error endian is not known
 #endif
 
+#if defined(NDEBUG)
 #define BASE64_ASSUME(cond) __builtin_assume(cond)
+#else
+#define BASE64_ASSUME(cond) assert(cond)
+#endif
 
 static uint8_t
 conv_to_char(uint8_t x)
@@ -56,6 +61,7 @@ loadbe(const uint8_t p[3])
 static uint32_t
 expand(uint32_t x)
 {
+        BASE64_ASSUME((x & 0xff000000) == 0);
         return ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
                ((x << 2) & 0x00003f00) | (x & 0x0000003f);
 }
@@ -63,8 +69,8 @@ expand(uint32_t x)
 static uint32_t
 byteswap(uint32_t x)
 {
-        return ((x << 24) & 0x3f000000) | ((x << 8) & 0x003f0000) |
-               ((x >> 8) & 0x00003f00) | ((x >> 24) & 0x0000003f);
+        return ((x << 24) & 0xff000000) | ((x << 8) & 0x00ff0000) |
+               ((x >> 8) & 0x0000ff00) | ((x >> 24) & 0x000000ff);
 }
 
 static uint32_t
