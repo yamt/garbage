@@ -329,6 +329,24 @@ tests(void)
         assert(dsize == 2 && !memcmp(dbuf, "abxxx", 5));
         assert(base64decode("YWJjaaaa", 4, dbuf, &dsize) == 0);
         assert(dsize == 3 && !memcmp(dbuf, "abcxx", 5));
+
+        assert(base64decode_size(0) == 0);
+        assert(base64decode_size(1) == 0);
+        assert(base64decode_size(2) == 0);
+        assert(base64decode_size(3) == 0);
+        assert(base64decode_size(4) == 3);
+        assert(base64decode_size(5) == 3);
+        assert(base64decode_size(6) == 3);
+        assert(base64decode_size(7) == 3);
+        assert(base64decode_size(8) == 6);
+
+        assert(base64decode_size_exact("", 0) == 0);
+        assert(base64decode_size_exact("====", 4) == 1); /* invalid base64 */
+        assert(base64decode_size_exact("Y===", 4) == 1); /* invalid base64 */
+        assert(base64decode_size_exact("YQ==", 4) == 1);
+        assert(base64decode_size_exact("YWI=", 4) == 2);
+        assert(base64decode_size_exact("YWJj", 4) == 3);
+        assert(base64decode_size_exact("YWJjZA==", 8) == 4);
 }
 
 int
