@@ -298,14 +298,44 @@ base64decode(const void *restrict src, size_t srclen, void *restrict dst,
 
 #if defined(TEST)
 
+#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
+static void
+tests(void)
+{
+        char dbuf[5];
+        size_t dsize;
+        memset(dbuf, 'x', 5);
+        assert(base64decode("aaaa", 0, dbuf, &dsize) == 0);
+        assert(dsize == 0);
+        assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("=", 1, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("==", 2, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("===", 3, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("====", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf, "xxxxx", 5));
+        assert(base64decode("YQ==aaaa", 8, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        assert(base64decode("YQ==aaaa", 4, dbuf, &dsize) == 0);
+        assert(dsize == 1 && !memcmp(dbuf, "axxxx", 5));
+        assert(base64decode("YWI=aaaa", 4, dbuf, &dsize) == 0);
+        assert(dsize == 2 && !memcmp(dbuf, "abxxx", 5));
+        assert(base64decode("YWJjaaaa", 4, dbuf, &dsize) == 0);
+        assert(dsize == 3 && !memcmp(dbuf, "abcxx", 5));
+}
+
 int
 main(void)
 {
+        tests();
+
         while (true) {
                 uint8_t buf[4 * 100];
                 char dbuf[3 * 100];
