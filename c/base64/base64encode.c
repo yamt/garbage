@@ -76,6 +76,7 @@ byteswap(uint32_t x)
 static uint32_t
 convert(uint32_t x)
 {
+        BASE64_ASSUME((x & 0x80808080) == 0);
         union {
                 uint32_t u32;
                 uint8_t u8[4];
