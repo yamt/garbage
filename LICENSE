@@ -5,7 +5,7 @@ directory. It applies recursively and you might end up with this file,
 which means the following default license.
 
 /*-
- * Copyright (c)2022,2023,2024 YAMAMOTO Takashi,
+ * Copyright (c)2022,2023,2024,2025 YAMAMOTO Takashi,
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
