@@ -92,18 +92,21 @@ static uint32_t
 pad(uint32_t x, unsigned int srclen)
 {
         BASE64_ASSUME(srclen > 0 && srclen <= 3);
-        union {
-                uint32_t u32;
-                uint8_t u8[4];
-        } u;
-        u.u32 = x;
         if (srclen < 3) {
+                union {
+                        uint32_t u32;
+                        uint8_t u8[4];
+                } u;
+                u.u32 = x;
                 if (srclen == 1) {
+                        BASE64_ASSUME(u.u8[2] == 'A');
                         u.u8[2] = '=';
                 }
+                BASE64_ASSUME(u.u8[3] == 'A');
                 u.u8[3] = '=';
+                x = u.u32;
         }
-        return u.u32;
+        return x;
 }
 
 static void
