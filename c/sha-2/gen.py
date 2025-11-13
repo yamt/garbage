@@ -68,8 +68,14 @@ static uint64_t K[] = {
     print("};")
 
 
+def header():
+    print(open("LICENSE").read())
+
+
 mp.prec = 128
 if len(sys.argv) > 1 and sys.argv[1] == "sha512":
+    header()
     sha512_table()
 else:
+    header()
     sha256_table()
