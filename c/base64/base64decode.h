@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include <stddef.h>
+
 /*
  * this library does not rely on NUL termination of 'src'.
  * 'srclen' should not include the terminating NUL.

@@ -24,6 +24,8 @@
  * SUCH DAMAGE.
  */
 
+#include <stddef.h>
+
 /*
  * return the size of a base64 string to encode the srclen-sized data.
  *
