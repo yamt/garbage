@@ -364,8 +364,45 @@ tests(void)
         assert(!memcmp(dbuf, "xxxxx", 5));
         assert(base64decode("aa=a", 4, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf, "xxxxx", 5));
+
+        memset(dbuf, 'x', 5);
+        assert(base64decode("aa==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ab==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ac==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ad==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ae==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("af==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ag==", 4, dbuf, &dsize) == 0);
+        assert(dsize == 1 && !memcmp(dbuf, "\152xxxx", 5));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("ah==", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 1, "xxxx", 4));
+
+        memset(dbuf, 'x', 5);
         assert(base64decode("aaa=", 4, dbuf, &dsize) == -1);
-        assert(!memcmp(dbuf + 3, "xx", 2));
+        assert(!memcmp(dbuf + 2, "xxx", 3));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("aab=", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 2, "xxx", 3));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("aac=", 4, dbuf, &dsize) == 0);
+        assert(dsize == 2 && !memcmp(dbuf, "\151\247xxx", 5));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("aad=", 4, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 2, "xxx", 3));
+
         memset(dbuf, 'x', 5);
         assert(base64decode("YQ==aaaa", 8, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf + 1, "xxxx", 4));
@@ -394,6 +431,7 @@ tests(void)
         assert(base64decode_size_exact("Y===", 4) == 1); /* invalid base64 */
         assert(base64decode_size_exact("YQ==", 4) == 1);
         assert(base64decode_size_exact("YWI=", 4) == 2);
+        assert(base64decode_size_exact("aaa=", 4) == 2); /* invalid base64 */
         assert(base64decode_size_exact("YW=I", 4) == 3); /* invalid base64 */
         assert(base64decode_size_exact("YWJj", 4) == 3);
         assert(base64decode_size_exact("===", 3) == 0); /* invalid base64 */
