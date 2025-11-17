@@ -186,10 +186,10 @@ convert_from_chars(uint32_t *dst, const uint8_t p[4], unsigned int *lenp)
                 }
         }
         u.u32 = 0;
-        unsigned int j;
-        for (j = 0; j < len + 1; j++) {
-                u.u8[j] = conv_from_char(p[j]);
-                if (u.u8[j] == (uint8_t)-1) {
+        unsigned int i;
+        for (i = 0; i < len + 1; i++) {
+                u.u8[i] = conv_from_char(p[i]);
+                if (u.u8[i] == (uint8_t)-1) {
                         return -1;
                 }
         }
