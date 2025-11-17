@@ -34,7 +34,7 @@
 size_t base64encode_size(size_t srclen);
 
 /*
- * perform base64 encoding.
+ * encode a base64 string.
  *
  * dst should have enough room for the encoded string, which can be
  * calculated with base64encode_size().

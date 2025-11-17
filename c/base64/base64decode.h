@@ -34,7 +34,8 @@
 /*
  * return large enough buffer size to decode a srclen-bytes base64 string.
  * it can be a few (0-2) bytes larger than what base64decode_size_exact()
- * returns.
+ * returns. this function does never return a smaller value than
+ * base64decode_size_exact().
  *
  * this returns a large enough size even for an invalid base64 string.
  * ie. a size larger than or equal to the max possible bytes which
@@ -54,10 +55,16 @@ size_t base64decode_size(size_t srclen);
 size_t base64decode_size_exact(const void *src, size_t srclen);
 
 /*
- * perform base64 decoding
+ * decode a base64 string
  *
- * dst should have enough room.
- * return -1 on invalid encoding.
+ * return -1 on invalid encoding. in that case, this function might
+ * crobber the memory area pointed by dst, up to the size returned by
+ * base64decode_size_exact().
+ *
+ * otherwise,
+ *  - store the decoded bytes to the memory pointed by dst
+ *  - and the decoded size to the memory pointed by decoded_sizep
+ *  - and returns 0.
  */
 int base64decode(const void *restrict src, size_t srclen, void *restrict dst,
                  size_t *decoded_sizep);
