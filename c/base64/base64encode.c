@@ -30,38 +30,7 @@
 #include <string.h>
 
 #include "base64encode.h"
-
-#if !defined(__has_builtin)
-#define __has_builtin(a) 0
-#endif
-
-#if !__has_builtin(__builtin_assume)
-#define __builtin_assume(cond)
-#endif
-
-#if !defined(LITTLE_ENDIAN)
-#if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) &&                 \
-                                   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-#define LITTLE_ENDIAN 1
-#endif
-#endif
-
-#if !defined(LITTLE_ENDIAN)
-#if defined(__BIG_ENDIAN__) ||                                                \
-        (defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__)
-#define LITTLE_ENDIAN 0
-#endif
-#endif
-
-#if !defined(LITTLE_ENDIAN)
-#error endian is not known
-#endif
-
-#if defined(NDEBUG)
-#define BASE64_ASSUME(cond) __builtin_assume(cond)
-#else
-#define BASE64_ASSUME(cond) assert(cond)
-#endif
+#include "base64impl.h"
 
 static uint8_t
 conv_to_char(uint8_t x)
@@ -86,13 +55,6 @@ expand(uint32_t x)
         BASE64_ASSUME((x & 0xff000000) == 0);
         return ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
                ((x << 2) & 0x00003f00) | (x & 0x0000003f);
-}
-
-static uint32_t
-byteswap(uint32_t x)
-{
-        return ((x << 24) & 0xff000000) | ((x << 8) & 0x00ff0000) |
-               ((x >> 8) & 0x0000ff00) | ((x >> 24) & 0x000000ff);
 }
 
 static uint32_t
