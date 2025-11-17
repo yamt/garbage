@@ -66,8 +66,10 @@ static uint32_t
 shrink(uint32_t x)
 {
         BASE64_ASSUME((x & 0x80808080) == 0);
-        return ((x & 0x3f000000) >> 6) | ((x & 0x003f0000) >> 4) |
-               ((x & 0x00003f00) >> 2) | (x & 0x0000003f);
+        uint32_t t = ((x & 0x3f000000) >> 6) | ((x & 0x003f0000) >> 4) |
+                     ((x & 0x00003f00) >> 2) | (x & 0x0000003f);
+        BASE64_ASSUME((t & 0xff000000) == 0);
+        return t;
 }
 
 static int
@@ -87,10 +89,12 @@ convert_from_chars(uint32_t *dst, const uint8_t p[4], unsigned int *lenp)
         u.u32 = 0;
         unsigned int i;
         for (i = 0; i < len + 1; i++) {
-                u.u8[i] = conv_from_char(p[i]);
-                if (u.u8[i] == (uint8_t)-1) {
+                uint8_t t = conv_from_char(p[i]);
+                BASE64_ASSUME(t == (uint8_t)-1 || (0 <= t && t <= 63));
+                if (t == (uint8_t)-1) {
                         return -1;
                 }
+                u.u8[i] = t;
         }
         *lenp = len;
         *dst = u.u32; /* host endian */
@@ -106,10 +110,13 @@ dec4(const uint8_t p[4], uint8_t dst[3], unsigned int *lenp)
                 return -1;
         }
         BASE64_ASSUME((x & 0x80808080) == 0);
+        BASE64_ASSUME(1 <= len && len <= 3);
 #if LITTLE_ENDIAN
         x = byteswap(x);
 #endif
+        BASE64_ASSUME((x & 0x80808080) == 0);
         x = shrink(x);
+        BASE64_ASSUME((x & 0xff000000) == 0);
         if (storebe3(dst, x, len)) {
                 return -1;
         }

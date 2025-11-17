@@ -53,8 +53,10 @@ static uint32_t
 expand(uint32_t x)
 {
         BASE64_ASSUME((x & 0xff000000) == 0);
-        return ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
+        uint32_t t = ((x << 6) & 0x3f000000) | ((x << 4) & 0x003f0000) |
                ((x << 2) & 0x00003f00) | (x & 0x0000003f);
+        BASE64_ASSUME((t & 0x80808080) == 0);
+        return t;
 }
 
 static uint32_t
