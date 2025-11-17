@@ -69,7 +69,7 @@ conv_to_char(uint8_t x)
         BASE64_ASSUME(x < 64);
 #define E(a, b) [b] = a,
         static const char table[64] = {
-#include "base64_chars.h"
+#include "base64chars.h"
         };
         return table[x];
 }

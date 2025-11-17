@@ -88,7 +88,7 @@ conv_from_char(uint8_t x)
         case a:                                                               \
                 return b;
         switch (x) {
-#include "base64_chars.h"
+#include "base64chars.h"
         };
         return -1;
 }
