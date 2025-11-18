@@ -1,3 +1,5 @@
+#include <stddef.h>
+
 #if !defined(BASE) && !defined(BASE_BITS)
 #define BASE_BITS 32
 #endif
@@ -28,8 +30,8 @@ typedef uint64_t coeff_t;
 #endif
 
 struct bigint {
-        unsigned int n;
-        unsigned int max;
+        size_t n;
+        size_t max;
         coeff_t *d;
 };
 

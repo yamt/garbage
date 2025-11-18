@@ -38,7 +38,7 @@ const struct bigint g_ten = BIGINT_INITIALIZER(1, 10);
 #endif
 
 static coeff_t
-dig(const struct bigint *a, unsigned int i)
+dig(const struct bigint *a, size_t i)
 {
         if (i < a->n) {
                 return a->d[i];
@@ -239,10 +239,13 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
 static int
-bigint_alloc(struct bigint *a, unsigned int max_digits)
+bigint_alloc(struct bigint *a, size_t max_digits)
 {
         if (max_digits <= a->max) {
                 return 0;
+        }
+        if (max_digits > SIZE_MAX / sizeof(*a->d)) {
+                return EOVERFLOW;
         }
         void *p = realloc(a->d, sizeof(*a->d) * max_digits);
         if (p == NULL) {
@@ -277,7 +280,7 @@ is_normal(const struct bigint *a)
                 // printf("d[%u] = %zd\n", a->n - 1, (intmax_t)a->d[a->n - 1]);
                 return false;
         }
-        unsigned int i;
+        size_t i;
         for (i = 0; i < a->n; i++) {
                 if (a->d[i] < 0) {
                         // printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
@@ -300,8 +303,8 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
         if (a->n < b->n) {
                 return -1;
         }
-        unsigned int n = a->n;
-        unsigned int i;
+        size_t n = a->n;
+        size_t i;
         for (i = 0; i < n; i++) {
                 coeff_t av = a->d[n - 1 - i];
                 coeff_t bv = b->d[n - 1 - i];
@@ -318,8 +321,8 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
 int
 bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
-        unsigned int n = (a->n > b->n) ? a->n : b->n;
-        unsigned int i;
+        size_t n = (a->n > b->n) ? a->n : b->n;
+        size_t i;
         int ret;
 
         BIGINT_ALLOC(c, n + 1);
@@ -340,8 +343,8 @@ fail:
 int
 bigint_sub(struct bigint *c, const struct bigint *a, const struct bigint *b)
 {
-        unsigned int n = a->n;
-        unsigned int i;
+        size_t n = a->n;
+        size_t i;
         int ret;
 
         assert(bigint_cmp(a, b) >= 0);
@@ -372,7 +375,7 @@ mul1(struct bigint *c, const struct bigint *a, coeff_t n)
         }
         assert(a->n < c->max || a->n == 0 ||
                a->d[a->n - 1] * n <= COEFF_TYPE_MAX);
-        unsigned int i;
+        size_t i;
         coeff_t carry = 0;
         for (i = 0; i < a->n; i++) {
                 c->d[i] = coeff_mul(&carry, a->d[i], n, carry);
@@ -403,11 +406,15 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
         COPY_IF(c == b, b, b0);
         assert(c != a);
         assert(c != b);
+        if (a->n > SIZE_MAX - 1 || b->n > SIZE_MAX - 1 - a->n) {
+                ret = EOVERFLOW;
+                goto fail;
+        }
         BIGINT_ALLOC(c, a->n + b->n + 1);
         BIGINT_ALLOC(&t, a->n + 1);
         mul1(c, a, b->d[0]);
         assert(is_normal(c));
-        unsigned int i;
+        size_t i;
         for (i = 1; i < b->n; i++) {
                 if (b->d[i] == 0) {
                         continue;
@@ -418,7 +425,7 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
                 assert(c->n <= i + t.n);
                 assert(i + t.n <= c->max);
                 coeff_t carry = 0;
-                unsigned int j;
+                size_t j;
                 for (j = 0; j < t.n; j++) {
                         c->d[i + j] = coeff_addc(dig(c, i + j), t.d[j], carry,
                                                  &carry);
@@ -457,6 +464,10 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
         }
         if (k > 0) {
                 if (a->n > 0) {
+                        if (a->n > SIZE_MAX - 1) {
+                                ret = EOVERFLOW;
+                                goto fail;
+                        }
                         BIGINT_ALLOC(a, a->n + 1);
                 }
                 mul1(a, a, (coeff_t)1 << k);
@@ -468,7 +479,7 @@ fail:
 }
 
 static int
-shift_left_words(struct bigint *d, const struct bigint *s, unsigned int n)
+shift_left_words(struct bigint *d, const struct bigint *s, size_t n)
 {
         assert(d != s);
         assert(is_normal(s));
@@ -477,8 +488,11 @@ shift_left_words(struct bigint *d, const struct bigint *s, unsigned int n)
                 return 0;
         }
         int ret;
+        if (n > SIZE_MAX - s->n) {
+                return EOVERFLOW;
+        }
         BIGINT_ALLOC(d, s->n + n);
-        unsigned int i;
+        size_t i;
         for (i = 0; i < n; i++) {
                 d->d[i] = 0;
         }
@@ -518,15 +532,17 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         if (ret != 0) {
                 goto fail;
         }
-        unsigned int n = b.n;
+        size_t n = b.n;
         assert(r->n >= n);
-        unsigned int m = r->n - n;
+        size_t m = r->n - n;
 #if !defined(NDEBUG)
         /* assert(r < 2 * (BASE ** m) * b) */
         SHIFT_LEFT_WORDS(&tmp, &b, m);
         BIGINT_ADD(&tmp, &tmp, &tmp);
         assert(bigint_cmp(r, &tmp) < 0);
 #endif
+        assert(n > 0);
+        assert(m < SIZE_MAX);
         BIGINT_ALLOC(q, m + 1);
         SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (BASE ** m) * b */
         if (bigint_cmp(r, &tmp) >= 0) {
@@ -537,7 +553,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                 q->n = m;
         }
         for (; m > 0; m--) {
-                unsigned int j = m - 1;
+                size_t j = m - 1;
 #if !defined(NDEBUG) && 0
                 /* assert(r < (BASE ** (j + 1)) * b) */
                 SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
@@ -588,7 +604,7 @@ bigint_set(struct bigint *d, const struct bigint *s)
 {
         int ret;
         BIGINT_ALLOC(d, s->n);
-        unsigned int i;
+        size_t i;
         for (i = 0; i < s->n; i++) {
                 d->d[i] = s->d[i];
         }
@@ -677,7 +693,7 @@ bigint_from_str(struct bigint *a, const char *p)
         size_t n = strlen(p);
         int ret;
         BIGINT_ALLOC(a, n);
-        unsigned int i;
+        size_t i;
         for (i = 0; i < n; i++) {
                 a->d[i] = p[n - i - 1] - '0';
         }
@@ -694,7 +710,7 @@ fail:
 
         BIGINT_DEFINE(tmp);
         a->n = 0; /* a = 0 */
-        unsigned int i;
+        size_t i;
         for (i = 0; i < n; i++) {
                 BIGINT_MUL(&tmp, a, &g_ten);     /* tmp = a * 10 */
                 BIGINT_SET_UINT1(a, p[i] - '0'); /* a = digit */
@@ -719,6 +735,7 @@ estimate_ndigits(const struct bigint *a)
         return a->n;
 #else
         /* l(10) = 2.30258509299404568401 */
+        /* XXX check overflow */
         return a->n * LOG_BASE / 2.30258509299404568401 + 1;
 #endif
 }
@@ -727,7 +744,7 @@ char *
 bigint_to_str(const struct bigint *a)
 {
         assert(is_normal(a));
-        size_t sz = estimate_ndigits(a) + 1;
+        size_t sz = estimate_ndigits(a) + 1; /* XXX check overflow */
         char *p = malloc(sz);
         if (p == NULL) {
                 return NULL;
@@ -738,7 +755,7 @@ bigint_to_str(const struct bigint *a)
                 return p;
         }
 #if BASE == 10
-        unsigned int i;
+        size_t i;
         for (i = 0; i < a->n; i++) {
                 p[i] = a->d[a->n - i - 1] + '0';
         }
@@ -749,7 +766,7 @@ bigint_to_str(const struct bigint *a)
         BIGINT_DEFINE(r);
         int ret;
 
-        unsigned int n = sz;
+        size_t n = sz;
         BIGINT_SET(&q, a);
         p[--n] = 0;
         do {
@@ -797,7 +814,7 @@ gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
         const struct bigint *b = b0;
         BIGINT_DEFINE(q);
         struct bigint t[3];
-        unsigned int i;
+        size_t i;
         int ret;
 
         for (i = 0; i < 3; i++) {
