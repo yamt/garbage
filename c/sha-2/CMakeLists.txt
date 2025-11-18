@@ -14,9 +14,27 @@ endif()
 #add_link_options(-fsanitize=undefined)
 
 add_library(sha256 sha256.c)
+set_property(TARGET sha256 PROPERTY PUBLIC_HEADER sha256.h)
+target_include_directories(sha256
+                           INTERFACE
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           $<INSTALL_INTERFACE:include>)
+install(TARGETS sha256
+        EXPORT sha256
+        PUBLIC_HEADER DESTINATION include)
+
 add_executable(sha256_cli sha256_cli.c sha256)
 add_executable(sha256_test sha256_test.c sha256)
 
 add_library(sha512 sha512.c)
+set_property(TARGET sha512 PROPERTY PUBLIC_HEADER sha512.h)
+target_include_directories(sha512
+                           INTERFACE
+                           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                           $<INSTALL_INTERFACE:include>)
+install(TARGETS sha512
+        EXPORT sha512
+        PUBLIC_HEADER DESTINATION include)
+
 add_executable(sha512_cli sha512_cli.c sha512)
 add_executable(sha512_test sha512_test.c sha512)
