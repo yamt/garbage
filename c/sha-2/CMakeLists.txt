@@ -6,7 +6,9 @@ set(CMAKE_C_STANDARD 90)
 set(CMAKE_C_STANDARD_REQUIRED NO)
 set(CMAKE_C_EXTENSIONS NO)
 
+if(CMAKE_C_COMPILER_ID MATCHES "Clang" OR CMAKE_C_COMPILER_ID STREQUAL GNU)
 add_compile_options(-Wall -Wvla -Wdouble-promotion -Werror)
+endif()
 
 #add_compile_options(-fsanitize=undefined)
 #add_link_options(-fsanitize=undefined)
