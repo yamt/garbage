@@ -607,6 +607,62 @@ fail:
 }
 
 int
+bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k)
+{
+        assert(bigint_cmp(m, &g_zero) > 0);
+        assert(k >= 2);
+        BIGINT_DEFINE(m1);
+        BIGINT_DEFINE(bk);
+        BIGINT_DEFINE(bk_minus_1);
+        BIGINT_DEFINE(u);
+        BIGINT_DEFINE(tmp);
+        BIGINT_DEFINE(unused);
+        int ret;
+        COPY_IF(s == m, m, m1);
+        BIGINT_SET_UINT(&bk, k);
+        BIGINT_SET_UINT(&bk_minus_1, k - 1);
+        BIGINT_SET(&u, m);
+        do {
+                BIGINT_SET(s, &u);
+                BIGINT_MUL(&u, &u, &bk_minus_1);
+                /* tmp = m / (s ^ (k - 1)) */
+                BIGINT_SET(&tmp, m);
+                unsigned int i;
+                for (i = 0; i < k - 1; i++) {
+                        BIGINT_DIVREM(&tmp, &unused, &tmp, s);
+                }
+                BIGINT_ADD(&u, &u, &tmp);
+                BIGINT_DIVREM(&u, &unused, &u, &bk);
+        } while (bigint_cmp(&u, s) < 0);
+        ret = 0;
+fail:
+        bigint_clear(&bk);
+        bigint_clear(&bk_minus_1);
+        bigint_clear(&u);
+        bigint_clear(&tmp);
+        bigint_clear(&unused);
+        bigint_clear(&m1);
+        return ret;
+}
+
+int
+bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k)
+{
+        BIGINT_DEFINE(m1);
+        unsigned int i;
+        int ret;
+        COPY_IF(s == m, m, m1);
+        BIGINT_SET_UINT(s, 1);
+        for (i = 0; i < k; i++) {
+                BIGINT_MUL(s, s, m);
+        }
+        ret = 0;
+fail:
+        bigint_clear(&m1);
+        return ret;
+}
+
+int
 bigint_set(struct bigint *d, const struct bigint *s)
 {
         int ret;
@@ -1154,6 +1210,30 @@ main(void)
         assert(ret == 0);
         assert(bigint_cmp(&q, &g_one) == 0);
         assert(bigint_cmp(&r, &g_zero) == 0);
+
+        /* rootint */
+        unsigned int k;
+        for (k = 2; k < 100; k++) {
+                uint64_t start_time = timestamp();
+                print_bigint("a                             = ", &a);
+                printf("k                             = %u\n", k);
+                ret = bigint_rootint(&q, &a, k);
+                assert(ret == 0);
+                print_bigint("rootint(a, k)                 = ", &q);
+                ret = bigint_powint(&tmp, &q, k);
+                assert(ret == 0);
+                print_bigint("powint(rootint(a, k), k)      = ", &tmp);
+                assert(bigint_cmp(&tmp, &a) <= 0);
+                ret = bigint_add(&tmp, &q, &g_one);
+                assert(ret == 0);
+                ret = bigint_powint(&tmp, &tmp, k);
+                assert(ret == 0);
+                print_bigint("powint(rootint(a, k) + 1), k) = ", &tmp);
+                assert(bigint_cmp(&tmp, &a) > 0);
+                uint64_t end_time = timestamp();
+                printf("took %.03f sec\n",
+                       (double)(end_time - start_time) / 1000000000);
+        }
 
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);

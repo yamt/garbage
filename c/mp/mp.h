@@ -54,6 +54,8 @@ int bigint_mul(struct bigint *c, const struct bigint *a,
                const struct bigint *b);
 int bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                   const struct bigint *b);
+int bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k);
+int bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k);
 
 int bigint_set(struct bigint *d, const struct bigint *s);
 int bigint_set_uint(struct bigint *a, uintmax_t v);
