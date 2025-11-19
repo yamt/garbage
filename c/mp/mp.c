@@ -646,7 +646,7 @@ bigint_set_uint(struct bigint *a, uintmax_t v)
         int ret;
         BIGINT_DEFINE(t);
         BIGINT_DEFINE(bb);
-        bigint_set_zero(a);
+        bigint_set_zero(a);       /* a = 0 */
         BIGINT_SET_UINT1(&bb, 1); /* bb = 1 */
         while (true) {
                 coeff_t d = v % BASE;
@@ -664,6 +664,7 @@ fail:
         bigint_clear(&bb);
         return ret;
 #else
+        assert(v <= COEFF_MAX);
         return bigint_set_uint1(a, v);
 #endif
 }
