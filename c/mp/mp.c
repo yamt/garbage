@@ -404,29 +404,36 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
         int ret;
         COPY_IF(c == a, a, a0);
         COPY_IF(c == b, b, b0);
-        assert(c != a);
-        assert(c != b);
         if (a->n > SIZE_MAX - 1 || b->n > SIZE_MAX - 1 - a->n) {
                 ret = EOVERFLOW;
                 goto fail;
         }
         BIGINT_ALLOC(c, a->n + b->n + 1);
         BIGINT_ALLOC(&t, a->n + 1);
+        /*
+         * initialize with 0, as b->d might contain 0s, for which
+         * the following logic can leave the corresponding c->d elements
+         * uninitialized.
+         */
+        memset(c->d, 0, c->max);
         mul1(c, a, b->d[0]);
         assert(is_normal(c));
         size_t i;
         for (i = 1; i < b->n; i++) {
+                assert(i < b->n);
                 if (b->d[i] == 0) {
                         continue;
                 }
                 mul1(&t, a, b->d[i]);
                 assert(is_normal(&t));
-                /* c += (t << (base * i)) */
+                /* c += t * (base ^ i) */
                 assert(c->n <= i + t.n);
                 assert(i + t.n <= c->max);
                 coeff_t carry = 0;
                 size_t j;
                 for (j = 0; j < t.n; j++) {
+                        assert(i + j < c->max);
+                        assert(j < t.n);
                         c->d[i + j] = coeff_addc(dig(c, i + j), t.d[j], carry,
                                                  &carry);
                 }
@@ -947,6 +954,7 @@ main(void)
                 "21434109785019758904721590874321400983729087987654";
         struct bigint a;
         struct bigint b;
+        struct bigint c;
         struct bigint s;
         struct bigint d;
         struct bigint prod;
@@ -1030,6 +1038,7 @@ main(void)
 
         bigint_init(&a);
         bigint_init(&b);
+        bigint_init(&c);
         bigint_init(&s);
         bigint_init(&d);
         bigint_init(&prod);
@@ -1084,6 +1093,28 @@ main(void)
         assert(bigint_cmp(&d, &g_zero) == 0);
 
         /* mul */
+        ret = bigint_from_str(&c, "111398900663392315947914998");
+        assert(ret == 0);
+        ret = bigint_mul(&prod, &c, &c);
+        assert(ret == 0);
+        assert_eq(&prod,
+                  "12409715069012348970189741000142675791423583433340004");
+        ret = bigint_mul(&prod, &g_one, &c);
+        assert(ret == 0);
+        print_bigint("c     = ", &c);
+        print_bigint("1 * c = ", &prod);
+        assert(bigint_cmp(&prod, &c) == 0);
+        ret = bigint_mul(&prod, &g_one, &g_one);
+        assert(ret == 0);
+        assert(bigint_cmp(&prod, &g_one) == 0);
+        ret = bigint_mul(&prod, &c, &g_one);
+        assert(ret == 0);
+        assert(bigint_cmp(&prod, &c) == 0);
+        ret = bigint_mul(&prod, &c, &c);
+        assert(ret == 0);
+        assert_eq(&prod,
+                  "12409715069012348970189741000142675791423583433340004");
+
         ret = bigint_mul(&prod, &a, &b);
         assert(ret == 0);
         ret = bigint_divrem(&q, &r, &prod, &a);
@@ -1150,6 +1181,7 @@ main(void)
 
         bigint_clear(&a);
         bigint_clear(&b);
+        bigint_clear(&c);
         bigint_clear(&s);
         bigint_clear(&d);
         bigint_clear(&prod);
