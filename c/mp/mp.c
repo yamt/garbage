@@ -1019,6 +1019,9 @@ main(void)
         assert(is_normal(&g_one));
         assert(is_normal(&g_ten));
         assert(is_normal(&g_base));
+        assert_eq(&g_zero, "0");
+        assert_eq(&g_one, "1");
+        assert_eq(&g_ten, "10");
 
         test_str_roundtrip("0");
         test_str_roundtrip("100000000000000000000000");
@@ -1046,6 +1049,28 @@ main(void)
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) > 0);
         assert(bigint_cmp(&b, &a) < 0);
+
+        ret = bigint_set_uint(&tmp, COEFF_MAX);
+        assert(ret == 0);
+        ret = bigint_add(&tmp, &tmp, &g_one);
+        assert(ret == 0);
+        assert(!bigint_cmp(&g_base, &tmp));
+
+        ret = bigint_set_uint(&tmp, 0);
+        assert(ret == 0);
+        assert_eq(&tmp, "0");
+        ret = bigint_set_uint(&tmp, 9);
+        assert(ret == 0);
+        assert_eq(&tmp, "9");
+        ret = bigint_set_uint(&tmp, 10);
+        assert(ret == 0);
+        assert_eq(&tmp, "10");
+        ret = bigint_set_uint(&tmp, 11);
+        assert(ret == 0);
+        assert_eq(&tmp, "11");
+        ret = bigint_set_uint(&tmp, 100);
+        assert(ret == 0);
+        assert_eq(&tmp, "100");
 
         /* add and sub */
         bigint_add(&s, &a, &b);
