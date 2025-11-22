@@ -650,17 +650,25 @@ fail:
 int
 bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k)
 {
-        BIGINT_DEFINE(m1);
-        unsigned int i;
+        BIGINT_DEFINE(tmp);
         int ret;
-        COPY_IF(s == m, m, m1);
+        BIGINT_SET(&tmp, m);
         BIGINT_SET_UINT(s, 1);
-        for (i = 0; i < k; i++) {
-                BIGINT_MUL(s, s, m);
+        if (k != 0) {
+                while (true) {
+                        if ((k & 1) != 0) {
+                                BIGINT_MUL(s, s, &tmp);
+                        }
+                        k >>= 1;
+                        if (k == 0) {
+                                break;
+                        }
+                        BIGINT_MUL(&tmp, &tmp, &tmp);
+                }
         }
         ret = 0;
 fail:
-        bigint_clear(&m1);
+        bigint_clear(&tmp);
         return ret;
 }
 
