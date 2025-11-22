@@ -618,6 +618,7 @@ bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k)
         BIGINT_DEFINE(bk_minus_1);
         BIGINT_DEFINE(u);
         BIGINT_DEFINE(tmp);
+        BIGINT_DEFINE(tmp2);
         BIGINT_DEFINE(unused);
         int ret;
         COPY_IF(s == m, m, m1);
@@ -629,10 +630,8 @@ bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k)
                 BIGINT_MUL(&u, &u, &bk_minus_1);
                 /* tmp = m / (s ^ (k - 1)) */
                 BIGINT_SET(&tmp, m);
-                unsigned int i;
-                for (i = 0; i < k - 1; i++) {
-                        BIGINT_DIVREM(&tmp, &unused, &tmp, s);
-                }
+                BIGINT_POWINT(&tmp2, s, k - 1);
+                BIGINT_DIVREM(&tmp, &unused, &tmp, &tmp2);
                 BIGINT_ADD(&u, &u, &tmp);
                 BIGINT_DIVREM(&u, &unused, &u, &bk);
         } while (bigint_cmp(&u, s) < 0);
@@ -642,6 +641,7 @@ fail:
         bigint_clear(&bk_minus_1);
         bigint_clear(&u);
         bigint_clear(&tmp);
+        bigint_clear(&tmp2);
         bigint_clear(&unused);
         bigint_clear(&m1);
         return ret;
