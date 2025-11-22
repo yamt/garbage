@@ -249,16 +249,22 @@ tests(void)
         assert(!memcmp(dbuf + 2, "xxx", 3));
 
         memset(dbuf, 'x', 5);
-        assert(base64decode("YQ==aaaa", 8, dbuf, &dsize) == -1);
+        assert(base64decode("YQ==QQ==", 8, dbuf, &dsize) == -1);
         assert(!memcmp(dbuf + 1, "xxxx", 4));
         memset(dbuf, 'x', 5);
-        assert(base64decode("YQ==aaaa", 4, dbuf, &dsize) == 0);
+        assert(base64decode("YQ==QQ==", 4, dbuf, &dsize) == 0);
         assert(dsize == 1 && !memcmp(dbuf, "axxxx", 5));
         memset(dbuf, 'x', 5);
-        assert(base64decode("YWI=aaaa", 4, dbuf, &dsize) == 0);
+        assert(base64decode("YWI=QQ==", 8, dbuf, &dsize) == -1);
+        assert(!memcmp(dbuf + 2, "xxx", 3));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("YWI=QQ==", 4, dbuf, &dsize) == 0);
         assert(dsize == 2 && !memcmp(dbuf, "abxxx", 5));
         memset(dbuf, 'x', 5);
-        assert(base64decode("YWJjaaaa", 4, dbuf, &dsize) == 0);
+        assert(base64decode("YWJjQQ==", 8, dbuf, &dsize) == 0);
+        assert(dsize == 4 && !memcmp(dbuf, "abcAx", 5));
+        memset(dbuf, 'x', 5);
+        assert(base64decode("YWJjQQ==", 4, dbuf, &dsize) == 0);
         assert(dsize == 3 && !memcmp(dbuf, "abcxx", 5));
 
         assert(base64decode_size(0) == 0);
