@@ -235,6 +235,8 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_SUB_NOFAIL(a, b, c) NO_ERROR(bigint_sub(a, b, c))
 #define BIGINT_MUL(a, b, c) HANDLE_ERROR(bigint_mul(a, b, c))
 #define BIGINT_DIVREM(a, b, c, d) HANDLE_ERROR(bigint_divrem(a, b, c, d))
+#define BIGINT_ROOTINT(a, b, c) HANDLE_ERROR(bigint_rootint(a, b, c))
+#define BIGINT_POWINT(a, b, c) HANDLE_ERROR(bigint_powint(a, b, c))
 #define BIGINT_MUL_UINT1(a, b, c) HANDLE_ERROR(bigint_mul_uint1(a, b, c))
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
