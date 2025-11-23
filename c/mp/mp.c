@@ -1459,6 +1459,29 @@ main(void)
         assert(bigint_cmp(&q, &a) == 0);
         assert(bigint_cmp(&r, &g_zero) == 0);
 
+        ret = bigint_from_hex_str(&tmp, "100000000000000000000000000000000");
+        assert(ret == 0);
+        ret = bigint_from_str(&tmp2,
+                              "340282366920938463463374607431768211456");
+        assert(ret == 0);
+        assert(bigint_cmp(&tmp, &tmp2) == 0);
+        int i;
+        for (i = 1; i < 10; i++) {
+                ret = bigint_set_uint(&tmp, i);
+                assert(ret == 0);
+                memset(tmp.d + tmp.n, 0xaa, tmp.max - tmp.n); /* poison */
+                ret = bigint_mul(&tmp, &tmp, &tmp2);
+                assert(ret == 0);
+                {
+                        char *p = bigint_to_hex_str(&tmp);
+                        assert(p != NULL);
+                        printf("p %s\n", p);
+                        assert(!strcmp(p + 1,
+                                       "00000000000000000000000000000000"));
+                        bigint_str_free(p);
+                }
+        }
+
         /* divrem */
         ret = bigint_divrem(&q, &r, &a, &g_one);
         assert(ret == 0);
