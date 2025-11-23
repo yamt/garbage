@@ -233,6 +233,7 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
+#define BIGINT_FROM_STR(a, b) HANDLE_ERROR(bigint_from_str(a, b))
 #define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
 #define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
 #define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
