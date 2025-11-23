@@ -233,6 +233,7 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
 #define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
+#define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
 #define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
 #define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
 #define BIGINT_ADD(a, b, c) HANDLE_ERROR(bigint_add(a, b, c))
@@ -733,6 +734,58 @@ fail:
 }
 
 int
+bigint_to_uint1(const struct bigint *a, coeff_t *vp)
+{
+        if (a->n == 0) {
+                *vp = 0;
+                return 0;
+        }
+        if (a->n > 1) {
+                return EOVERFLOW;
+        }
+        if (a->d[0] > COEFF_MAX) {
+                return EOVERFLOW;
+        }
+        *vp = a->d[0];
+        return 0;
+}
+
+int
+bigint_to_uint(const struct bigint *a, uintmax_t *vp)
+{
+#if COEFF_MAX >= UINTMAX_MAX
+        coeff_t c;
+        int ret = bigint_to_uint1(a, &c);
+        if (ret == 0) {
+                *vp = c;
+        }
+        return ret;
+#else
+        uintmax_t v = 0;
+        size_t i;
+        for (i = 0; i < a->n; i++) {
+#if defined(BASE)
+                if (UINTMAX_MAX / BASE < v) {
+                        return EOVERFLOW;
+                }
+                v *= BASE;
+#else
+                if ((UINTMAX_MAX >> COEFF_BITS) < v) {
+                        return EOVERFLOW;
+                }
+                v <<= COEFF_BITS;
+#endif
+                if (UINTMAX_MAX - v < (uintmax_t)a->d[i]) {
+                        return EOVERFLOW;
+                }
+                v += a->d[a->n - i - 1];
+        }
+        *vp = v;
+        return 0;
+#endif
+}
+
+int
 bigint_mul_uint1(struct bigint *d, const struct bigint *a, coeff_t b)
 {
         assert(b <= COEFF_MAX);
@@ -757,6 +810,104 @@ bigint_set_zero(struct bigint *a)
         assert(bigint_is_zero(a));
 }
 
+static int
+digit_from_chr(char ch, unsigned int *p)
+{
+        unsigned int x;
+        switch (ch) {
+        case '0':
+                x = 0;
+                break;
+        case '1':
+                x = 1;
+                break;
+        case '2':
+                x = 2;
+                break;
+        case '3':
+                x = 3;
+                break;
+        case '4':
+                x = 4;
+                break;
+        case '5':
+                x = 5;
+                break;
+        case '6':
+                x = 6;
+                break;
+        case '7':
+                x = 7;
+                break;
+        case '8':
+                x = 8;
+                break;
+        case '9':
+                x = 9;
+                break;
+        case 'a':
+                x = 10;
+                break;
+        case 'b':
+                x = 11;
+                break;
+        case 'c':
+                x = 12;
+                break;
+        case 'd':
+                x = 13;
+                break;
+        case 'e':
+                x = 14;
+                break;
+        case 'f':
+                x = 15;
+                break;
+        default:
+                return EINVAL;
+        }
+        *p = x;
+        return 0;
+}
+
+static char
+digit_chr(unsigned int x)
+{
+        assert(x < 16);
+        return "0123456789abcdef"[x];
+}
+
+int
+bigint_from_str_base(struct bigint *a, const struct bigint *base,
+                     const char *p)
+{
+        size_t n = strlen(p);
+        int ret;
+
+        BIGINT_DEFINE(tmp);
+        a->n = 0; /* a = 0 */
+        size_t i;
+        for (i = 0; i < n; i++) {
+                BIGINT_MUL(&tmp, a, base); /* tmp = a * base */
+                unsigned int x;
+                ret = digit_from_chr(p[i], &x);
+                if (ret != 0) {
+                        goto fail;
+                }
+                BIGINT_SET_UINT1(a, x); /* a = digit */
+                if (bigint_cmp(a, base) >= 0) {
+                        ret = EINVAL;
+                        goto fail;
+                }
+                BIGINT_ADD(a, a, &tmp); /* a = a + tmp */
+        }
+        ret = 0;
+        assert(is_normal(a));
+fail:
+        bigint_clear(&tmp);
+        return ret;
+}
+
 int
 bigint_from_str(struct bigint *a, const char *p)
 {
@@ -776,30 +927,14 @@ bigint_from_str(struct bigint *a, const char *p)
 fail:
         return ret;
 #else
-        size_t n = strlen(p);
-        int ret;
-
-        BIGINT_DEFINE(tmp);
-        a->n = 0; /* a = 0 */
-        size_t i;
-        for (i = 0; i < n; i++) {
-                BIGINT_MUL(&tmp, a, &g_ten);     /* tmp = a * 10 */
-                BIGINT_SET_UINT1(a, p[i] - '0'); /* a = digit */
-                BIGINT_ADD(a, a, &tmp);          /* a = a + tmp */
-        }
-        ret = 0;
-        assert(is_normal(a));
-fail:
-        bigint_clear(&tmp);
-        return ret;
+        return bigint_from_str_base(a, &g_ten, p);
 #endif
 }
 
-static char
-digit_chr(coeff_t x)
+int
+bigint_from_hex_str(struct bigint *a, const char *p)
 {
-        assert(x < 16);
-        return "0123456789abcdef"[x];
+        return bigint_from_str_base(a, &g_16, p);
 }
 
 static size_t
@@ -832,8 +967,9 @@ bigint_to_str_impl(char *p, size_t sz, const struct bigint *a,
         do {
                 assert(n > 0);
                 BIGINT_DIVREM(&q, &r, &q, base);
-                assert(r.n <= 1);
-                char ch = digit_chr(dig(&r, 0));
+                uintmax_t u;
+                BIGINT_TO_UINT(&r, &u);
+                char ch = digit_chr(u);
                 p[--n] = ch;
         } while (q.n != 0);
         if (n > 0) {

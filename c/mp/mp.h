@@ -59,13 +59,16 @@ int bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k);
 
 int bigint_set(struct bigint *d, const struct bigint *s);
 int bigint_set_uint(struct bigint *a, uintmax_t v);
+int bigint_to_uint(const struct bigint *a, uintmax_t *vp);
 int bigint_set_uint1(struct bigint *a, coeff_t v);
+int bigint_to_uint1(const struct bigint *a, coeff_t *vp);
 int bigint_mul_uint1(struct bigint *d, const struct bigint *a, coeff_t b);
 
 int bigint_is_zero(const struct bigint *a);
 void bigint_set_zero(struct bigint *a);
 
 int bigint_from_str(struct bigint *a, const char *p);
+int bigint_from_hex_str(struct bigint *a, const char *p);
 char *bigint_to_str(const struct bigint *a);
 char *bigint_to_hex_str(const struct bigint *a);
 void bigint_str_free(char *p);
