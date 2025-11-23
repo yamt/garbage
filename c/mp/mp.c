@@ -1346,6 +1346,11 @@ main(void)
                                "eaa72b959fd1535970dea1d15024b7c1325a43fc6"));
         }
 
+        ret = bigint_from_str(&tmp, "1a");
+        assert(ret == EINVAL);
+        ret = bigint_from_hex_str(&tmp, "1ag");
+        assert(ret == EINVAL);
+
         ret = bigint_set_uint(&tmp, COEFF_MAX);
         assert(ret == 0);
         ret = bigint_add(&tmp, &tmp, &g_one);
