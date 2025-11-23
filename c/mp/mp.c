@@ -36,6 +36,11 @@ const struct bigint g_ten = BIGINT_INITIALIZER(2, 0, 1);
 #if COEFF_MAX >= 10
 const struct bigint g_ten = BIGINT_INITIALIZER(1, 10);
 #endif
+#if COEFF_MAX >= 16
+const struct bigint g_16 = BIGINT_INITIALIZER(1, 16);
+#elif defined(BASE) && 16 / BASE < BASE
+const struct bigint g_16 = BIGINT_INITIALIZER(2, 16 % BASE, 16 / BASE);
+#endif
 
 static coeff_t
 dig(const struct bigint *a, size_t i)
@@ -790,6 +795,13 @@ fail:
 #endif
 }
 
+static char
+digit_chr(coeff_t x)
+{
+        assert(x < 16);
+        return "0123456789abcdef"[x];
+}
+
 static size_t
 estimate_ndigits(const struct bigint *a)
 {
@@ -804,6 +816,34 @@ estimate_ndigits(const struct bigint *a)
         /* XXX check overflow */
         return a->n * LOG_BASE / 2.30258509299404568401 + 1;
 #endif
+}
+
+int
+bigint_to_str_impl(char *p, size_t sz, const struct bigint *a,
+                   const struct bigint *base)
+{
+        BIGINT_DEFINE(q);
+        BIGINT_DEFINE(r);
+        int ret;
+
+        size_t n = sz;
+        BIGINT_SET(&q, a);
+        p[--n] = 0;
+        do {
+                assert(n > 0);
+                BIGINT_DIVREM(&q, &r, &q, base);
+                assert(r.n <= 1);
+                char ch = digit_chr(dig(&r, 0));
+                p[--n] = ch;
+        } while (q.n != 0);
+        if (n > 0) {
+                memmove(p, &p[n], sz - n);
+        }
+        ret = 0;
+fail:
+        bigint_clear(&q);
+        bigint_clear(&r);
+        return ret;
 }
 
 char *
@@ -828,32 +868,49 @@ bigint_to_str(const struct bigint *a)
         p[i] = 0;
         return p;
 #else
-        BIGINT_DEFINE(q);
-        BIGINT_DEFINE(r);
-        int ret;
-
-        size_t n = sz;
-        BIGINT_SET(&q, a);
-        p[--n] = 0;
-        do {
-                assert(n > 0);
-                BIGINT_DIVREM(&q, &r, &q, &g_ten);
-                assert(r.n <= 1);
-                char ch = '0' + dig(&r, 0);
-                p[--n] = ch;
-        } while (q.n != 0);
-        if (n > 0) {
-                memmove(p, &p[n], sz - n);
+        if (bigint_to_str_impl(p, sz, a, &g_ten)) {
+                free(p);
+                return NULL;
         }
-        goto done;
-fail:
-        free(p);
-        p = NULL;
-done:
-        bigint_clear(&q);
-        bigint_clear(&r);
         return p;
 #endif
+}
+
+static size_t
+estimate_ndigits_hex(const struct bigint *a)
+{
+        assert(is_normal(a));
+        if (a->n == 0) {
+                return 1;
+        }
+#if BASE == 10
+        return a->n;
+#else
+        /* l(16) = 2.77258872223978123766 */
+        /* XXX check overflow */
+        return a->n * LOG_BASE / 2.77258872223978123766 + 1;
+#endif
+}
+
+char *
+bigint_to_hex_str(const struct bigint *a)
+{
+        assert(is_normal(a));
+        size_t sz = estimate_ndigits_hex(a) + 1; /* XXX check overflow */
+        char *p = malloc(sz);
+        if (p == NULL) {
+                return NULL;
+        }
+        if (a->n == 0) {
+                p[0] = '0';
+                p[1] = 0;
+                return p;
+        }
+        if (bigint_to_str_impl(p, sz, a, &g_16)) {
+                free(p);
+                return NULL;
+        }
+        return p;
 }
 
 void
@@ -1117,6 +1174,15 @@ main(void)
         assert(bigint_cmp(&b, &b) == 0);
         assert(bigint_cmp(&a, &b) > 0);
         assert(bigint_cmp(&b, &a) < 0);
+        {
+                char *p;
+                p = bigint_to_hex_str(&a);
+                assert(!strcmp(
+                        p, "212b125567c1932ed6f400b9e883b365e3a365bac800"));
+                p = bigint_to_hex_str(&b);
+                assert(!strcmp(p,
+                               "eaa72b959fd1535970dea1d15024b7c1325a43fc6"));
+        }
 
         ret = bigint_set_uint(&tmp, COEFF_MAX);
         assert(ret == 0);
