@@ -894,7 +894,7 @@ bigint_from_str_base(struct bigint *a, const struct bigint *base,
                 if (ret != 0) {
                         goto fail;
                 }
-                BIGINT_SET_UINT1(a, x); /* a = digit */
+                BIGINT_SET_UINT(a, x); /* a = digit */
                 if (bigint_cmp(a, base) >= 0) {
                         ret = EINVAL;
                         goto fail;
