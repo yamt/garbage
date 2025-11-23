@@ -917,7 +917,16 @@ bigint_from_str(struct bigint *a, const char *p)
         BIGINT_ALLOC(a, n);
         size_t i;
         for (i = 0; i < n; i++) {
-                a->d[i] = p[n - i - 1] - '0';
+                unsigned int x;
+                ret = digit_from_chr(p[n - i - 1], &x);
+                if (ret != 0) {
+                        goto fail;
+                }
+                if (x > COEFF_MAX) {
+                        ret = EINVAL;
+                        goto fail;
+                }
+                a->d[i] = x;
         }
         a->n = n;
         if (a->d[a->n - 1] == 0) {
