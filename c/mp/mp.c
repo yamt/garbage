@@ -1119,6 +1119,20 @@ test_str_roundtrip(const char *str)
         bigint_clear(&a);
 }
 
+static void
+test_hex_str_roundtrip(const char *str)
+{
+        BIGINT_DEFINE(a);
+        int ret = bigint_from_hex_str(&a, str);
+        assert(ret == 0);
+        char *p = bigint_to_hex_str(&a);
+        printf("expected %s\n", str);
+        printf("actual   %s\n", p);
+        assert(!strcmp(p, str));
+        bigint_str_free(p);
+        bigint_clear(&a);
+}
+
 int
 factorial(struct bigint *a, const struct bigint *n)
 {
@@ -1287,6 +1301,18 @@ main(void)
         test_str_roundtrip("100000000000000000000000");
         test_str_roundtrip(a_str);
         test_str_roundtrip(b_str);
+
+        test_hex_str_roundtrip("0");
+        test_hex_str_roundtrip("100000000000000000000000");
+        test_hex_str_roundtrip(a_str);
+        test_hex_str_roundtrip(b_str);
+        test_hex_str_roundtrip("ab00cd00ef0012003400560077");
+        test_hex_str_roundtrip("fffffffffffffffffffffff");
+        test_hex_str_roundtrip(
+                "fffffffffffffffffffffff00000000000000000000000000000000000000"
+                "0000000000000000000000000000000000000000000000000000000000000"
+                "00000000000000000000000000000000000000000000000000fffffffffff"
+                "fffffffffffffffffffffffffff");
 
         bigint_init(&a);
         bigint_init(&b);
