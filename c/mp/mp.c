@@ -1115,6 +1115,34 @@ fail:
         return ret;
 }
 
+int
+fixed_point_sqrt(void)
+{
+        const char *scale_str = "1000000000000";
+        BIGINT_DEFINE(scale);
+        BIGINT_DEFINE(t);
+        int ret;
+        BIGINT_FROM_STR(&scale, scale_str);
+        unsigned int i;
+        for (i = 1; i < 256; i++) {
+                BIGINT_SET_UINT(&t, i);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_ROOTINT(&t, &t, 2);
+                char *p = bigint_to_str(&t);
+                if (p == NULL) {
+                        ret = ENOMEM;
+                        goto fail;
+                }
+                printf("sqrt(%3u) * %s = %s\n", i, scale_str, p);
+                bigint_str_free(p);
+        }
+fail:
+        bigint_clear(&scale);
+        bigint_clear(&t);
+        return ret;
+}
+
 static void
 test_str_roundtrip(const char *str)
 {
@@ -1455,6 +1483,8 @@ main(void)
         assert(ret == 0);
         assert(bigint_cmp(&q, &g_one) == 0);
         assert(bigint_cmp(&r, &g_zero) == 0);
+
+        fixed_point_sqrt();
 
         /* rootint */
         unsigned int k;
