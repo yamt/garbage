@@ -261,6 +261,9 @@ bigint_alloc(struct bigint *a, size_t max_digits)
                 return ENOMEM;
         }
         a->d = p;
+#if !defined(NDEBUG)
+        memset(&a->d[a->max], 0xaa, max_digits - a->max); /* poison */
+#endif
         a->max = max_digits;
         return 0;
 }
