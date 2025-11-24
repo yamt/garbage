@@ -887,7 +887,7 @@ digit_chr(unsigned int x)
         return "0123456789abcdef"[x];
 }
 
-int
+static int
 bigint_from_str_base(struct bigint *a, const struct bigint *base,
                      const char *p)
 {
