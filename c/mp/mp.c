@@ -306,6 +306,9 @@ bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
         size_t i;
         int ret;
 
+        if (SIZE_MAX - 1 < n) {
+                return EOVERFLOW;
+        }
         BIGINT_ALLOC(c, n + 1);
         coeff_t carry = 0;
         for (i = 0; i < n; i++) {
