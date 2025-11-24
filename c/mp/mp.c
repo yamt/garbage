@@ -5,7 +5,6 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -181,8 +180,6 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
                         h -= n * divisor;
                         assert((n << shift) >> shift == n);
                         q += n << shift;
-                        // printf("%zx %zu << %zu\n", (uintmax_t)q,
-                        // (uintmax_t)n, (uintmax_t)shift);
                 } else if (shift == 0) {
                         break;
                 } else {
@@ -193,8 +190,6 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
                         assert(h < divisor);
                         h -= divisor; /* underflow */
                         q += (coeff_t)1 << shift;
-                        // printf("%zx %zu << %zu\n", (uintmax_t)q,
-                        // (uintmax_t)1, (uintmax_t)shift);
                 }
         }
         assert(shift > 0 || h < divisor); /* note: h is reminder here */
@@ -266,17 +261,14 @@ is_normal(const struct bigint *a)
                 return true;
         }
         if (a->d[a->n - 1] == 0) {
-                // printf("d[%u] = %zd\n", a->n - 1, (intmax_t)a->d[a->n - 1]);
                 return false;
         }
         size_t i;
         for (i = 0; i < a->n; i++) {
                 if (a->d[i] < 0) {
-                        // printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
                 if (a->d[i] > COEFF_MAX) {
-                        // printf("d[%u] = %zd\n", i, (intmax_t)a->d[i]);
                         return false;
                 }
         }
@@ -1047,6 +1039,7 @@ bigint_str_free(char *p)
 
 #if defined(TEST)
 /* tests */
+#include <stdio.h>
 
 static void
 print_bigint(const char *heading, const struct bigint *a)
