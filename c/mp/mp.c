@@ -209,6 +209,11 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #endif
 }
 
+static int bigint_set_uint1(struct bigint *a, coeff_t v);
+static int bigint_to_uint1(const struct bigint *a, coeff_t *vp);
+static int bigint_mul_uint1(struct bigint *d, const struct bigint *a,
+                            coeff_t b);
+
 #define HANDLE_ERROR(call)                                                    \
         do {                                                                  \
                 ret = call;                                                   \
@@ -235,7 +240,6 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
 #define BIGINT_FROM_STR(a, b) HANDLE_ERROR(bigint_from_str(a, b))
 #define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
-#define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
 #define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
 #define BIGINT_ADD(a, b, c) HANDLE_ERROR(bigint_add(a, b, c))
 #define BIGINT_SUB(a, b, c) HANDLE_ERROR(bigint_sub(a, b, c))
@@ -244,6 +248,8 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_DIVREM(a, b, c, d) HANDLE_ERROR(bigint_divrem(a, b, c, d))
 #define BIGINT_ROOTINT(a, b, c) HANDLE_ERROR(bigint_rootint(a, b, c))
 #define BIGINT_POWINT(a, b, c) HANDLE_ERROR(bigint_powint(a, b, c))
+
+#define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
 #define BIGINT_MUL_UINT1(a, b, c) HANDLE_ERROR(bigint_mul_uint1(a, b, c))
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
@@ -694,7 +700,7 @@ fail:
         return ret;
 }
 
-int
+__attribute__((unused)) static int
 bigint_set_uint1(struct bigint *a, coeff_t v)
 {
         assert(v <= COEFF_MAX);
@@ -743,7 +749,7 @@ fail:
 #endif
 }
 
-int
+__attribute__((unused)) static int
 bigint_to_uint1(const struct bigint *a, coeff_t *vp)
 {
         if (a->n == 0) {
@@ -795,7 +801,7 @@ bigint_to_uint(const struct bigint *a, uintmax_t *vp)
 #endif
 }
 
-int
+static int
 bigint_mul_uint1(struct bigint *d, const struct bigint *a, coeff_t b)
 {
         assert(b <= COEFF_MAX);
