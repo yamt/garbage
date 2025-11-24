@@ -1522,20 +1522,20 @@ main(void)
         unsigned int k;
         for (k = 2; k < 100; k++) {
                 uint64_t start_time = timestamp();
-                print_bigint("a                             = ", &a);
-                printf("k                             = %u\n", k);
+                print_bigint("a                            = ", &a);
+                printf("k                            = %u\n", k);
                 ret = bigint_rootint(&q, &a, k);
                 assert(ret == 0);
-                print_bigint("rootint(a, k)                 = ", &q);
+                print_bigint("rootint(a, k)                = ", &q);
                 ret = bigint_powint(&tmp, &q, k);
                 assert(ret == 0);
-                print_bigint("powint(rootint(a, k), k)      = ", &tmp);
+                print_bigint("powint(rootint(a, k),     k) = ", &tmp);
                 assert(bigint_cmp(&tmp, &a) <= 0);
                 ret = bigint_add(&tmp, &q, &g_one);
                 assert(ret == 0);
                 ret = bigint_powint(&tmp, &tmp, k);
                 assert(ret == 0);
-                print_bigint("powint(rootint(a, k) + 1), k) = ", &tmp);
+                print_bigint("powint(rootint(a, k) + 1, k) = ", &tmp);
                 assert(bigint_cmp(&tmp, &a) > 0);
                 uint64_t end_time = timestamp();
                 printf("took %.03f sec\n",
