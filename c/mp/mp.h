@@ -80,6 +80,7 @@ void bigint_str_free(char *p);
 
 /*
  * macros just for convenience
+ * the use of these macros is completely optional
  */
 
 #define HANDLE_ERROR(call)                                                    \
