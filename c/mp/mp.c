@@ -214,41 +214,6 @@ static int bigint_to_uint1(const struct bigint *a, coeff_t *vp);
 static int bigint_mul_uint1(struct bigint *d, const struct bigint *a,
                             coeff_t b);
 
-#define HANDLE_ERROR(call)                                                    \
-        do {                                                                  \
-                ret = call;                                                   \
-                if (ret != 0) {                                               \
-                        goto fail;                                            \
-                }                                                             \
-        } while (0)
-
-#define NO_ERROR(call)                                                        \
-        do {                                                                  \
-                int ret2 = call;                                              \
-                assert(ret2 == 0);                                            \
-        } while (0)
-
-#define COPY_IF(cond, a, a0)                                                  \
-        do {                                                                  \
-                if (cond) {                                                   \
-                        BIGINT_SET(&a0, a);                                   \
-                        a = &a0;                                              \
-                }                                                             \
-        } while (false)
-#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
-#define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
-#define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
-#define BIGINT_FROM_STR(a, b) HANDLE_ERROR(bigint_from_str(a, b))
-#define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
-#define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
-#define BIGINT_ADD(a, b, c) HANDLE_ERROR(bigint_add(a, b, c))
-#define BIGINT_SUB(a, b, c) HANDLE_ERROR(bigint_sub(a, b, c))
-#define BIGINT_SUB_NOFAIL(a, b, c) NO_ERROR(bigint_sub(a, b, c))
-#define BIGINT_MUL(a, b, c) HANDLE_ERROR(bigint_mul(a, b, c))
-#define BIGINT_DIVREM(a, b, c, d) HANDLE_ERROR(bigint_divrem(a, b, c, d))
-#define BIGINT_ROOTINT(a, b, c) HANDLE_ERROR(bigint_rootint(a, b, c))
-#define BIGINT_POWINT(a, b, c) HANDLE_ERROR(bigint_powint(a, b, c))
-
 #define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
 #define BIGINT_MUL_UINT1(a, b, c) HANDLE_ERROR(bigint_mul_uint1(a, b, c))
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))

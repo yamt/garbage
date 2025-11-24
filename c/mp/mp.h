@@ -1,5 +1,9 @@
 #include <stddef.h>
 
+/*
+ * internal
+ */
+
 #if !defined(BASE) && !defined(BASE_BITS)
 #define BASE_BITS 32
 #endif
@@ -35,6 +39,10 @@ struct bigint {
         coeff_t *d;
 };
 
+/*
+ * api
+ */
+
 /* constants */
 extern const struct bigint g_zero;
 extern const struct bigint g_one;
@@ -69,3 +77,42 @@ int bigint_from_hex_str(struct bigint *a, const char *p);
 char *bigint_to_str(const struct bigint *a);
 char *bigint_to_hex_str(const struct bigint *a);
 void bigint_str_free(char *p);
+
+/*
+ * macros just for convenience
+ */
+
+#define HANDLE_ERROR(call)                                                    \
+        do {                                                                  \
+                ret = call;                                                   \
+                if (ret != 0) {                                               \
+                        goto fail;                                            \
+                }                                                             \
+        } while (0)
+
+#define NO_ERROR(call)                                                        \
+        do {                                                                  \
+                int ret2 = call;                                              \
+                assert(ret2 == 0);                                            \
+        } while (0)
+
+#define COPY_IF(cond, a, a0)                                                  \
+        do {                                                                  \
+                if (cond) {                                                   \
+                        BIGINT_SET(&a0, a);                                   \
+                        a = &a0;                                              \
+                }                                                             \
+        } while (false)
+#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
+#define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
+#define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
+#define BIGINT_FROM_STR(a, b) HANDLE_ERROR(bigint_from_str(a, b))
+#define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
+#define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
+#define BIGINT_ADD(a, b, c) HANDLE_ERROR(bigint_add(a, b, c))
+#define BIGINT_SUB(a, b, c) HANDLE_ERROR(bigint_sub(a, b, c))
+#define BIGINT_SUB_NOFAIL(a, b, c) NO_ERROR(bigint_sub(a, b, c))
+#define BIGINT_MUL(a, b, c) HANDLE_ERROR(bigint_mul(a, b, c))
+#define BIGINT_DIVREM(a, b, c, d) HANDLE_ERROR(bigint_divrem(a, b, c, d))
+#define BIGINT_ROOTINT(a, b, c) HANDLE_ERROR(bigint_rootint(a, b, c))
+#define BIGINT_POWINT(a, b, c) HANDLE_ERROR(bigint_powint(a, b, c))
