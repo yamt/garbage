@@ -247,6 +247,14 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #define BIGINT_MUL_UINT1(a, b, c) HANDLE_ERROR(bigint_mul_uint1(a, b, c))
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
+__attribute__((unused)) static void
+bigint_poison(struct bigint *a)
+{
+#if !defined(NDEBUG)
+        memset(a->d + a->n, 0xaa, (a->max - a->n) * sizeof(*a->d));
+#endif
+}
+
 static int
 bigint_alloc(struct bigint *a, size_t max_digits)
 {
@@ -261,10 +269,8 @@ bigint_alloc(struct bigint *a, size_t max_digits)
                 return ENOMEM;
         }
         a->d = p;
-#if !defined(NDEBUG)
-        memset(&a->d[a->max], 0xaa, max_digits - a->max); /* poison */
-#endif
         a->max = max_digits;
+        bigint_poison(a);
         return 0;
 }
 
@@ -1469,7 +1475,7 @@ main(void)
         for (i = 1; i < 10; i++) {
                 ret = bigint_set_uint(&tmp, i);
                 assert(ret == 0);
-                memset(tmp.d + tmp.n, 0xaa, tmp.max - tmp.n); /* poison */
+                bigint_poison(&tmp);
                 ret = bigint_mul(&tmp, &tmp, &tmp2);
                 assert(ret == 0);
                 {
