@@ -1074,6 +1074,7 @@ bigint_str_free(char *p)
         free(p);
 }
 
+#if defined(TEST)
 /* tests */
 
 static void
@@ -1707,3 +1708,4 @@ main(void)
 
         bench();
 }
+#endif /* TEST */
