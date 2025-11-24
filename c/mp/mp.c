@@ -1295,7 +1295,7 @@ timestamp(void)
 int
 bench(void)
 {
-        unsigned int num = 10000;
+        unsigned int num = 1000;
         printf("calculating %u!...\n", num);
         BIGINT_DEFINE(a);
         BIGINT_DEFINE(n);
