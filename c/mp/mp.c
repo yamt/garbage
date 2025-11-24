@@ -1289,6 +1289,27 @@ fail:
         return ret;
 }
 
+int
+check_factorial(const struct bigint *a, const struct bigint *n)
+{
+        BIGINT_DEFINE(c);
+        BIGINT_DEFINE(q);
+        BIGINT_DEFINE(r);
+        int ret;
+        BIGINT_SET(&q, a);
+        BIGINT_SET(&c, n);
+        while (!bigint_is_zero(&c)) {
+                BIGINT_DIVREM(&q, &r, &q, &c);
+                assert(bigint_is_zero(&r));
+                BIGINT_SUB_NOFAIL(&c, &c, &g_one);
+        }
+        assert(bigint_cmp(&q, &g_one) == 0);
+fail:
+        bigint_clear(&c);
+        bigint_clear(&r);
+        return ret;
+}
+
 #include <time.h>
 
 uint64_t
@@ -1316,6 +1337,18 @@ bench(void)
         uint64_t end_time = timestamp();
         printf("took %.03f sec\n",
                (double)(end_time - start_time) / 1000000000);
+        {
+                printf("checking %u!...\n", num);
+                uint64_t start_time = timestamp();
+                ret = factorial(&a, &n);
+                if (ret != 0) {
+                        goto fail;
+                }
+                check_factorial(&a, &n);
+                uint64_t end_time = timestamp();
+                printf("took %.03f sec\n",
+                       (double)(end_time - start_time) / 1000000000);
+        }
 #if 0
         char *ap = bigint_to_str(&a);
         if (ap == NULL) {
