@@ -1152,6 +1152,99 @@ fail:
         return ret;
 }
 
+#include "../sha-2/sha512_table.h"
+
+int
+sha2table(void)
+{
+        unsigned int primes[80];
+        unsigned int n = 0;
+        unsigned int x = 2; /* first prime */
+
+        /* generate primes */
+        do {
+                unsigned int i;
+                for (i = 0; i < n; i++) {
+                        if ((x % primes[i]) == 0) {
+                                goto next;
+                        }
+                }
+                primes[n++] = x;
+        next:
+                x++;
+        } while (n < 80);
+        assert(primes[63] == 311);
+
+        /*
+         * calculate tables for sha-512, using fixed point arithmetic
+         * with S=2^128.
+         * maybe 128 is a bit excessive.
+         */
+        BIGINT_DEFINE(scale);
+        BIGINT_DEFINE(scale2);
+        BIGINT_DEFINE(unused);
+        BIGINT_DEFINE(t);
+        BIGINT_DEFINE(q);
+        BIGINT_DEFINE(r);
+        int ret;
+        BIGINT_FROM_STR(&scale,
+                        "340282366920938463463374607431768211456"); /* 2^128 */
+        BIGINT_FROM_STR(&scale2, "18446744073709551616"); /* 2^(128-64) */
+        unsigned int i;
+        for (i = 0; i < 8; i++) {
+                /* sqrt of prime */
+                BIGINT_SET_UINT(&t, primes[i]);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_ROOTINT(&t, &t, 2);
+                /* take the first 64 bits of the fraction part */
+                /* q = (t % scale) / scale2 */
+                BIGINT_DIVREM(&unused, &r, &t, &scale);
+                BIGINT_DIVREM(&q, &unused, &r, &scale2);
+                char *p = bigint_to_hex_str(&q);
+                if (p == NULL) {
+                        ret = ENOMEM;
+                        goto fail;
+                }
+                printf("H[%2u] = frac(sqrt(%3u)) = %s\n", i, primes[i], p);
+                bigint_str_free(p);
+                /* verify with the pre-computed value */
+                uintmax_t x;
+                BIGINT_TO_UINT(&q, &x);
+                assert(H[i] == x);
+        }
+        for (i = 0; i < 80; i++) {
+                /* cbrt of prime */
+                BIGINT_SET_UINT(&t, primes[i]);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_MUL(&t, &t, &scale);
+                BIGINT_ROOTINT(&t, &t, 3);
+                /* take the first 64 bits of the fraction part */
+                BIGINT_DIVREM(&unused, &r, &t, &scale);
+                BIGINT_DIVREM(&q, &unused, &r, &scale2);
+                char *p = bigint_to_hex_str(&q);
+                if (p == NULL) {
+                        ret = ENOMEM;
+                        goto fail;
+                }
+                printf("K[%2u] = frac(cbrt(%3u)) = %s\n", i, primes[i], p);
+                /* verify with the pre-computed value */
+                bigint_str_free(p);
+                uintmax_t x;
+                BIGINT_TO_UINT(&q, &x);
+                assert(K[i] == x);
+        }
+fail:
+        bigint_clear(&scale);
+        bigint_clear(&scale2);
+        bigint_clear(&unused);
+        bigint_clear(&t);
+        bigint_clear(&q);
+        bigint_clear(&r);
+        return ret;
+}
+
 static void
 test_str_roundtrip(const char *str)
 {
@@ -1517,6 +1610,7 @@ main(void)
         assert(bigint_cmp(&r, &g_zero) == 0);
 
         fixed_point_sqrt();
+        sha2table();
 
         /* rootint */
         unsigned int k;
