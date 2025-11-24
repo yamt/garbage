@@ -433,7 +433,7 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
          * the following logic can leave the corresponding c->d elements
          * uninitialized.
          */
-        memset(c->d, 0, c->max);
+        memset(c->d, 0, c->max * sizeof(*c->d));
         mul1(c, a, b->d[0]);
         assert(is_normal(c));
         size_t i;
