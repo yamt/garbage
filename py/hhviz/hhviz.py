@@ -40,13 +40,13 @@ def add_vpc_attachment(vpc, conn):
     objs[vpc]["ports"].append(conn)
 
 
-def add_connection(name, p1, p2, subnet):
+def add_connection(name, p1, p2, attachment):
     if name not in connections:
-        connections[name] = {"subnets": [], "links": []}
+        connections[name] = {"attachments": [], "links": []}
     if p1 is not None:
         connections[name]["links"].append((p1, p2))
-    if subnet is not None:
-        connections[name]["subnets"].append(subnet)
+    if attachment is not None:
+        connections[name]["attachments"].append(attachment)
 
 
 for e in j:
@@ -80,9 +80,9 @@ for e in j:
             add_connection(name, server_port, sw_port, None)
     elif kind == "VPCAttachment":
         conn = spec["connection"]
-        subnet = spec["subnet"]
-        add_connection(conn, None, None, subnet)
-        vpc, subnet = subnet.split("/", 1)
+        # subnet = spec["subnet"]
+        add_connection(conn, None, None, spec)
+        # vpc, subnet = subnet.split("/", 1)
         # add_vpc_attachment(vpc, conn)
     else:
         print(f"unknown kind {kind}", file=sys.stderr)
@@ -114,10 +114,10 @@ for name, e in connections.items():
     for l in e["links"]:
         server_port, sw_port = l
         print(f"{replace(server_port)} -- {replace(sw_port)}")
-        subnets = e.get("subnets")
-        if subnets:
-            for s in subnets:
-                vpc, subnet = s.split("/", 1)
+        attachments = e.get("attachments")
+        if attachments:
+            for a in attachments:
+                vpc, subnet = a['subnet'].split("/", 1)
                 vpc_conn = f"{vpc}/{name}"
                 subnetnode = f"subnet_{vpc}_{subnet}"
                 print(f"{replace(sw_port)} -- {subnetnode}")
