@@ -28,6 +28,15 @@
  * a straightforward implementation of SHA-512
  *
  * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
+ *
+ * Note: this implementation assumes that the messages are byte sequences
+ * while SHA-2 is defined for bits.
+ *
+ * Note: this implementation uses uint64_t for the total message length
+ * (total_len), which is far smaller than the maximum message size of
+ * SHA-512, which is 2^128 bits. while it's easy to lift the limitation
+ * by eg. taking high/low 64-bit of total_len, i suspect it doesn't make
+ * much sense for any practical purposes as of today.
  */
 
 #include <stdint.h>

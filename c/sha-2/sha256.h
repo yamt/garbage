@@ -28,6 +28,9 @@
  * a straightforward implementation of SHA-256
  *
  * https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
+ *
+ * Note: this implementation assumes that the messages are byte sequences
+ * while SHA-2 is defined for bits.
  */
 
 #include <limits.h>
