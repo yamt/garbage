@@ -33,6 +33,11 @@ typedef uint64_t coeff_t;
 #define COEFF_TYPE_MAX UINT64_MAX
 #endif
 
+/*
+ * ============================================================
+ * the main api
+ */
+
 struct bigint {
         size_t n;
         size_t max;
@@ -40,20 +45,33 @@ struct bigint {
 };
 
 /*
- * api
+ * common constants
+ * just for convenience
  */
-
-/* constants */
 extern const struct bigint g_zero;
 extern const struct bigint g_one;
 extern const struct bigint g_base;
 extern const struct bigint g_ten;
 
+/*
+ * initialize
+ */
 void bigint_init(struct bigint *a);
+
+/*
+ * uninitialize
+ * this frees the associated memory
+ */
 void bigint_clear(struct bigint *a);
+
+/*
+ * compare two values similarly to strcmp/memcmp
+ */
 int bigint_cmp(const struct bigint *a, const struct bigint *b);
 
-/* c = a (op) b */
+/*
+ * math
+ */
 int bigint_add(struct bigint *c, const struct bigint *a,
                const struct bigint *b);
 int bigint_sub(struct bigint *c, const struct bigint *a,
@@ -65,13 +83,27 @@ int bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
 int bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k);
 int bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k);
 
+/*
+ * copy
+ */
 int bigint_set(struct bigint *d, const struct bigint *s);
+
+/*
+ * convert from/to uintmax_t
+ */
 int bigint_set_uint(struct bigint *a, uintmax_t v);
 int bigint_to_uint(const struct bigint *a, uintmax_t *vp);
 
+/*
+ * same as
+ * "bigint_cmp(a, &g_zero) == 0" and "bigint_set(a, &g_zero)"
+ */
 int bigint_is_zero(const struct bigint *a);
 void bigint_set_zero(struct bigint *a);
 
+/*
+ * convert to/from C string
+ */
 int bigint_from_str(struct bigint *a, const char *p);
 int bigint_from_hex_str(struct bigint *a, const char *p);
 char *bigint_to_str(const struct bigint *a);
@@ -79,6 +111,7 @@ char *bigint_to_hex_str(const struct bigint *a);
 void bigint_str_free(char *p);
 
 /*
+ * ============================================================
  * macros just for convenience
  * the use of these macros is completely optional
  */
