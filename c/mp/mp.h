@@ -100,7 +100,12 @@ int mpn_cmp(const struct mpn *a, const struct mpn *b);
  */
 int mpn_add(struct mpn *c, const struct mpn *a, const struct mpn *b);
 int mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b);
-int mpn_mul(struct mpn *c, const struct mpn *a, const struct mpn *b);
+int mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b);
+int mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b);
+#if !defined(mpn_mul)
+#define mpn_mul mpn_mul_basecase
+//#define mpn_mul mpn_mul_karatsuba
+#endif
 int mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
                const struct mpn *b);
 int mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k);

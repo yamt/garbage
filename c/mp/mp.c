@@ -323,6 +323,15 @@ fail:
         return ret;
 }
 
+static void
+mpn_normalize(struct mpn *c)
+{
+        while (c->n > 0 && c->d[c->n - 1] == 0) {
+                c->n--;
+        }
+        assert(mpn_is_normal(c));
+}
+
 int
 mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
@@ -339,10 +348,7 @@ mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b)
         c->n = n;
         assert(carry == 0);
 
-        /* normalize */
-        while (c->n > 0 && c->d[c->n - 1] == 0) {
-                c->n--;
-        }
+        mpn_normalize(c);
         return 0;
 fail:
         return ret;
@@ -372,8 +378,36 @@ mul1(struct mpn *c, const struct mpn *a, coeff_t n)
         assert(mpn_is_normal(c));
 }
 
+static int
+shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
+{
+        assert(d != s);
+        assert(mpn_is_normal(s));
+        if (s->n == 0) {
+                d->n = 0;
+                return 0;
+        }
+        int ret;
+        if (n > MP_SIZE_MAX - s->n) {
+                return EOVERFLOW;
+        }
+        MPN_ALLOC(d, s->n + n);
+        mp_size_t i;
+        for (i = 0; i < n; i++) {
+                d->d[i] = 0;
+        }
+        for (; i < s->n + n; i++) {
+                d->d[i] = s->d[i - n];
+        }
+        d->n = s->n + n;
+        assert(mpn_is_normal(d));
+        return 0;
+fail:
+        return ret;
+}
+
 int
-mpn_mul(struct mpn *c, const struct mpn *a, const struct mpn *b)
+mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         assert(mpn_is_normal(a));
         assert(mpn_is_normal(b));
@@ -436,6 +470,111 @@ fail:
         return ret;
 }
 
+static void
+split(struct mpn *a0, struct mpn *a1, const struct mpn *a, mp_size_t k)
+{
+        mpn_init(a0);
+        mpn_init(a1);
+        if (a->n <= k) {
+                *a1 = *a;
+                return;
+        }
+        a0->d = a->d + k;
+        a0->n = a->n - k;
+        a1->d = a->d;
+        a1->n = k;
+        mpn_normalize(a1);
+        assert(mpn_is_normal(a0));
+        assert(mpn_is_normal(a1));
+}
+
+int
+mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
+{
+        const static mp_size_t n0 = 2; /* threshold */
+        assert(mpn_is_normal(a));
+        assert(mpn_is_normal(b));
+        if (a->n < n0 || b->n < n0) {
+                return mpn_mul_basecase(c, a, b);
+        }
+        mp_size_t k = (a->n > b->n) ? a->n : b->n;
+        if (k >= MP_SIZE_MAX / 2) {
+                return mpn_mul_basecase(c, a, b);
+        }
+        k = (k + 1) / 2;
+        MPN_DEFINE(t);
+        MPN_DEFINE(a_copy);
+        MPN_DEFINE(b_copy);
+        MPN_DEFINE(a_diff_abs);
+        MPN_DEFINE(b_diff_abs);
+        MPN_DEFINE(c0);
+        MPN_DEFINE(c1);
+        MPN_DEFINE(c2);
+        int ret;
+        COPY_IF(c == a, a, a_copy);
+        COPY_IF(c == b, b, b_copy);
+        /* note: these mpn are aliases. do not call mpn_clear on them. */
+        struct mpn a0;
+        struct mpn b0;
+        struct mpn a1;
+        struct mpn b1;
+        split(&a1, &a0, a, k);
+        split(&b1, &b0, b, k);
+        /* revisit: simpler to use mpz? */
+        bool a_diff_sign = mpn_cmp(&a1, &a0) < 0;
+        bool b_diff_sign = mpn_cmp(&b1, &b0) < 0;
+        /* c2 = |a0 - a1| * |b0 - b1| */
+        if (a_diff_sign) {
+                MPN_SUB(&a_diff_abs, &a0, &a1);
+        } else {
+                MPN_SUB(&a_diff_abs, &a1, &a0);
+        }
+        if (b_diff_sign) {
+                MPN_SUB(&b_diff_abs, &b0, &b1);
+        } else {
+                MPN_SUB(&b_diff_abs, &b1, &b0);
+        }
+        MPN_MUL(&c2, &a_diff_abs, &b_diff_abs);
+        /* c0 = a0 * b0 */
+        MPN_MUL(&c0, &a0, &b0);
+        /* c1 = a1 * b1 */
+        MPN_MUL(&c1, &a1, &b1);
+        /* c2 = c0 + c1 - a_diff_sign * b_diff_sign * c2 */
+        MPN_SET(&t, &c0);
+        MPN_ADD(&t, &t, &c1);
+        if (a_diff_sign ^ b_diff_sign) {
+                MPN_ADD(&c2, &t, &c2);
+        } else {
+                MPN_SUB(&c2, &t, &c2);
+        }
+        /* c = c0 + c2 * (base ** k) + c1 * (base ** (2 * k)) */
+        MPN_SET(c, &c0);
+        SHIFT_LEFT_WORDS(&t, &c2, k);
+        MPN_ADD(c, c, &t);
+        SHIFT_LEFT_WORDS(&t, &c1, 2 * k);
+        MPN_ADD(c, c, &t);
+#if 0
+        {
+            struct mpn x;
+            mpn_init(&x);
+            ret = mpn_mul_basecase(&x, a, b);
+            assert(ret == 0);
+            assert(mpn_cmp(c, &x) == 0);
+            mpn_clear(&x);
+        }
+#endif
+fail:
+        mpn_clear(&t);
+        mpn_clear(&a_copy);
+        mpn_clear(&b_copy);
+        mpn_clear(&a_diff_abs);
+        mpn_clear(&b_diff_abs);
+        mpn_clear(&c0);
+        mpn_clear(&c1);
+        mpn_clear(&c2);
+        return ret;
+}
+
 static int
 div_normalize(struct mpn *a, struct mpn *b, unsigned int *kp)
 {
@@ -463,34 +602,6 @@ div_normalize(struct mpn *a, struct mpn *b, unsigned int *kp)
                 mul1(a, a, (coeff_t)1 << k);
         }
         *kp = k;
-        return 0;
-fail:
-        return ret;
-}
-
-static int
-shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
-{
-        assert(d != s);
-        assert(mpn_is_normal(s));
-        if (s->n == 0) {
-                d->n = 0;
-                return 0;
-        }
-        int ret;
-        if (n > MP_SIZE_MAX - s->n) {
-                return EOVERFLOW;
-        }
-        MPN_ALLOC(d, s->n + n);
-        mp_size_t i;
-        for (i = 0; i < n; i++) {
-                d->d[i] = 0;
-        }
-        for (; i < s->n + n; i++) {
-                d->d[i] = s->d[i - n];
-        }
-        d->n = s->n + n;
-        assert(mpn_is_normal(d));
         return 0;
 fail:
         return ret;
