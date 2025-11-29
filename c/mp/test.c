@@ -700,6 +700,8 @@ main(void)
         assert(mpn_cmp(&d, &g_zero) == 0);
 
         /* mul */
+        static const char tiny_int_str[] = "3141592";
+        static const char tiny_int_pow2_str[] = "9869600294464";
         static const char small_int_str[] = "314159265358979323846264338327950"
                                             "2884197169399375105820974944";
         static const char small_int_pow2_str[] =
@@ -775,6 +777,11 @@ main(void)
                 "4197120498396607215591335428173152693230870028182089997270853"
                 "6069330754570442595589039401459533054433958581052481145809073"
                 "1724112268437214279885725005890989112084863152144";
+        ret = mpn_from_str(&c, tiny_int_str);
+        assert(ret == 0);
+        ret = mpn_mul(&prod, &c, &c);
+        assert(ret == 0);
+        assert_eq(&prod, tiny_int_pow2_str);
         ret = mpn_from_str(&c, small_int_str);
         assert(ret == 0);
         ret = mpn_mul(&prod, &c, &c);
