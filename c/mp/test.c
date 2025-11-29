@@ -283,6 +283,7 @@ mpz_test(void)
         MPZ_FROM_STR(&a, "123456789412093790174309174");
         MPZ_FROM_STR(&b,
                      "-41234095749035790423751234567894120937901743091741");
+        assert(mpz_cmp(&a, &b) > 0);
         MPZ_SUB(&c, &a, &b);
 
         p = mpz_to_str(&c);
