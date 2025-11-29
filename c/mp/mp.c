@@ -956,32 +956,36 @@ fail:
 }
 
 char *
-mpn_to_str(const struct mpn *a)
+mp_to_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        size_t sz = estimate_ndigits(a) + 1; /* XXX check overflow */
-        char *p = malloc(sz);
-        if (p == NULL) {
+        size_t sz = sign + estimate_ndigits(a) + 1; /* XXX check overflow */
+        char *p0 = malloc(sz);
+        if (p0 == NULL) {
                 return NULL;
         }
+        char *p = p0;
+        if (sign) {
+                *p++ = '-';
+        }
         if (a->n == 0) {
-                p[0] = '0';
-                p[1] = 0;
-                return p;
+                *p++ = '0';
+                *p++ = 0;
+                return p0;
         }
 #if BASE == 10
         mp_size_t i;
         for (i = 0; i < a->n; i++) {
-                p[i] = a->d[a->n - i - 1] + '0';
+                *p++ = a->d[a->n - i - 1] + '0';
         }
-        p[i] = 0;
-        return p;
+        *p++ = 0;
+        return p0;
 #else
         if (mpn_to_str_impl(p, sz, a, &g_ten)) {
-                free(p);
+                free(p0);
                 return NULL;
         }
-        return p;
+        return p0;
 #endif
 }
 
@@ -1002,24 +1006,41 @@ estimate_ndigits_hex(const struct mpn *a)
 }
 
 char *
-mpn_to_hex_str(const struct mpn *a)
+mp_to_hex_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        size_t sz = estimate_ndigits_hex(a) + 1; /* XXX check overflow */
-        char *p = malloc(sz);
-        if (p == NULL) {
+        size_t sz =
+                sign + estimate_ndigits_hex(a) + 1; /* XXX check overflow */
+        char *p0 = malloc(sz);
+        if (p0 == NULL) {
                 return NULL;
+        }
+        char *p = p0;
+        if (sign) {
+                *p++ = '-';
         }
         if (a->n == 0) {
-                p[0] = '0';
-                p[1] = 0;
-                return p;
+                *p++ = '0';
+                *p++ = 0;
+                return p0;
         }
         if (mpn_to_str_impl(p, sz, a, &g_16)) {
-                free(p);
+                free(p0);
                 return NULL;
         }
-        return p;
+        return p0;
+}
+
+char *
+mpn_to_str(const struct mpn *a)
+{
+        return mp_to_str(0, a);
+}
+
+char *
+mpn_to_hex_str(const struct mpn *a)
+{
+        return mp_to_hex_str(0, a);
 }
 
 void

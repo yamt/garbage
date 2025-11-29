@@ -1,3 +1,6 @@
+#if !defined(_MP_H_)
+#define _MP_H_
+
 #include <limits.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -131,6 +134,13 @@ char *mpn_to_hex_str(const struct mpn *a);
 void mpn_str_free(char *p);
 
 /*
+ * internal
+ */
+
+char *mp_to_str(bool sign, const struct mpn *a);
+char *mp_to_hex_str(bool sign, const struct mpn *a);
+
+/*
  * debug
  */
 
@@ -178,3 +188,5 @@ void mpn_poison(struct mpn *a);
 #define MPN_DIVREM(a, b, c, d) HANDLE_ERROR(mpn_divrem(a, b, c, d))
 #define MPN_ROOTINT(a, b, c) HANDLE_ERROR(mpn_rootint(a, b, c))
 #define MPN_POWINT(a, b, c) HANDLE_ERROR(mpn_powint(a, b, c))
+
+#endif /* !defined(_MP_H_) */

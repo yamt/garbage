@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "mp.h"
+#include "mpz.h"
 
 static void
 print_mpn(const char *heading, const struct mpn *a)
@@ -173,6 +174,216 @@ fail:
         mpn_clear(&q);
         mpn_clear(&r);
         return ret;
+}
+
+int
+mpz_cmp_test(const char *a_str, const char *b_str)
+{
+        int ret;
+        int cmp;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_FROM_STR(&a, a_str);
+        MPZ_FROM_STR(&b, b_str);
+        cmp = mpz_cmp(&a, &b);
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        assert(ret == 0);
+        return cmp;
+}
+
+void
+mpz_add_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_FROM_STR(&a, a_str);
+        MPZ_FROM_STR(&b, b_str);
+        MPZ_ADD(&a, &a, &b);
+        MPZ_FROM_STR(&b, expected_str);
+        assert(mpz_cmp(&a, &b) == 0);
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpz_sub_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_FROM_STR(&a, a_str);
+        MPZ_FROM_STR(&b, b_str);
+        MPZ_SUB(&a, &a, &b);
+        MPZ_FROM_STR(&b, expected_str);
+        assert(mpz_cmp(&a, &b) == 0);
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpz_mul_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_FROM_STR(&a, a_str);
+        MPZ_FROM_STR(&b, b_str);
+        MPZ_MUL(&a, &a, &b);
+        MPZ_FROM_STR(&b, expected_str);
+        assert(mpz_cmp(&a, &b) == 0);
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpz_divrem_test(const char *a_str, const char *b_str, const char *q_str,
+                const char *r_str)
+{
+        int ret;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_DEFINE(q);
+        MPZ_DEFINE(r);
+        MPZ_FROM_STR(&a, a_str);
+        MPZ_FROM_STR(&b, b_str);
+        MPZ_DIVREM(&a, &b, &a, &b);
+        MPZ_FROM_STR(&q, q_str);
+        MPZ_FROM_STR(&r, r_str);
+        assert(mpz_cmp(&a, &q) == 0);
+        assert(mpz_cmp(&b, &r) == 0);
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        mpz_clear(&q);
+        mpz_clear(&r);
+        assert(ret == 0);
+}
+
+void
+mpz_test(void)
+{
+        char *p;
+        int ret;
+        MPZ_DEFINE(a);
+        MPZ_DEFINE(b);
+        MPZ_DEFINE(c);
+        MPZ_FROM_STR(&a, "123456789412093790174309174");
+        MPZ_FROM_STR(&b,
+                     "-41234095749035790423751234567894120937901743091741");
+        MPZ_SUB(&c, &a, &b);
+
+        p = mpz_to_str(&c);
+        if (p == NULL) {
+                goto fail;
+        }
+        printf("mpz c = %s\n", p);
+        assert(!strcmp(p,
+                       "41234095749035790423751358024683533031691917400915"));
+        mpz_str_free(p);
+
+        p = mpz_to_hex_str(&c);
+        if (p == NULL) {
+                goto fail;
+        }
+        printf("mpz c = %s\n", p);
+        assert(!strcmp(p, "1c36a8cd37a465d0915d7008685c53f6f3df8f1b53"));
+        mpz_str_free(p);
+
+        MPZ_ADD(&c, &a, &b);
+        p = mpz_to_str(&c);
+        if (p == NULL) {
+                goto fail;
+        }
+        printf("mpz c = %s\n", p);
+        assert(!strcmp(p,
+                       "-41234095749035790423751111111104708844111568782567"));
+        mpz_str_free(p);
+
+        p = mpz_to_hex_str(&c);
+        if (p == NULL) {
+                goto fail;
+        }
+        printf("mpz c = %s\n", p);
+        assert(!strcmp(p, "-1c36a8cd37a465d0915ca3ca6c6e89b00f6e2f44e7"));
+        mpz_str_free(p);
+
+        assert(mpz_cmp_test("0", "0") == 0);
+
+        assert(mpz_cmp_test("-1000", "0") < 0);
+        assert(mpz_cmp_test("1000", "0") > 0);
+
+        assert(mpz_cmp_test("100", "1000") < 0);
+        assert(mpz_cmp_test("100", "1000") < 0);
+
+        assert(mpz_cmp_test("-100", "1000") < 0);
+        assert(mpz_cmp_test("100", "-1000") > 0);
+        assert(mpz_cmp_test("100", "1000") < 0);
+        assert(mpz_cmp_test("-100", "-1000") > 0);
+
+        mpz_add_test("-100", "100", "0");
+        mpz_add_test("100", "-100", "0");
+        mpz_add_test("-11", "-7", "-18");
+        mpz_add_test("-11", "0", "-11");
+        mpz_add_test("-11", "9", "-2");
+        mpz_add_test("0", "-7", "-7");
+        mpz_add_test("0", "0", "0");
+        mpz_add_test("0", "9", "9");
+        mpz_add_test("300", "-7", "293");
+        mpz_add_test("300", "0", "300");
+        mpz_add_test("300", "9", "309");
+
+        mpz_sub_test("100", "100", "0");
+        mpz_sub_test("-100", "-100", "0");
+        mpz_sub_test("-11", "-7", "-4");
+        mpz_sub_test("-11", "0", "-11");
+        mpz_sub_test("-11", "9", "-20");
+        mpz_sub_test("0", "-7", "7");
+        mpz_sub_test("0", "0", "0");
+        mpz_sub_test("0", "9", "-9");
+        mpz_sub_test("300", "-7", "307");
+        mpz_sub_test("300", "0", "300");
+        mpz_sub_test("300", "9", "291");
+
+        mpz_mul_test("-11", "-7", "77");
+        mpz_mul_test("-11", "0", "0");
+        mpz_mul_test("-11", "9", "-99");
+        mpz_mul_test("0", "-7", "0");
+        mpz_mul_test("0", "0", "0");
+        mpz_mul_test("0", "9", "0");
+        mpz_mul_test("300", "-7", "-2100");
+        mpz_mul_test("300", "0", "0");
+        mpz_mul_test("300", "9", "2700");
+
+        mpz_divrem_test("-11", "-7", "1", "-4");
+        mpz_divrem_test("-11", "9", "-1", "-2");
+        mpz_divrem_test("0", "-7", "0", "0");
+        mpz_divrem_test("0", "9", "0", "0");
+        mpz_divrem_test("300", "-7", "-42", "6");
+        mpz_divrem_test("300", "9", "33", "3");
+
+        mpz_divrem_test("4", "7", "0", "4");
+        mpz_divrem_test("4", "-7", "0", "4");
+        mpz_divrem_test("-4", "7", "0", "-4");
+        mpz_divrem_test("-4", "-7", "0", "-4");
+
+        mpz_divrem_test("77", "7", "11", "0");
+        mpz_divrem_test("77", "-7", "-11", "0");
+        mpz_divrem_test("-77", "7", "-11", "0");
+        mpz_divrem_test("-77", "-7", "11", "0");
+fail:
+        mpz_clear(&a);
+        mpz_clear(&b);
+        mpz_clear(&c);
+        assert(ret == 0);
 }
 
 static void
@@ -571,6 +782,7 @@ main(void)
         assert(mpn_cmp(&q, &g_one) == 0);
         assert(mpn_cmp(&r, &g_zero) == 0);
 
+        mpz_test();
         fixed_point_sqrt();
         sha2table();
 
