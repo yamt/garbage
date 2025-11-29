@@ -50,7 +50,7 @@ typedef size_t mp_size_t;
 /*
  * a structure to represent an unsigned integer
  */
-struct bigint {
+struct mpn {
         mp_size_t n;
         mp_size_t max;
         coeff_t *d;
@@ -60,67 +60,67 @@ struct bigint {
  * common constants
  * just for convenience
  */
-extern const struct bigint g_zero;
-extern const struct bigint g_one;
-extern const struct bigint g_base;
-extern const struct bigint g_ten;
+extern const struct mpn g_zero;
+extern const struct mpn g_one;
+extern const struct mpn g_base;
+extern const struct mpn g_ten;
 
 /*
  * initialize
  */
-void bigint_init(struct bigint *a);
+void mpn_init(struct mpn *a);
 
 /*
  * uninitialize
  * this frees the associated memory
  */
-void bigint_clear(struct bigint *a);
+void mpn_clear(struct mpn *a);
 
 /*
  * compare two values similarly to strcmp/memcmp
  */
-int bigint_cmp(const struct bigint *a, const struct bigint *b);
+int mpn_cmp(const struct mpn *a, const struct mpn *b);
 
 /*
  * math
  */
-int bigint_add(struct bigint *c, const struct bigint *a,
-               const struct bigint *b);
-int bigint_sub(struct bigint *c, const struct bigint *a,
-               const struct bigint *b);
-int bigint_mul(struct bigint *c, const struct bigint *a,
-               const struct bigint *b);
-int bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
-                  const struct bigint *b);
-int bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k);
-int bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k);
+int mpn_add(struct mpn *c, const struct mpn *a,
+               const struct mpn *b);
+int mpn_sub(struct mpn *c, const struct mpn *a,
+               const struct mpn *b);
+int mpn_mul(struct mpn *c, const struct mpn *a,
+               const struct mpn *b);
+int mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
+                  const struct mpn *b);
+int mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k);
+int mpn_powint(struct mpn *s, const struct mpn *m, unsigned int k);
 
 /*
  * copy
  */
-int bigint_set(struct bigint *d, const struct bigint *s);
+int mpn_set(struct mpn *d, const struct mpn *s);
 
 /*
  * convert from/to uintmax_t
  */
-int bigint_set_uint(struct bigint *a, uintmax_t v);
-int bigint_to_uint(const struct bigint *a, uintmax_t *vp);
+int mpn_set_uint(struct mpn *a, uintmax_t v);
+int mpn_to_uint(const struct mpn *a, uintmax_t *vp);
 
 /*
  * same as
- * "bigint_cmp(a, &g_zero) == 0" and "bigint_set(a, &g_zero)"
+ * "mpn_cmp(a, &g_zero) == 0" and "mpn_set(a, &g_zero)"
  */
-int bigint_is_zero(const struct bigint *a);
-void bigint_set_zero(struct bigint *a);
+int mpn_is_zero(const struct mpn *a);
+void mpn_set_zero(struct mpn *a);
 
 /*
  * convert to/from C string
  */
-int bigint_from_str(struct bigint *a, const char *p);
-int bigint_from_hex_str(struct bigint *a, const char *p);
-char *bigint_to_str(const struct bigint *a);
-char *bigint_to_hex_str(const struct bigint *a);
-void bigint_str_free(char *p);
+int mpn_from_str(struct mpn *a, const char *p);
+int mpn_from_hex_str(struct mpn *a, const char *p);
+char *mpn_to_str(const struct mpn *a);
+char *mpn_to_hex_str(const struct mpn *a);
+void mpn_str_free(char *p);
 
 /*
  * ============================================================
@@ -145,21 +145,21 @@ void bigint_str_free(char *p);
 #define COPY_IF(cond, a, a0)                                                  \
         do {                                                                  \
                 if (cond) {                                                   \
-                        BIGINT_SET(&a0, a);                                   \
+                        MPN_SET(&a0, a);                                   \
                         a = &a0;                                              \
                 }                                                             \
         } while (false)
 
-#define BIGINT_DEFINE(a) struct bigint a = BIGINT_INITIALIZER0
-#define BIGINT_ALLOC(a, b) HANDLE_ERROR(bigint_alloc(a, b))
-#define BIGINT_SET_UINT(a, b) HANDLE_ERROR(bigint_set_uint(a, b))
-#define BIGINT_FROM_STR(a, b) HANDLE_ERROR(bigint_from_str(a, b))
-#define BIGINT_TO_UINT(a, b) HANDLE_ERROR(bigint_to_uint(a, b))
-#define BIGINT_SET(a, b) HANDLE_ERROR(bigint_set(a, b))
-#define BIGINT_ADD(a, b, c) HANDLE_ERROR(bigint_add(a, b, c))
-#define BIGINT_SUB(a, b, c) HANDLE_ERROR(bigint_sub(a, b, c))
-#define BIGINT_SUB_NOFAIL(a, b, c) NO_ERROR(bigint_sub(a, b, c))
-#define BIGINT_MUL(a, b, c) HANDLE_ERROR(bigint_mul(a, b, c))
-#define BIGINT_DIVREM(a, b, c, d) HANDLE_ERROR(bigint_divrem(a, b, c, d))
-#define BIGINT_ROOTINT(a, b, c) HANDLE_ERROR(bigint_rootint(a, b, c))
-#define BIGINT_POWINT(a, b, c) HANDLE_ERROR(bigint_powint(a, b, c))
+#define MPN_DEFINE(a) struct mpn a = MPN_INITIALIZER0
+#define MPN_ALLOC(a, b) HANDLE_ERROR(mpn_alloc(a, b))
+#define MPN_SET_UINT(a, b) HANDLE_ERROR(mpn_set_uint(a, b))
+#define MPN_FROM_STR(a, b) HANDLE_ERROR(mpn_from_str(a, b))
+#define MPN_TO_UINT(a, b) HANDLE_ERROR(mpn_to_uint(a, b))
+#define MPN_SET(a, b) HANDLE_ERROR(mpn_set(a, b))
+#define MPN_ADD(a, b, c) HANDLE_ERROR(mpn_add(a, b, c))
+#define MPN_SUB(a, b, c) HANDLE_ERROR(mpn_sub(a, b, c))
+#define MPN_SUB_NOFAIL(a, b, c) NO_ERROR(mpn_sub(a, b, c))
+#define MPN_MUL(a, b, c) HANDLE_ERROR(mpn_mul(a, b, c))
+#define MPN_DIVREM(a, b, c, d) HANDLE_ERROR(mpn_divrem(a, b, c, d))
+#define MPN_ROOTINT(a, b, c) HANDLE_ERROR(mpn_rootint(a, b, c))
+#define MPN_POWINT(a, b, c) HANDLE_ERROR(mpn_powint(a, b, c))

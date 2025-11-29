@@ -16,33 +16,33 @@
 ctassert(COEFF_MAX == BASE - 1);
 #endif
 
-#define BIGINT_INITIALIZER0                                                   \
+#define MPN_INITIALIZER0                                                   \
         {                                                                     \
                 .n = 0                                                        \
         }
 
-#define BIGINT_INITIALIZER(N, ...)                                            \
+#define MPN_INITIALIZER(N, ...)                                            \
         {                                                                     \
                 .n = N, .d = (coeff_t[]){__VA_ARGS__},                        \
         }
 
-const struct bigint g_zero = BIGINT_INITIALIZER0;
-const struct bigint g_one = BIGINT_INITIALIZER(1, 1);
-const struct bigint g_base = BIGINT_INITIALIZER(2, 0, 1);
+const struct mpn g_zero = MPN_INITIALIZER0;
+const struct mpn g_one = MPN_INITIALIZER(1, 1);
+const struct mpn g_base = MPN_INITIALIZER(2, 0, 1);
 #if COEFF_MAX == 9
-const struct bigint g_ten = BIGINT_INITIALIZER(2, 0, 1);
+const struct mpn g_ten = MPN_INITIALIZER(2, 0, 1);
 #endif
 #if COEFF_MAX >= 10
-const struct bigint g_ten = BIGINT_INITIALIZER(1, 10);
+const struct mpn g_ten = MPN_INITIALIZER(1, 10);
 #endif
 #if COEFF_MAX >= 16
-const struct bigint g_16 = BIGINT_INITIALIZER(1, 16);
+const struct mpn g_16 = MPN_INITIALIZER(1, 16);
 #elif defined(BASE) && 16 / BASE < BASE
-const struct bigint g_16 = BIGINT_INITIALIZER(2, 16 % BASE, 16 / BASE);
+const struct mpn g_16 = MPN_INITIALIZER(2, 16 % BASE, 16 / BASE);
 #endif
 
 static coeff_t
-dig(const struct bigint *a, mp_size_t i)
+dig(const struct mpn *a, mp_size_t i)
 {
         if (i < a->n) {
                 return a->d[i];
@@ -204,17 +204,17 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #endif
 }
 
-static int bigint_set_uint1(struct bigint *a, coeff_t v);
-static int bigint_to_uint1(const struct bigint *a, coeff_t *vp);
-static int bigint_mul_uint1(struct bigint *d, const struct bigint *a,
+static int mpn_set_uint1(struct mpn *a, coeff_t v);
+static int mpn_to_uint1(const struct mpn *a, coeff_t *vp);
+static int mpn_mul_uint1(struct mpn *d, const struct mpn *a,
                             coeff_t b);
 
-#define BIGINT_SET_UINT1(a, b) HANDLE_ERROR(bigint_set_uint1(a, b))
-#define BIGINT_MUL_UINT1(a, b, c) HANDLE_ERROR(bigint_mul_uint1(a, b, c))
+#define MPN_SET_UINT1(a, b) HANDLE_ERROR(mpn_set_uint1(a, b))
+#define MPN_MUL_UINT1(a, b, c) HANDLE_ERROR(mpn_mul_uint1(a, b, c))
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
 __attribute__((unused)) static void
-bigint_poison(struct bigint *a)
+mpn_poison(struct mpn *a)
 {
 #if !defined(NDEBUG)
         memset(a->d + a->n, 0xaa, (a->max - a->n) * sizeof(*a->d));
@@ -222,7 +222,7 @@ bigint_poison(struct bigint *a)
 }
 
 static int
-bigint_alloc(struct bigint *a, mp_size_t max_digits)
+mpn_alloc(struct mpn *a, mp_size_t max_digits)
 {
         if (max_digits <= a->max) {
                 return 0;
@@ -236,12 +236,12 @@ bigint_alloc(struct bigint *a, mp_size_t max_digits)
         }
         a->d = p;
         a->max = max_digits;
-        bigint_poison(a);
+        mpn_poison(a);
         return 0;
 }
 
 void
-bigint_init(struct bigint *a)
+mpn_init(struct mpn *a)
 {
         a->n = 0;
         a->max = 0;
@@ -249,13 +249,13 @@ bigint_init(struct bigint *a)
 }
 
 void
-bigint_clear(struct bigint *a)
+mpn_clear(struct mpn *a)
 {
         free(a->d);
 }
 
 static bool
-is_normal(const struct bigint *a)
+is_normal(const struct mpn *a)
 {
         if (a->n == 0) {
                 return true;
@@ -276,7 +276,7 @@ is_normal(const struct bigint *a)
 }
 
 int
-bigint_cmp(const struct bigint *a, const struct bigint *b)
+mpn_cmp(const struct mpn *a, const struct mpn *b)
 {
         if (a->n > b->n) {
                 return 1;
@@ -300,7 +300,7 @@ bigint_cmp(const struct bigint *a, const struct bigint *b)
 }
 
 int
-bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
+mpn_add(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         mp_size_t n = (a->n > b->n) ? a->n : b->n;
         mp_size_t i;
@@ -309,7 +309,7 @@ bigint_add(struct bigint *c, const struct bigint *a, const struct bigint *b)
         if (MP_SIZE_MAX - 1 < n) {
                 return EOVERFLOW;
         }
-        BIGINT_ALLOC(c, n + 1);
+        MPN_ALLOC(c, n + 1);
         coeff_t carry = 0;
         for (i = 0; i < n; i++) {
                 c->d[i] = coeff_addc(dig(a, i), dig(b, i), carry, &carry);
@@ -325,14 +325,14 @@ fail:
 }
 
 int
-bigint_sub(struct bigint *c, const struct bigint *a, const struct bigint *b)
+mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         mp_size_t n = a->n;
         mp_size_t i;
         int ret;
 
-        assert(bigint_cmp(a, b) >= 0);
-        BIGINT_ALLOC(c, n);
+        assert(mpn_cmp(a, b) >= 0);
+        MPN_ALLOC(c, n);
         coeff_t carry = 0;
         for (i = 0; i < n; i++) {
                 c->d[i] = coeff_subc(dig(a, i), dig(b, i), carry, &carry);
@@ -350,7 +350,7 @@ fail:
 }
 
 static void
-mul1(struct bigint *c, const struct bigint *a, coeff_t n)
+mul1(struct mpn *c, const struct mpn *a, coeff_t n)
 {
         assert(is_normal(a));
         if (n == 0) {
@@ -374,7 +374,7 @@ mul1(struct bigint *c, const struct bigint *a, coeff_t n)
 }
 
 int
-bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
+mpn_mul(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         assert(is_normal(a));
         assert(is_normal(b));
@@ -382,9 +382,9 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
                 c->n = 0;
                 return 0;
         }
-        BIGINT_DEFINE(t);
-        BIGINT_DEFINE(a0);
-        BIGINT_DEFINE(b0);
+        MPN_DEFINE(t);
+        MPN_DEFINE(a0);
+        MPN_DEFINE(b0);
         int ret;
         COPY_IF(c == a, a, a0);
         COPY_IF(c == b, b, b0);
@@ -392,8 +392,8 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
                 ret = EOVERFLOW;
                 goto fail;
         }
-        BIGINT_ALLOC(c, a->n + b->n + 1);
-        BIGINT_ALLOC(&t, a->n + 1);
+        MPN_ALLOC(c, a->n + b->n + 1);
+        MPN_ALLOC(&t, a->n + 1);
         /*
          * initialize with 0, as b->d might contain 0s, for which
          * the following logic can leave the corresponding c->d elements
@@ -431,14 +431,14 @@ bigint_mul(struct bigint *c, const struct bigint *a, const struct bigint *b)
         }
         ret = 0;
 fail:
-        bigint_clear(&t);
-        bigint_clear(&a0);
-        bigint_clear(&b0);
+        mpn_clear(&t);
+        mpn_clear(&a0);
+        mpn_clear(&b0);
         return ret;
 }
 
 static int
-div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
+div_normalize(struct mpn *a, struct mpn *b, unsigned int *kp)
 {
         assert(b->n != 0);
 
@@ -459,7 +459,7 @@ div_normalize(struct bigint *a, struct bigint *b, unsigned int *kp)
                                 ret = EOVERFLOW;
                                 goto fail;
                         }
-                        BIGINT_ALLOC(a, a->n + 1);
+                        MPN_ALLOC(a, a->n + 1);
                 }
                 mul1(a, a, (coeff_t)1 << k);
         }
@@ -470,7 +470,7 @@ fail:
 }
 
 static int
-shift_left_words(struct bigint *d, const struct bigint *s, mp_size_t n)
+shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
 {
         assert(d != s);
         assert(is_normal(s));
@@ -482,7 +482,7 @@ shift_left_words(struct bigint *d, const struct bigint *s, mp_size_t n)
         if (n > MP_SIZE_MAX - s->n) {
                 return EOVERFLOW;
         }
-        BIGINT_ALLOC(d, s->n + n);
+        MPN_ALLOC(d, s->n + n);
         mp_size_t i;
         for (i = 0; i < n; i++) {
                 d->d[i] = 0;
@@ -498,13 +498,13 @@ fail:
 }
 
 int
-bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
-              const struct bigint *b0)
+mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
+              const struct mpn *b0)
 {
-        BIGINT_DEFINE(b);
-        BIGINT_DEFINE(b1);
-        BIGINT_DEFINE(tmp);
-        BIGINT_DEFINE(tmp2);
+        MPN_DEFINE(b);
+        MPN_DEFINE(b1);
+        MPN_DEFINE(tmp);
+        MPN_DEFINE(tmp2);
         unsigned int k;
         int ret;
 
@@ -512,13 +512,13 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
         assert(is_normal(a));
         assert(is_normal(b0));
         assert(b0->n != 0); /* XXX report division-by-zero? */
-        BIGINT_SET(r, a);
-        if (bigint_cmp(a, b0) < 0) {
+        MPN_SET(r, a);
+        if (mpn_cmp(a, b0) < 0) {
                 q->n = 0;
                 ret = 0;
                 goto fail;
         }
-        BIGINT_SET(&b, b0);
+        MPN_SET(&b, b0);
         ret = div_normalize(r, &b, &k);
         if (ret != 0) {
                 goto fail;
@@ -529,17 +529,17 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
 #if !defined(NDEBUG)
         /* assert(r < 2 * (BASE ** m) * b) */
         SHIFT_LEFT_WORDS(&tmp, &b, m);
-        BIGINT_ADD(&tmp, &tmp, &tmp);
-        assert(bigint_cmp(r, &tmp) < 0);
+        MPN_ADD(&tmp, &tmp, &tmp);
+        assert(mpn_cmp(r, &tmp) < 0);
 #endif
         assert(n > 0);
         assert(m < MP_SIZE_MAX);
-        BIGINT_ALLOC(q, m + 1);
+        MPN_ALLOC(q, m + 1);
         SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (BASE ** m) * b */
-        if (bigint_cmp(r, &tmp) >= 0) {
+        if (mpn_cmp(r, &tmp) >= 0) {
                 q->d[m] = 1;
                 q->n = m + 1;
-                BIGINT_SUB(r, r, &tmp);
+                MPN_SUB(r, r, &tmp);
         } else {
                 q->n = m;
         }
@@ -548,7 +548,7 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
 #if !defined(NDEBUG) && 0
                 /* assert(r < (BASE ** (j + 1)) * b) */
                 SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
-                assert(bigint_cmp(r, &b) < 0);
+                assert(mpn_cmp(r, &b) < 0);
 #endif
                 coeff_t q_j;
                 coeff_t high = r->d[n + j];
@@ -562,95 +562,95 @@ bigint_divrem(struct bigint *q, struct bigint *r, const struct bigint *a,
                         assert(q_j <= COEFF_MAX);
                 }
                 SHIFT_LEFT_WORDS(&tmp, &b, j);      /* tmp = (BASE ** j) * b */
-                BIGINT_MUL_UINT1(&tmp2, &tmp, q_j); /* tmp2 = q_j * tmp */
-                while (bigint_cmp(r, &tmp2) < 0) {
+                MPN_MUL_UINT1(&tmp2, &tmp, q_j); /* tmp2 = q_j * tmp */
+                while (mpn_cmp(r, &tmp2) < 0) {
                         q_j--;
-                        BIGINT_SUB_NOFAIL(&tmp2, &tmp2, &tmp);
+                        MPN_SUB_NOFAIL(&tmp2, &tmp2, &tmp);
                 }
-                BIGINT_SUB_NOFAIL(r, r, &tmp2);
+                MPN_SUB_NOFAIL(r, r, &tmp2);
                 q->d[j] = q_j;
         }
         ret = 0;
         assert(is_normal(q));
         assert(is_normal(r));
-        assert(bigint_cmp(r, &b) < 0);
+        assert(mpn_cmp(r, &b) < 0);
         if (k > 0 && r->n != 0) {
                 /* r = r / (2 ** k) */
-                BIGINT_SET_UINT1(&tmp, (coeff_t)1 << k);
-                BIGINT_DIVREM(r, &tmp2, r, &tmp);
+                MPN_SET_UINT1(&tmp, (coeff_t)1 << k);
+                MPN_DIVREM(r, &tmp2, r, &tmp);
                 assert(tmp2.n == 0); /* should be an exact division */
         }
         assert(is_normal(q));
         assert(is_normal(r));
 fail:
-        bigint_clear(&b);
-        bigint_clear(&b1);
-        bigint_clear(&tmp);
-        bigint_clear(&tmp2);
+        mpn_clear(&b);
+        mpn_clear(&b1);
+        mpn_clear(&tmp);
+        mpn_clear(&tmp2);
         return ret;
 }
 
 int
-bigint_rootint(struct bigint *s, const struct bigint *m, unsigned int k)
+mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k)
 {
-        assert(bigint_cmp(m, &g_zero) > 0);
+        assert(mpn_cmp(m, &g_zero) > 0);
         assert(k >= 2);
-        BIGINT_DEFINE(m1);
-        BIGINT_DEFINE(bk);
-        BIGINT_DEFINE(bk_minus_1);
-        BIGINT_DEFINE(u);
-        BIGINT_DEFINE(tmp);
-        BIGINT_DEFINE(unused);
+        MPN_DEFINE(m1);
+        MPN_DEFINE(bk);
+        MPN_DEFINE(bk_minus_1);
+        MPN_DEFINE(u);
+        MPN_DEFINE(tmp);
+        MPN_DEFINE(unused);
         int ret;
         COPY_IF(s == m, m, m1);
-        BIGINT_SET_UINT(&bk, k);
-        BIGINT_SET_UINT(&bk_minus_1, k - 1);
-        BIGINT_SET(&u, m);
+        MPN_SET_UINT(&bk, k);
+        MPN_SET_UINT(&bk_minus_1, k - 1);
+        MPN_SET(&u, m);
         do {
-                BIGINT_SET(s, &u);
-                BIGINT_MUL(&u, &u, &bk_minus_1);
+                MPN_SET(s, &u);
+                MPN_MUL(&u, &u, &bk_minus_1);
                 /* tmp = m / (s ^ (k - 1)) */
-                BIGINT_SET(&tmp, m);
+                MPN_SET(&tmp, m);
                 unsigned int i;
                 for (i = 0; i < k - 1; i++) {
-                        BIGINT_DIVREM(&tmp, &unused, &tmp, s);
+                        MPN_DIVREM(&tmp, &unused, &tmp, s);
                 }
-                BIGINT_ADD(&u, &u, &tmp);
-                BIGINT_DIVREM(&u, &unused, &u, &bk);
-        } while (bigint_cmp(&u, s) < 0);
+                MPN_ADD(&u, &u, &tmp);
+                MPN_DIVREM(&u, &unused, &u, &bk);
+        } while (mpn_cmp(&u, s) < 0);
         ret = 0;
 fail:
-        bigint_clear(&bk);
-        bigint_clear(&bk_minus_1);
-        bigint_clear(&u);
-        bigint_clear(&tmp);
-        bigint_clear(&unused);
-        bigint_clear(&m1);
+        mpn_clear(&bk);
+        mpn_clear(&bk_minus_1);
+        mpn_clear(&u);
+        mpn_clear(&tmp);
+        mpn_clear(&unused);
+        mpn_clear(&m1);
         return ret;
 }
 
 int
-bigint_powint(struct bigint *s, const struct bigint *m, unsigned int k)
+mpn_powint(struct mpn *s, const struct mpn *m, unsigned int k)
 {
-        BIGINT_DEFINE(m1);
+        MPN_DEFINE(m1);
         unsigned int i;
         int ret;
         COPY_IF(s == m, m, m1);
-        BIGINT_SET_UINT(s, 1);
+        MPN_SET_UINT(s, 1);
         for (i = 0; i < k; i++) {
-                BIGINT_MUL(s, s, m);
+                MPN_MUL(s, s, m);
         }
         ret = 0;
 fail:
-        bigint_clear(&m1);
+        mpn_clear(&m1);
         return ret;
 }
 
 int
-bigint_set(struct bigint *d, const struct bigint *s)
+mpn_set(struct mpn *d, const struct mpn *s)
 {
         int ret;
-        BIGINT_ALLOC(d, s->n);
+        MPN_ALLOC(d, s->n);
         mp_size_t i;
         for (i = 0; i < s->n; i++) {
                 d->d[i] = s->d[i];
@@ -661,7 +661,7 @@ fail:
 }
 
 __attribute__((unused)) static int
-bigint_set_uint1(struct bigint *a, coeff_t v)
+mpn_set_uint1(struct mpn *a, coeff_t v)
 {
         assert(v <= COEFF_MAX);
         if (v == 0) {
@@ -669,7 +669,7 @@ bigint_set_uint1(struct bigint *a, coeff_t v)
                 return 0;
         }
         int ret;
-        BIGINT_ALLOC(a, 1);
+        MPN_ALLOC(a, 1);
         a->d[0] = v;
         a->n = 1;
 fail:
@@ -677,40 +677,40 @@ fail:
 }
 
 int
-bigint_set_uint(struct bigint *a, uintmax_t v)
+mpn_set_uint(struct mpn *a, uintmax_t v)
 {
 #if defined(BASE)
         if (v <= COEFF_MAX) {
-                return bigint_set_uint1(a, v);
+                return mpn_set_uint1(a, v);
         }
         int ret;
-        BIGINT_DEFINE(t);
-        BIGINT_DEFINE(bb);
-        bigint_set_zero(a);       /* a = 0 */
-        BIGINT_SET_UINT1(&bb, 1); /* bb = 1 */
+        MPN_DEFINE(t);
+        MPN_DEFINE(bb);
+        mpn_set_zero(a);       /* a = 0 */
+        MPN_SET_UINT1(&bb, 1); /* bb = 1 */
         while (true) {
                 coeff_t d = v % BASE;
-                BIGINT_SET_UINT1(&t, d);
-                BIGINT_MUL(&t, &t, &bb);
-                BIGINT_ADD(a, a, &t); /* a += d * bb */
+                MPN_SET_UINT1(&t, d);
+                MPN_MUL(&t, &t, &bb);
+                MPN_ADD(a, a, &t); /* a += d * bb */
                 v /= BASE;
                 if (v == 0) {
                         break;
                 }
-                BIGINT_MUL(&bb, &bb, &g_base); /* bb *= BASE */
+                MPN_MUL(&bb, &bb, &g_base); /* bb *= BASE */
         }
 fail:
-        bigint_clear(&t);
-        bigint_clear(&bb);
+        mpn_clear(&t);
+        mpn_clear(&bb);
         return ret;
 #else
         assert(v <= COEFF_MAX);
-        return bigint_set_uint1(a, v);
+        return mpn_set_uint1(a, v);
 #endif
 }
 
 __attribute__((unused)) static int
-bigint_to_uint1(const struct bigint *a, coeff_t *vp)
+mpn_to_uint1(const struct mpn *a, coeff_t *vp)
 {
         if (a->n == 0) {
                 *vp = 0;
@@ -727,11 +727,11 @@ bigint_to_uint1(const struct bigint *a, coeff_t *vp)
 }
 
 int
-bigint_to_uint(const struct bigint *a, uintmax_t *vp)
+mpn_to_uint(const struct mpn *a, uintmax_t *vp)
 {
 #if COEFF_MAX >= UINTMAX_MAX
         coeff_t c;
-        int ret = bigint_to_uint1(a, &c);
+        int ret = mpn_to_uint1(a, &c);
         if (ret == 0) {
                 *vp = c;
         }
@@ -762,28 +762,28 @@ bigint_to_uint(const struct bigint *a, uintmax_t *vp)
 }
 
 static int
-bigint_mul_uint1(struct bigint *d, const struct bigint *a, coeff_t b)
+mpn_mul_uint1(struct mpn *d, const struct mpn *a, coeff_t b)
 {
         assert(b <= COEFF_MAX);
         int ret;
-        BIGINT_ALLOC(d, a->n + 1);
+        MPN_ALLOC(d, a->n + 1);
         mul1(d, a, b);
 fail:
         return ret;
 }
 
 int
-bigint_is_zero(const struct bigint *a)
+mpn_is_zero(const struct mpn *a)
 {
         assert(is_normal(a));
         return a->n == 0;
 }
 
 void
-bigint_set_zero(struct bigint *a)
+mpn_set_zero(struct mpn *a)
 {
         a->n = 0;
-        assert(bigint_is_zero(a));
+        assert(mpn_is_zero(a));
 }
 
 static int
@@ -854,43 +854,43 @@ digit_chr(unsigned int x)
 }
 
 static int
-bigint_from_str_base(struct bigint *a, const struct bigint *base,
+mpn_from_str_base(struct mpn *a, const struct mpn *base,
                      const char *p)
 {
         size_t n = strlen(p);
         int ret;
 
-        BIGINT_DEFINE(tmp);
+        MPN_DEFINE(tmp);
         a->n = 0; /* a = 0 */
         size_t i;
         for (i = 0; i < n; i++) {
-                BIGINT_MUL(&tmp, a, base); /* tmp = a * base */
+                MPN_MUL(&tmp, a, base); /* tmp = a * base */
                 unsigned int x;
                 ret = digit_from_chr(p[i], &x);
                 if (ret != 0) {
                         goto fail;
                 }
-                BIGINT_SET_UINT(a, x); /* a = digit */
-                if (bigint_cmp(a, base) >= 0) {
+                MPN_SET_UINT(a, x); /* a = digit */
+                if (mpn_cmp(a, base) >= 0) {
                         ret = EINVAL;
                         goto fail;
                 }
-                BIGINT_ADD(a, a, &tmp); /* a = a + tmp */
+                MPN_ADD(a, a, &tmp); /* a = a + tmp */
         }
         ret = 0;
         assert(is_normal(a));
 fail:
-        bigint_clear(&tmp);
+        mpn_clear(&tmp);
         return ret;
 }
 
 int
-bigint_from_str(struct bigint *a, const char *p)
+mpn_from_str(struct mpn *a, const char *p)
 {
 #if BASE == 10
         size_t n = strlen(p);
         int ret;
-        BIGINT_ALLOC(a, n);
+        MPN_ALLOC(a, n);
         mp_size_t i;
         for (i = 0; i < n; i++) {
                 unsigned int x;
@@ -912,18 +912,18 @@ bigint_from_str(struct bigint *a, const char *p)
 fail:
         return ret;
 #else
-        return bigint_from_str_base(a, &g_ten, p);
+        return mpn_from_str_base(a, &g_ten, p);
 #endif
 }
 
 int
-bigint_from_hex_str(struct bigint *a, const char *p)
+mpn_from_hex_str(struct mpn *a, const char *p)
 {
-        return bigint_from_str_base(a, &g_16, p);
+        return mpn_from_str_base(a, &g_16, p);
 }
 
 static size_t
-estimate_ndigits(const struct bigint *a)
+estimate_ndigits(const struct mpn *a)
 {
         assert(is_normal(a));
         if (a->n == 0) {
@@ -939,21 +939,21 @@ estimate_ndigits(const struct bigint *a)
 }
 
 int
-bigint_to_str_impl(char *p, size_t sz, const struct bigint *a,
-                   const struct bigint *base)
+mpn_to_str_impl(char *p, size_t sz, const struct mpn *a,
+                   const struct mpn *base)
 {
-        BIGINT_DEFINE(q);
-        BIGINT_DEFINE(r);
+        MPN_DEFINE(q);
+        MPN_DEFINE(r);
         int ret;
 
         mp_size_t n = sz;
-        BIGINT_SET(&q, a);
+        MPN_SET(&q, a);
         p[--n] = 0;
         do {
                 assert(n > 0);
-                BIGINT_DIVREM(&q, &r, &q, base);
+                MPN_DIVREM(&q, &r, &q, base);
                 uintmax_t u;
-                BIGINT_TO_UINT(&r, &u);
+                MPN_TO_UINT(&r, &u);
                 char ch = digit_chr(u);
                 p[--n] = ch;
         } while (q.n != 0);
@@ -962,13 +962,13 @@ bigint_to_str_impl(char *p, size_t sz, const struct bigint *a,
         }
         ret = 0;
 fail:
-        bigint_clear(&q);
-        bigint_clear(&r);
+        mpn_clear(&q);
+        mpn_clear(&r);
         return ret;
 }
 
 char *
-bigint_to_str(const struct bigint *a)
+mpn_to_str(const struct mpn *a)
 {
         assert(is_normal(a));
         size_t sz = estimate_ndigits(a) + 1; /* XXX check overflow */
@@ -989,7 +989,7 @@ bigint_to_str(const struct bigint *a)
         p[i] = 0;
         return p;
 #else
-        if (bigint_to_str_impl(p, sz, a, &g_ten)) {
+        if (mpn_to_str_impl(p, sz, a, &g_ten)) {
                 free(p);
                 return NULL;
         }
@@ -998,7 +998,7 @@ bigint_to_str(const struct bigint *a)
 }
 
 static size_t
-estimate_ndigits_hex(const struct bigint *a)
+estimate_ndigits_hex(const struct mpn *a)
 {
         assert(is_normal(a));
         if (a->n == 0) {
@@ -1014,7 +1014,7 @@ estimate_ndigits_hex(const struct bigint *a)
 }
 
 char *
-bigint_to_hex_str(const struct bigint *a)
+mpn_to_hex_str(const struct mpn *a)
 {
         assert(is_normal(a));
         size_t sz = estimate_ndigits_hex(a) + 1; /* XXX check overflow */
@@ -1027,7 +1027,7 @@ bigint_to_hex_str(const struct bigint *a)
                 p[1] = 0;
                 return p;
         }
-        if (bigint_to_str_impl(p, sz, a, &g_16)) {
+        if (mpn_to_str_impl(p, sz, a, &g_16)) {
                 free(p);
                 return NULL;
         }
@@ -1035,7 +1035,7 @@ bigint_to_hex_str(const struct bigint *a)
 }
 
 void
-bigint_str_free(char *p)
+mpn_str_free(char *p)
 {
         free(p);
 }
@@ -1045,35 +1045,35 @@ bigint_str_free(char *p)
 #include <stdio.h>
 
 static void
-print_bigint(const char *heading, const struct bigint *a)
+print_mpn(const char *heading, const struct mpn *a)
 {
         assert(is_normal(a));
-        char *p = bigint_to_str(a);
+        char *p = mpn_to_str(a);
         printf("%s%s\n", heading, p);
-        bigint_str_free(p);
+        mpn_str_free(p);
 }
 
 int
-gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
+gcd(struct mpn *c, const struct mpn *a0, const struct mpn *b0)
 {
-        const struct bigint *a = a0;
-        const struct bigint *b = b0;
-        BIGINT_DEFINE(q);
-        struct bigint t[3];
+        const struct mpn *a = a0;
+        const struct mpn *b = b0;
+        MPN_DEFINE(q);
+        struct mpn t[3];
         unsigned int i;
         int ret;
 
         for (i = 0; i < 3; i++) {
-                bigint_init(&t[i]);
+                mpn_init(&t[i]);
         }
 
         i = 0;
         while (1) {
-                // print_bigint("a  =", a);
-                // print_bigint("b  =", b);
-                BIGINT_DIVREM(&q, &t[i], a, b);
-                // print_bigint("a/b=", &q);
-                // print_bigint("a%b=", &t[i]);
+                // print_mpn("a  =", a);
+                // print_mpn("b  =", b);
+                MPN_DIVREM(&q, &t[i], a, b);
+                // print_mpn("a/b=", &q);
+                // print_mpn("a%b=", &t[i]);
                 if (t[i].n == 0) {
                         break;
                 }
@@ -1081,13 +1081,13 @@ gcd(struct bigint *c, const struct bigint *a0, const struct bigint *b0)
                 b = &t[i];
                 i = (i + 1) % 3;
         };
-        BIGINT_SET(c, b);
+        MPN_SET(c, b);
         assert(is_normal(c));
         ret = 0;
 fail:
-        bigint_clear(&q);
+        mpn_clear(&q);
         for (i = 0; i < 3; i++) {
-                bigint_clear(&t[i]);
+                mpn_clear(&t[i]);
         }
         return ret;
 }
@@ -1096,27 +1096,27 @@ int
 fixed_point_sqrt(void)
 {
         const char *scale_str = "1000000000000";
-        BIGINT_DEFINE(scale);
-        BIGINT_DEFINE(t);
+        MPN_DEFINE(scale);
+        MPN_DEFINE(t);
         int ret;
-        BIGINT_FROM_STR(&scale, scale_str);
+        MPN_FROM_STR(&scale, scale_str);
         unsigned int i;
         for (i = 1; i < 256; i++) {
-                BIGINT_SET_UINT(&t, i);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_ROOTINT(&t, &t, 2);
-                char *p = bigint_to_str(&t);
+                MPN_SET_UINT(&t, i);
+                MPN_MUL(&t, &t, &scale);
+                MPN_MUL(&t, &t, &scale);
+                MPN_ROOTINT(&t, &t, 2);
+                char *p = mpn_to_str(&t);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
                 }
                 printf("sqrt(%3u) * %s = %s\n", i, scale_str, p);
-                bigint_str_free(p);
+                mpn_str_free(p);
         }
 fail:
-        bigint_clear(&scale);
-        bigint_clear(&t);
+        mpn_clear(&scale);
+        mpn_clear(&t);
         return ret;
 }
 
@@ -1148,133 +1148,133 @@ sha2table(void)
          * with S=2^128.
          * maybe 128 is a bit excessive.
          */
-        BIGINT_DEFINE(scale);
-        BIGINT_DEFINE(scale2);
-        BIGINT_DEFINE(unused);
-        BIGINT_DEFINE(t);
-        BIGINT_DEFINE(q);
-        BIGINT_DEFINE(r);
+        MPN_DEFINE(scale);
+        MPN_DEFINE(scale2);
+        MPN_DEFINE(unused);
+        MPN_DEFINE(t);
+        MPN_DEFINE(q);
+        MPN_DEFINE(r);
         int ret;
-        BIGINT_FROM_STR(&scale,
+        MPN_FROM_STR(&scale,
                         "340282366920938463463374607431768211456"); /* 2^128 */
-        BIGINT_FROM_STR(&scale2, "18446744073709551616"); /* 2^(128-64) */
+        MPN_FROM_STR(&scale2, "18446744073709551616"); /* 2^(128-64) */
         unsigned int i;
         for (i = 0; i < 8; i++) {
                 /* sqrt of prime */
-                BIGINT_SET_UINT(&t, primes[i]);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_ROOTINT(&t, &t, 2);
+                MPN_SET_UINT(&t, primes[i]);
+                MPN_MUL(&t, &t, &scale);
+                MPN_MUL(&t, &t, &scale);
+                MPN_ROOTINT(&t, &t, 2);
                 /* take the first 64 bits of the fraction part */
                 /* q = (t % scale) / scale2 */
-                BIGINT_DIVREM(&unused, &r, &t, &scale);
-                BIGINT_DIVREM(&q, &unused, &r, &scale2);
-                char *p = bigint_to_hex_str(&q);
+                MPN_DIVREM(&unused, &r, &t, &scale);
+                MPN_DIVREM(&q, &unused, &r, &scale2);
+                char *p = mpn_to_hex_str(&q);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
                 }
                 printf("H[%2u] = frac(sqrt(%3u)) = %s\n", i, primes[i], p);
-                bigint_str_free(p);
+                mpn_str_free(p);
                 /* verify with the pre-computed value */
                 uintmax_t x;
-                BIGINT_TO_UINT(&q, &x);
+                MPN_TO_UINT(&q, &x);
                 assert(H[i] == x);
         }
         for (i = 0; i < 80; i++) {
                 /* cbrt of prime */
-                BIGINT_SET_UINT(&t, primes[i]);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_MUL(&t, &t, &scale);
-                BIGINT_ROOTINT(&t, &t, 3);
+                MPN_SET_UINT(&t, primes[i]);
+                MPN_MUL(&t, &t, &scale);
+                MPN_MUL(&t, &t, &scale);
+                MPN_MUL(&t, &t, &scale);
+                MPN_ROOTINT(&t, &t, 3);
                 /* take the first 64 bits of the fraction part */
-                BIGINT_DIVREM(&unused, &r, &t, &scale);
-                BIGINT_DIVREM(&q, &unused, &r, &scale2);
-                char *p = bigint_to_hex_str(&q);
+                MPN_DIVREM(&unused, &r, &t, &scale);
+                MPN_DIVREM(&q, &unused, &r, &scale2);
+                char *p = mpn_to_hex_str(&q);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
                 }
                 printf("K[%2u] = frac(cbrt(%3u)) = %s\n", i, primes[i], p);
                 /* verify with the pre-computed value */
-                bigint_str_free(p);
+                mpn_str_free(p);
                 uintmax_t x;
-                BIGINT_TO_UINT(&q, &x);
+                MPN_TO_UINT(&q, &x);
                 assert(K[i] == x);
         }
 fail:
-        bigint_clear(&scale);
-        bigint_clear(&scale2);
-        bigint_clear(&unused);
-        bigint_clear(&t);
-        bigint_clear(&q);
-        bigint_clear(&r);
+        mpn_clear(&scale);
+        mpn_clear(&scale2);
+        mpn_clear(&unused);
+        mpn_clear(&t);
+        mpn_clear(&q);
+        mpn_clear(&r);
         return ret;
 }
 
 static void
 test_str_roundtrip(const char *str)
 {
-        BIGINT_DEFINE(a);
-        int ret = bigint_from_str(&a, str);
+        MPN_DEFINE(a);
+        int ret = mpn_from_str(&a, str);
         assert(ret == 0);
-        char *p = bigint_to_str(&a);
+        char *p = mpn_to_str(&a);
         printf("expected %s\n", str);
         printf("actual   %s\n", p);
         assert(!strcmp(p, str));
-        bigint_str_free(p);
-        bigint_clear(&a);
+        mpn_str_free(p);
+        mpn_clear(&a);
 }
 
 static void
 test_hex_str_roundtrip(const char *str)
 {
-        BIGINT_DEFINE(a);
-        int ret = bigint_from_hex_str(&a, str);
+        MPN_DEFINE(a);
+        int ret = mpn_from_hex_str(&a, str);
         assert(ret == 0);
-        char *p = bigint_to_hex_str(&a);
+        char *p = mpn_to_hex_str(&a);
         printf("expected %s\n", str);
         printf("actual   %s\n", p);
         assert(!strcmp(p, str));
-        bigint_str_free(p);
-        bigint_clear(&a);
+        mpn_str_free(p);
+        mpn_clear(&a);
 }
 
 int
-factorial(struct bigint *a, const struct bigint *n)
+factorial(struct mpn *a, const struct mpn *n)
 {
-        BIGINT_DEFINE(c);
+        MPN_DEFINE(c);
         int ret;
-        BIGINT_SET_UINT1(a, 1);
-        BIGINT_SET(&c, n);
-        while (!bigint_is_zero(&c)) {
-                BIGINT_MUL(a, a, &c);
-                BIGINT_SUB_NOFAIL(&c, &c, &g_one);
+        MPN_SET_UINT1(a, 1);
+        MPN_SET(&c, n);
+        while (!mpn_is_zero(&c)) {
+                MPN_MUL(a, a, &c);
+                MPN_SUB_NOFAIL(&c, &c, &g_one);
         }
 fail:
-        bigint_clear(&c);
+        mpn_clear(&c);
         return ret;
 }
 
 int
-check_factorial(const struct bigint *a, const struct bigint *n)
+check_factorial(const struct mpn *a, const struct mpn *n)
 {
-        BIGINT_DEFINE(c);
-        BIGINT_DEFINE(q);
-        BIGINT_DEFINE(r);
+        MPN_DEFINE(c);
+        MPN_DEFINE(q);
+        MPN_DEFINE(r);
         int ret;
-        BIGINT_SET(&q, a);
-        BIGINT_SET(&c, n);
-        while (!bigint_is_zero(&c)) {
-                BIGINT_DIVREM(&q, &r, &q, &c);
-                assert(bigint_is_zero(&r));
-                BIGINT_SUB_NOFAIL(&c, &c, &g_one);
+        MPN_SET(&q, a);
+        MPN_SET(&c, n);
+        while (!mpn_is_zero(&c)) {
+                MPN_DIVREM(&q, &r, &q, &c);
+                assert(mpn_is_zero(&r));
+                MPN_SUB_NOFAIL(&c, &c, &g_one);
         }
-        assert(bigint_cmp(&q, &g_one) == 0);
+        assert(mpn_cmp(&q, &g_one) == 0);
 fail:
-        bigint_clear(&c);
-        bigint_clear(&r);
+        mpn_clear(&c);
+        mpn_clear(&r);
         return ret;
 }
 
@@ -1293,10 +1293,10 @@ bench(void)
 {
         unsigned int num = 1000;
         printf("calculating %u!...\n", num);
-        BIGINT_DEFINE(a);
-        BIGINT_DEFINE(n);
+        MPN_DEFINE(a);
+        MPN_DEFINE(n);
         int ret;
-        BIGINT_SET_UINT(&n, num);
+        MPN_SET_UINT(&n, num);
         uint64_t start_time = timestamp();
         ret = factorial(&a, &n);
         if (ret != 0) {
@@ -1318,30 +1318,30 @@ bench(void)
                        (double)(end_time - start_time) / 1000000000);
         }
 #if 0
-        char *ap = bigint_to_str(&a);
+        char *ap = mpn_to_str(&a);
         if (ap == NULL) {
                 goto fail;
         }
-        char *np = bigint_to_str(&n);
+        char *np = mpn_to_str(&n);
         if (np == NULL) {
-                bigint_str_free(ap);
+                mpn_str_free(ap);
                 goto fail;
         }
         printf("%s! = %s\n", np, ap);
-        bigint_str_free(ap);
-        bigint_str_free(np);
+        mpn_str_free(ap);
+        mpn_str_free(np);
 #endif
 fail:
-        bigint_clear(&a);
-        bigint_clear(&n);
+        mpn_clear(&a);
+        mpn_clear(&n);
         printf("ret %d\n", ret);
         return ret;
 }
 
 void
-assert_eq(const struct bigint *a, const char *str)
+assert_eq(const struct mpn *a, const char *str)
 {
-        char *p = bigint_to_str(a);
+        char *p = mpn_to_str(a);
         assert(p != NULL);
         if (strcmp(p, str)) {
                 printf("unexpected value\n");
@@ -1349,7 +1349,7 @@ assert_eq(const struct bigint *a, const char *str)
                 printf("    expected: %s\n", str);
                 abort();
         }
-        bigint_str_free(p);
+        mpn_str_free(p);
 }
 
 int
@@ -1359,16 +1359,16 @@ main(void)
                 "12409715069012348970189741096590126450986902431123456";
         const char *b_str =
                 "21434109785019758904721590874321400983729087987654";
-        struct bigint a;
-        struct bigint b;
-        struct bigint c;
-        struct bigint s;
-        struct bigint d;
-        struct bigint prod;
-        struct bigint q;
-        struct bigint r;
-        struct bigint tmp;
-        struct bigint tmp2;
+        struct mpn a;
+        struct mpn b;
+        struct mpn c;
+        struct mpn s;
+        struct mpn d;
+        struct mpn prod;
+        struct mpn q;
+        struct mpn r;
+        struct mpn tmp;
+        struct mpn tmp2;
         int ret;
 
 #if BASE_BITS == 64
@@ -1401,32 +1401,32 @@ main(void)
 #endif
 #if BASE == 10
         {
-                BIGINT_DEFINE(q);
-                BIGINT_DEFINE(r);
-                struct bigint a = BIGINT_INITIALIZER(3, 8, 0, 9);
-                struct bigint b = BIGINT_INITIALIZER(2, 2, 9);
-                print_bigint("dividend ", &a);
-                print_bigint("divisor  ", &b);
-                ret = bigint_divrem(&q, &r, &a, &b);
+                MPN_DEFINE(q);
+                MPN_DEFINE(r);
+                struct mpn a = MPN_INITIALIZER(3, 8, 0, 9);
+                struct mpn b = MPN_INITIALIZER(2, 2, 9);
+                print_mpn("dividend ", &a);
+                print_mpn("divisor  ", &b);
+                ret = mpn_divrem(&q, &r, &a, &b);
                 assert(ret == 0);
                 assert_eq(&q, "9");
                 assert_eq(&r, "80");
-                bigint_clear(&q);
-                bigint_clear(&r);
+                mpn_clear(&q);
+                mpn_clear(&r);
         }
         {
-                BIGINT_DEFINE(q);
-                BIGINT_DEFINE(r);
-                struct bigint a = BIGINT_INITIALIZER(3, 0, 1, 8);
-                struct bigint b = BIGINT_INITIALIZER(2, 9, 9);
-                print_bigint("dividend ", &a);
-                print_bigint("divisor  ", &b);
-                ret = bigint_divrem(&q, &r, &a, &b);
+                MPN_DEFINE(q);
+                MPN_DEFINE(r);
+                struct mpn a = MPN_INITIALIZER(3, 0, 1, 8);
+                struct mpn b = MPN_INITIALIZER(2, 9, 9);
+                print_mpn("dividend ", &a);
+                print_mpn("divisor  ", &b);
+                ret = mpn_divrem(&q, &r, &a, &b);
                 assert(ret == 0);
                 assert_eq(&q, "8");
                 assert_eq(&r, "18");
-                bigint_clear(&q);
-                bigint_clear(&r);
+                mpn_clear(&q);
+                mpn_clear(&r);
         }
 #endif
 
@@ -1455,160 +1455,160 @@ main(void)
                 "00000000000000000000000000000000000000000000000000fffffffffff"
                 "fffffffffffffffffffffffffff");
 
-        bigint_init(&a);
-        bigint_init(&b);
-        bigint_init(&c);
-        bigint_init(&s);
-        bigint_init(&d);
-        bigint_init(&prod);
-        bigint_init(&q);
-        bigint_init(&r);
-        bigint_init(&tmp);
-        bigint_init(&tmp2);
-        assert(bigint_cmp(&a, &a) == 0);
-        assert(bigint_cmp(&b, &b) == 0);
-        assert(bigint_cmp(&a, &b) == 0);
-        assert(bigint_cmp(&b, &a) == 0);
-        bigint_from_str(&a, a_str);
-        assert(bigint_cmp(&a, &b) > 0);
-        assert(bigint_cmp(&b, &a) < 0);
-        bigint_from_str(&b, b_str);
-        assert(bigint_cmp(&a, &a) == 0);
-        assert(bigint_cmp(&b, &b) == 0);
-        assert(bigint_cmp(&a, &b) > 0);
-        assert(bigint_cmp(&b, &a) < 0);
+        mpn_init(&a);
+        mpn_init(&b);
+        mpn_init(&c);
+        mpn_init(&s);
+        mpn_init(&d);
+        mpn_init(&prod);
+        mpn_init(&q);
+        mpn_init(&r);
+        mpn_init(&tmp);
+        mpn_init(&tmp2);
+        assert(mpn_cmp(&a, &a) == 0);
+        assert(mpn_cmp(&b, &b) == 0);
+        assert(mpn_cmp(&a, &b) == 0);
+        assert(mpn_cmp(&b, &a) == 0);
+        mpn_from_str(&a, a_str);
+        assert(mpn_cmp(&a, &b) > 0);
+        assert(mpn_cmp(&b, &a) < 0);
+        mpn_from_str(&b, b_str);
+        assert(mpn_cmp(&a, &a) == 0);
+        assert(mpn_cmp(&b, &b) == 0);
+        assert(mpn_cmp(&a, &b) > 0);
+        assert(mpn_cmp(&b, &a) < 0);
         {
                 char *p;
-                p = bigint_to_hex_str(&a);
+                p = mpn_to_hex_str(&a);
                 assert(!strcmp(
                         p, "212b125567c1932ed6f400b9e883b365e3a365bac800"));
-                p = bigint_to_hex_str(&b);
+                p = mpn_to_hex_str(&b);
                 assert(!strcmp(p,
                                "eaa72b959fd1535970dea1d15024b7c1325a43fc6"));
         }
 
-        ret = bigint_from_str(&tmp, "1a");
+        ret = mpn_from_str(&tmp, "1a");
         assert(ret == EINVAL);
-        ret = bigint_from_hex_str(&tmp, "1ag");
+        ret = mpn_from_hex_str(&tmp, "1ag");
         assert(ret == EINVAL);
 
-        ret = bigint_set_uint(&tmp, COEFF_MAX);
+        ret = mpn_set_uint(&tmp, COEFF_MAX);
         assert(ret == 0);
-        ret = bigint_add(&tmp, &tmp, &g_one);
+        ret = mpn_add(&tmp, &tmp, &g_one);
         assert(ret == 0);
-        assert(!bigint_cmp(&g_base, &tmp));
+        assert(!mpn_cmp(&g_base, &tmp));
 
-        ret = bigint_set_uint(&tmp, 0);
+        ret = mpn_set_uint(&tmp, 0);
         assert(ret == 0);
         assert_eq(&tmp, "0");
-        ret = bigint_set_uint(&tmp, 9);
+        ret = mpn_set_uint(&tmp, 9);
         assert(ret == 0);
         assert_eq(&tmp, "9");
-        ret = bigint_set_uint(&tmp, 10);
+        ret = mpn_set_uint(&tmp, 10);
         assert(ret == 0);
         assert_eq(&tmp, "10");
-        ret = bigint_set_uint(&tmp, 11);
+        ret = mpn_set_uint(&tmp, 11);
         assert(ret == 0);
         assert_eq(&tmp, "11");
-        ret = bigint_set_uint(&tmp, 100);
+        ret = mpn_set_uint(&tmp, 100);
         assert(ret == 0);
         assert_eq(&tmp, "100");
 
         /* add and sub */
-        bigint_add(&s, &a, &b);
-        assert(bigint_cmp(&s, &a) > 0);
-        assert(bigint_cmp(&s, &b) > 0);
-        bigint_sub(&d, &s, &a);
-        assert(bigint_cmp(&d, &b) == 0);
-        bigint_sub(&d, &s, &g_zero);
-        assert(bigint_cmp(&d, &s) == 0);
-        bigint_sub(&d, &s, &s);
-        assert(bigint_cmp(&d, &g_zero) == 0);
+        mpn_add(&s, &a, &b);
+        assert(mpn_cmp(&s, &a) > 0);
+        assert(mpn_cmp(&s, &b) > 0);
+        mpn_sub(&d, &s, &a);
+        assert(mpn_cmp(&d, &b) == 0);
+        mpn_sub(&d, &s, &g_zero);
+        assert(mpn_cmp(&d, &s) == 0);
+        mpn_sub(&d, &s, &s);
+        assert(mpn_cmp(&d, &g_zero) == 0);
 
         /* mul */
-        ret = bigint_from_str(&c, "111398900663392315947914998");
+        ret = mpn_from_str(&c, "111398900663392315947914998");
         assert(ret == 0);
-        ret = bigint_mul(&prod, &c, &c);
+        ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
         assert_eq(&prod,
                   "12409715069012348970189741000142675791423583433340004");
-        ret = bigint_mul(&prod, &g_one, &c);
+        ret = mpn_mul(&prod, &g_one, &c);
         assert(ret == 0);
-        print_bigint("c     = ", &c);
-        print_bigint("1 * c = ", &prod);
-        assert(bigint_cmp(&prod, &c) == 0);
-        ret = bigint_mul(&prod, &g_one, &g_one);
+        print_mpn("c     = ", &c);
+        print_mpn("1 * c = ", &prod);
+        assert(mpn_cmp(&prod, &c) == 0);
+        ret = mpn_mul(&prod, &g_one, &g_one);
         assert(ret == 0);
-        assert(bigint_cmp(&prod, &g_one) == 0);
-        ret = bigint_mul(&prod, &c, &g_one);
+        assert(mpn_cmp(&prod, &g_one) == 0);
+        ret = mpn_mul(&prod, &c, &g_one);
         assert(ret == 0);
-        assert(bigint_cmp(&prod, &c) == 0);
-        ret = bigint_mul(&prod, &c, &c);
+        assert(mpn_cmp(&prod, &c) == 0);
+        ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
         assert_eq(&prod,
                   "12409715069012348970189741000142675791423583433340004");
 
-        ret = bigint_mul(&prod, &a, &b);
+        ret = mpn_mul(&prod, &a, &b);
         assert(ret == 0);
-        ret = bigint_divrem(&q, &r, &prod, &a);
+        ret = mpn_divrem(&q, &r, &prod, &a);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &b) == 0);
-        assert(bigint_cmp(&r, &g_zero) == 0);
-        ret = bigint_divrem(&q, &r, &prod, &b);
+        assert(mpn_cmp(&q, &b) == 0);
+        assert(mpn_cmp(&r, &g_zero) == 0);
+        ret = mpn_divrem(&q, &r, &prod, &b);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &a) == 0);
-        assert(bigint_cmp(&r, &g_zero) == 0);
+        assert(mpn_cmp(&q, &a) == 0);
+        assert(mpn_cmp(&r, &g_zero) == 0);
 
-        ret = bigint_from_hex_str(&tmp, "100000000000000000000000000000000");
+        ret = mpn_from_hex_str(&tmp, "100000000000000000000000000000000");
         assert(ret == 0);
-        ret = bigint_from_str(&tmp2,
+        ret = mpn_from_str(&tmp2,
                               "340282366920938463463374607431768211456");
         assert(ret == 0);
-        assert(bigint_cmp(&tmp, &tmp2) == 0);
+        assert(mpn_cmp(&tmp, &tmp2) == 0);
         int i;
         for (i = 1; i < 10; i++) {
-                ret = bigint_set_uint(&tmp, i);
+                ret = mpn_set_uint(&tmp, i);
                 assert(ret == 0);
-                bigint_poison(&tmp);
-                ret = bigint_mul(&tmp, &tmp, &tmp2);
+                mpn_poison(&tmp);
+                ret = mpn_mul(&tmp, &tmp, &tmp2);
                 assert(ret == 0);
                 {
-                        char *p = bigint_to_hex_str(&tmp);
+                        char *p = mpn_to_hex_str(&tmp);
                         assert(p != NULL);
                         printf("p %s\n", p);
                         assert(!strcmp(p + 1,
                                        "00000000000000000000000000000000"));
-                        bigint_str_free(p);
+                        mpn_str_free(p);
                 }
         }
 
         /* divrem */
-        ret = bigint_divrem(&q, &r, &a, &g_one);
+        ret = mpn_divrem(&q, &r, &a, &g_one);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &a) == 0);
-        assert(bigint_cmp(&r, &g_zero) == 0);
-        ret = bigint_divrem(&q, &r, &a, &b);
+        assert(mpn_cmp(&q, &a) == 0);
+        assert(mpn_cmp(&r, &g_zero) == 0);
+        ret = mpn_divrem(&q, &r, &a, &b);
         assert(ret == 0);
-        ret = bigint_mul(&tmp, &q, &b);
+        ret = mpn_mul(&tmp, &q, &b);
         assert(ret == 0);
-        ret = bigint_add(&tmp, &tmp, &r);
+        ret = mpn_add(&tmp, &tmp, &r);
         assert(ret == 0);
-        assert(bigint_cmp(&tmp, &a) == 0);
+        assert(mpn_cmp(&tmp, &a) == 0);
 
-        ret = bigint_divrem(&q, &r, &b, &a);
+        ret = mpn_divrem(&q, &r, &b, &a);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &g_zero) == 0);
-        assert(bigint_cmp(&r, &b) == 0);
+        assert(mpn_cmp(&q, &g_zero) == 0);
+        assert(mpn_cmp(&r, &b) == 0);
 
-        ret = bigint_divrem(&q, &r, &a, &a);
+        ret = mpn_divrem(&q, &r, &a, &a);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &g_one) == 0);
-        assert(bigint_cmp(&r, &g_zero) == 0);
+        assert(mpn_cmp(&q, &g_one) == 0);
+        assert(mpn_cmp(&r, &g_zero) == 0);
 
-        ret = bigint_divrem(&q, &r, &b, &b);
+        ret = mpn_divrem(&q, &r, &b, &b);
         assert(ret == 0);
-        assert(bigint_cmp(&q, &g_one) == 0);
-        assert(bigint_cmp(&r, &g_zero) == 0);
+        assert(mpn_cmp(&q, &g_one) == 0);
+        assert(mpn_cmp(&r, &g_zero) == 0);
 
         fixed_point_sqrt();
         sha2table();
@@ -1617,21 +1617,21 @@ main(void)
         unsigned int k;
         for (k = 2; k < 100; k++) {
                 uint64_t start_time = timestamp();
-                print_bigint("a                            = ", &a);
+                print_mpn("a                            = ", &a);
                 printf("k                            = %u\n", k);
-                ret = bigint_rootint(&q, &a, k);
+                ret = mpn_rootint(&q, &a, k);
                 assert(ret == 0);
-                print_bigint("rootint(a, k)                = ", &q);
-                ret = bigint_powint(&tmp, &q, k);
+                print_mpn("rootint(a, k)                = ", &q);
+                ret = mpn_powint(&tmp, &q, k);
                 assert(ret == 0);
-                print_bigint("powint(rootint(a, k),     k) = ", &tmp);
-                assert(bigint_cmp(&tmp, &a) <= 0);
-                ret = bigint_add(&tmp, &q, &g_one);
+                print_mpn("powint(rootint(a, k),     k) = ", &tmp);
+                assert(mpn_cmp(&tmp, &a) <= 0);
+                ret = mpn_add(&tmp, &q, &g_one);
                 assert(ret == 0);
-                ret = bigint_powint(&tmp, &tmp, k);
+                ret = mpn_powint(&tmp, &tmp, k);
                 assert(ret == 0);
-                print_bigint("powint(rootint(a, k) + 1, k) = ", &tmp);
-                assert(bigint_cmp(&tmp, &a) > 0);
+                print_mpn("powint(rootint(a, k) + 1, k) = ", &tmp);
+                assert(mpn_cmp(&tmp, &a) > 0);
                 uint64_t end_time = timestamp();
                 printf("took %.03f sec\n",
                        (double)(end_time - start_time) / 1000000000);
@@ -1639,15 +1639,15 @@ main(void)
 
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
-        print_bigint("a        = ", &a);
-        print_bigint("b        = ", &b);
-        print_bigint("gcd(a,b) = ", &tmp);
+        print_mpn("a        = ", &a);
+        print_mpn("b        = ", &b);
+        print_mpn("gcd(a,b) = ", &tmp);
 
-        ret = bigint_from_str(
+        ret = mpn_from_str(
                 &a, "533509908571101979294464811598952141168153495025132870832"
                     "519126598141168533509908571101979294464811598952141168");
         assert(ret == 0);
-        ret = bigint_from_str(
+        ret = mpn_from_str(
                 &b, "533509908571101979294464811598952141168533509908571101979"
                     "294464811598952141168533509908571101979294464811598952141"
                     "168533509908571101979294464811598952141168533509908571101"
@@ -1655,23 +1655,23 @@ main(void)
         assert(ret == 0);
         ret = gcd(&tmp, &a, &b);
         assert(ret == 0);
-        print_bigint("a        = ", &a);
-        print_bigint("b        = ", &b);
-        print_bigint("gcd(a,b) = ", &tmp);
-        ret = bigint_from_str(&tmp2, "1975308624");
+        print_mpn("a        = ", &a);
+        print_mpn("b        = ", &b);
+        print_mpn("gcd(a,b) = ", &tmp);
+        ret = mpn_from_str(&tmp2, "1975308624");
         assert(ret == 0);
-        assert(bigint_cmp(&tmp, &tmp2) == 0);
+        assert(mpn_cmp(&tmp, &tmp2) == 0);
 
-        bigint_clear(&a);
-        bigint_clear(&b);
-        bigint_clear(&c);
-        bigint_clear(&s);
-        bigint_clear(&d);
-        bigint_clear(&prod);
-        bigint_clear(&q);
-        bigint_clear(&r);
-        bigint_clear(&tmp);
-        bigint_clear(&tmp2);
+        mpn_clear(&a);
+        mpn_clear(&b);
+        mpn_clear(&c);
+        mpn_clear(&s);
+        mpn_clear(&d);
+        mpn_clear(&prod);
+        mpn_clear(&q);
+        mpn_clear(&r);
+        mpn_clear(&tmp);
+        mpn_clear(&tmp2);
 
         bench();
 }
