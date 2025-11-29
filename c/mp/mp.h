@@ -38,6 +38,9 @@ typedef uint64_t coeff_t;
  * the main api
  */
 
+/*
+ * a structure to represent an unsigned integer
+ */
 struct bigint {
         size_t n;
         size_t max;
