@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stddef.h>
 
 /*
@@ -33,6 +34,14 @@ typedef uint64_t coeff_t;
 #define COEFF_TYPE_MAX UINT64_MAX
 #endif
 
+#if 0
+typedef unsigned int mp_size_t;
+#define MP_SIZE_MAX UINT_MAX
+#else
+typedef size_t mp_size_t;
+#define MP_SIZE_MAX SIZE_MAX
+#endif
+
 /*
  * ============================================================
  * the main api
@@ -42,8 +51,8 @@ typedef uint64_t coeff_t;
  * a structure to represent an unsigned integer
  */
 struct bigint {
-        size_t n;
-        size_t max;
+        mp_size_t n;
+        mp_size_t max;
         coeff_t *d;
 };
 
