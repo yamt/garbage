@@ -276,6 +276,10 @@ mpz_test(void)
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
         MPZ_DEFINE(c);
+
+        assert(mpz_from_str(&a, "-0") == EINVAL);
+        assert(mpz_from_hex_str(&a, "-0") == EINVAL);
+
         MPZ_FROM_STR(&a, "123456789412093790174309174");
         MPZ_FROM_STR(&b,
                      "-41234095749035790423751234567894120937901743091741");
