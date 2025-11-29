@@ -7,15 +7,6 @@
 #include "mp.h"
 #include "mpz.h"
 
-static void
-print_mpn(const char *heading, const struct mpn *a)
-{
-        assert(mpn_is_normal(a));
-        char *p = mpn_to_str(a);
-        printf("%s%s\n", heading, p);
-        mpn_str_free(p);
-}
-
 int
 gcd(struct mpn *c, const struct mpn *a0, const struct mpn *b0)
 {

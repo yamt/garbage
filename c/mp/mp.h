@@ -146,6 +146,7 @@ char *mp_to_hex_str(bool sign, const struct mpn *a);
 
 bool mpn_is_normal(const struct mpn *a);
 void mpn_poison(struct mpn *a);
+void print_mpn(const char *heading, const struct mpn *a);
 
 /*
  * ============================================================

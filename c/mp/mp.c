@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -208,6 +209,15 @@ mpn_poison(struct mpn *a)
 #if !defined(NDEBUG)
         memset(a->d + a->n, 0xaa, (a->max - a->n) * sizeof(*a->d));
 #endif
+}
+
+void
+print_mpn(const char *heading, const struct mpn *a)
+{
+        assert(mpn_is_normal(a));
+        char *p = mpn_to_str(a);
+        printf("%s%s\n", heading, p);
+        mpn_str_free(p);
 }
 
 static int
