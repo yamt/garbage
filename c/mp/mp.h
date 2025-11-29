@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 /*
@@ -56,6 +57,16 @@ struct mpn {
         coeff_t *d;
 };
 
+#define MPN_INITIALIZER0                                                      \
+        {                                                                     \
+                .n = 0                                                        \
+        }
+
+#define MPN_INITIALIZER(N, ...)                                               \
+        {                                                                     \
+                .n = N, .d = (coeff_t[]){__VA_ARGS__},                        \
+        }
+
 /*
  * common constants
  * just for convenience
@@ -84,14 +95,11 @@ int mpn_cmp(const struct mpn *a, const struct mpn *b);
 /*
  * math
  */
-int mpn_add(struct mpn *c, const struct mpn *a,
-               const struct mpn *b);
-int mpn_sub(struct mpn *c, const struct mpn *a,
-               const struct mpn *b);
-int mpn_mul(struct mpn *c, const struct mpn *a,
-               const struct mpn *b);
+int mpn_add(struct mpn *c, const struct mpn *a, const struct mpn *b);
+int mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b);
+int mpn_mul(struct mpn *c, const struct mpn *a, const struct mpn *b);
 int mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
-                  const struct mpn *b);
+               const struct mpn *b);
 int mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k);
 int mpn_powint(struct mpn *s, const struct mpn *m, unsigned int k);
 
@@ -123,6 +131,13 @@ char *mpn_to_hex_str(const struct mpn *a);
 void mpn_str_free(char *p);
 
 /*
+ * debug
+ */
+
+bool mpn_is_normal(const struct mpn *a);
+void mpn_poison(struct mpn *a);
+
+/*
  * ============================================================
  * macros just for convenience
  * the use of these macros is completely optional
@@ -145,7 +160,7 @@ void mpn_str_free(char *p);
 #define COPY_IF(cond, a, a0)                                                  \
         do {                                                                  \
                 if (cond) {                                                   \
-                        MPN_SET(&a0, a);                                   \
+                        MPN_SET(&a0, a);                                      \
                         a = &a0;                                              \
                 }                                                             \
         } while (false)
