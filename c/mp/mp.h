@@ -9,6 +9,8 @@
  * configuration
  */
 
+#define __mp_unused __attribute__((unused))
+
 #if !defined(BASE) && !defined(BASE_BITS)
 #define BASE_BITS 32
 #endif
@@ -174,7 +176,7 @@ void print_mpn(const char *heading, const struct mpn *a);
 
 #define NO_ERROR(call)                                                        \
         do {                                                                  \
-                int ret2 = call;                                              \
+                int ret2 __mp_unused = call;                                  \
                 assert(ret2 == 0);                                            \
         } while (0)
 

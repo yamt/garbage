@@ -149,7 +149,7 @@ int
 mpz_cmp_test(const char *a_str, const char *b_str)
 {
         int ret;
-        int cmp;
+        int cmp = 0;
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
         MPZ_FROM_STR(&a, a_str);
@@ -369,7 +369,7 @@ static void
 test_str_roundtrip(const char *str)
 {
         MPN_DEFINE(a);
-        int ret = mpn_from_str(&a, str);
+        int ret __mp_unused = mpn_from_str(&a, str);
         assert(ret == 0);
         char *p = mpn_to_str(&a);
         printf("expected %s\n", str);
@@ -383,7 +383,7 @@ static void
 test_hex_str_roundtrip(const char *str)
 {
         MPN_DEFINE(a);
-        int ret = mpn_from_hex_str(&a, str);
+        int ret __mp_unused = mpn_from_hex_str(&a, str);
         assert(ret == 0);
         char *p = mpn_to_hex_str(&a);
         printf("expected %s\n", str);
@@ -592,7 +592,7 @@ main(void)
         struct mpn r;
         struct mpn tmp;
         struct mpn tmp2;
-        int ret;
+        int ret __mp_unused;
 
 #if BASE_BITS == 64 && 0
         coeff_t high;
@@ -701,7 +701,7 @@ main(void)
         assert(mpn_cmp(&a, &b) > 0);
         assert(mpn_cmp(&b, &a) < 0);
         {
-                char *p;
+                char *p __mp_unused;
                 p = mpn_to_hex_str(&a);
                 assert(!strcmp(
                         p, "212b125567c1932ed6f400b9e883b365e3a365bac800"));

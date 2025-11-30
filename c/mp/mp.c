@@ -204,7 +204,7 @@ static int mpn_mul_uint1(struct mpn *d, const struct mpn *a, coeff_t b);
 #define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
 
 void
-mpn_poison(struct mpn *a)
+mpn_poison(struct mpn *a __mp_unused)
 {
 #if !defined(NDEBUG)
         memset(a->d + a->n, 0xaa, (a->max - a->n) * sizeof(*a->d));
