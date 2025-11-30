@@ -1035,19 +1035,19 @@ mpn_from_hex_str(struct mpn *a, const char *p)
         return mpn_from_str_base(a, &g_16, p);
 }
 
-static size_t
-estimate_ndigits(const struct mpn *a)
+size_t
+mpn_estimate_str_size(const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         if (a->n == 0) {
-                return 1;
+                return 1 + 1;
         }
 #if BASE == 10
-        return a->n;
+        return a->n + 1;
 #else
         /* l(10) = 2.30258509299404568401 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.30258509299404568401 + 1;
+        return a->n * LOG_BASE / 2.30258509299404568401 + 1 + 1;
 #endif
 }
 
@@ -1084,7 +1084,7 @@ char *
 mp_to_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        size_t sz = sign + estimate_ndigits(a) + 1; /* XXX check overflow */
+        size_t sz = sign + mpn_estimate_str_size(a); /* XXX check overflow */
         char *p0 = malloc(sz);
         if (p0 == NULL) {
                 return NULL;
@@ -1115,19 +1115,19 @@ mp_to_str(bool sign, const struct mpn *a)
 #endif
 }
 
-static size_t
-estimate_ndigits_hex(const struct mpn *a)
+size_t
+mpn_estimate_hex_str_size(const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         if (a->n == 0) {
-                return 1;
+                return 1 + 1;
         }
 #if BASE == 10
-        return a->n;
+        return a->n + 1;
 #else
         /* l(16) = 2.77258872223978123766 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.77258872223978123766 + 1;
+        return a->n * LOG_BASE / 2.77258872223978123766 + 1 + 1;
 #endif
 }
 
@@ -1136,7 +1136,7 @@ mp_to_hex_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         size_t sz =
-                sign + estimate_ndigits_hex(a) + 1; /* XXX check overflow */
+                sign + mpn_estimate_hex_str_size(a); /* XXX check overflow */
         char *p0 = malloc(sz);
         if (p0 == NULL) {
                 return NULL;

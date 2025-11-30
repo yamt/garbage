@@ -141,6 +141,14 @@ char *mpn_to_hex_str(const struct mpn *a);
 void mpn_str_free(char *p);
 
 /*
+ * estimate necessary memory size for a string representation,
+ * including the terminating NUL. can return a bit larger value
+ * than the exact size.
+ */
+size_t mpn_estimate_str_size(const struct mpn *a);
+size_t mpn_estimate_hex_str_size(const struct mpn *a);
+
+/*
  * misc
  */
 int mpn_gcd(struct mpn *c, const struct mpn *a, const struct mpn *b);
