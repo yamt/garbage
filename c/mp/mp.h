@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 /*
- * internal
+ * configuration
  */
 
 #if !defined(BASE) && !defined(BASE_BITS)
