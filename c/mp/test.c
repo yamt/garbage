@@ -473,36 +473,55 @@ mul_bench(void)
         int ret;
         MPN_SET_UINT(&x, COEFF_MAX);
         MPN_SUB(&x, &x, &g_one);
-        mp_size_t i;
-        for (i = 1; i < 16384; i *= 2) {
-                uint64_t start_time;
-                uint64_t end_time;
-                MPN_POWINT(&a, &x, i);
-                MPN_SET(&b, &a);
-                double karatsuba;
-                double basecase;
+        int pat;
+        for (pat = 0; pat < 3; pat++) {
+                printf("pat %d\n", pat);
+                mp_size_t i;
+                for (i = 1; i < 65536; i *= 2) {
+                        uint64_t start_time;
+                        uint64_t end_time;
+                        switch (pat) {
+                        case 0:
+                                MPN_POWINT(&a, &x, 4);
+                                MPN_POWINT(&b, &x, i);
+                                break;
+                        case 1:
+                                MPN_POWINT(&a, &x, i);
+                                MPN_POWINT(&b, &x, 4);
+                                break;
+                        case 2:
+                                MPN_POWINT(&a, &x, i);
+                                MPN_SET(&b, &a);
+                                break;
+                        }
+                        double karatsuba;
+                        double basecase;
 
-                /* ignore the result of the first run (j=0) */
-                int j;
-                for (j = 0; j < 2; j++) {
-                        start_time = timestamp();
-                        HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba, &a, &b));
-                        end_time = timestamp();
-                        karatsuba =
-                                (double)(end_time - start_time) / 1000000000;
+                        /* ignore the result of the first run (j=0) */
+                        int j;
+                        for (j = 0; j < 2; j++) {
+                                start_time = timestamp();
+                                HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba,
+                                                               &a, &b));
+                                end_time = timestamp();
+                                karatsuba = (double)(end_time - start_time) /
+                                            1000000000;
 
-                        start_time = timestamp();
-                        HANDLE_ERROR(mpn_mul_basecase(&c_basecase, &a, &b));
-                        end_time = timestamp();
-                        basecase =
-                                (double)(end_time - start_time) / 1000000000;
+                                start_time = timestamp();
+                                HANDLE_ERROR(
+                                        mpn_mul_basecase(&c_basecase, &a, &b));
+                                end_time = timestamp();
+                                basecase = (double)(end_time - start_time) /
+                                           1000000000;
+                        }
+
+                        printf("mul_bench words (%zu x %zu) basecase %.05f "
+                               "karatsuba %.05f "
+                               "(%.05fx)\n",
+                               (size_t)a.n, (size_t)b.n, basecase, karatsuba,
+                               basecase == 0 ? 0 : karatsuba / basecase);
+                        assert(!mpn_cmp(&c_basecase, &c_karatsuba));
                 }
-
-                printf("mul_bench words %zu basecase %.05f karatsuba %.05f "
-                       "(%.05fx)\n",
-                       (size_t)i, basecase, karatsuba,
-                       basecase == 0 ? 0 : karatsuba / basecase);
-                assert(!mpn_cmp(&c_basecase, &c_karatsuba));
         }
         ret = 0;
 fail:
