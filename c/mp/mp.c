@@ -507,7 +507,6 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
         MPN_DEFINE(b_copy);
         MPN_DEFINE(a_diff_abs);
         MPN_DEFINE(b_diff_abs);
-        MPN_DEFINE(c0);
         MPN_DEFINE(c1);
         MPN_DEFINE(c2);
         int ret;
@@ -535,20 +534,19 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
                 MPN_SUB(&b_diff_abs, &b1, &b0);
         }
         MPN_MUL(&c2, &a_diff_abs, &b_diff_abs);
-        /* c0 = a0 * b0 */
-        MPN_MUL(&c0, &a0, &b0);
+        /* c = a0 * b0 */
+        MPN_MUL(c, &a0, &b0);
         /* c1 = a1 * b1 */
         MPN_MUL(&c1, &a1, &b1);
-        /* c2 = c0 + c1 - a_diff_sign * b_diff_sign * c2 */
-        MPN_SET(&t, &c0);
+        /* c2 = c + c1 - a_diff_sign * b_diff_sign * c2 */
+        MPN_SET(&t, c);
         MPN_ADD(&t, &t, &c1);
         if (a_diff_sign ^ b_diff_sign) {
                 MPN_ADD(&c2, &t, &c2);
         } else {
                 MPN_SUB(&c2, &t, &c2);
         }
-        /* c = c0 + c2 * (base ** k) + c1 * (base ** (2 * k)) */
-        MPN_SET(c, &c0);
+        /* c = c + c2 * (base ** k) + c1 * (base ** (2 * k)) */
         SHIFT_LEFT_WORDS(&t, &c2, k);
         MPN_ADD(c, c, &t);
         SHIFT_LEFT_WORDS(&t, &c1, 2 * k);
@@ -569,7 +567,6 @@ fail:
         mpn_clear(&b_copy);
         mpn_clear(&a_diff_abs);
         mpn_clear(&b_diff_abs);
-        mpn_clear(&c0);
         mpn_clear(&c1);
         mpn_clear(&c2);
         return ret;
