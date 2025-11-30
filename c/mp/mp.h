@@ -147,9 +147,8 @@ void mpn_str_free(char *p);
  */
 size_t mpn_estimate_str_size(const struct mpn *a);
 size_t mpn_estimate_hex_str_size(const struct mpn *a);
-
-int mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
-                        const struct mpn *base);
+int mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a);
+int mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a);
 
 /*
  * misc

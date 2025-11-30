@@ -1080,6 +1080,27 @@ fail:
         return ret;
 }
 
+int
+mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a)
+{
+#if BASE == 10
+        mp_size_t i;
+        for (i = 0; i < a->n; i++) {
+                *p++ = a->d[a->n - i - 1] + '0';
+        }
+        *p++ = 0;
+        return 0;
+#else
+        return mpn_to_str_into_buf(p, sz, a, &g_ten);
+#endif
+}
+
+int
+mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a)
+{
+        return mpn_to_str_into_buf(p, sz, a, &g_16);
+}
+
 char *
 mp_to_str(bool sign, const struct mpn *a)
 {
@@ -1099,20 +1120,11 @@ mp_to_str(bool sign, const struct mpn *a)
                 *p++ = 0;
                 return p0;
         }
-#if BASE == 10
-        mp_size_t i;
-        for (i = 0; i < a->n; i++) {
-                *p++ = a->d[a->n - i - 1] + '0';
-        }
-        *p++ = 0;
-        return p0;
-#else
-        if (mpn_to_str_into_buf(p, sz, a, &g_ten)) {
+        if (mpn_to_dec_str_into_buf(p, sz, a)) {
                 free(p0);
                 return NULL;
         }
         return p0;
-#endif
 }
 
 size_t
@@ -1151,7 +1163,7 @@ mp_to_hex_str(bool sign, const struct mpn *a)
                 *p++ = 0;
                 return p0;
         }
-        if (mpn_to_str_into_buf(p, sz, a, &g_16)) {
+        if (mpn_to_hex_str_into_buf(p, sz, a)) {
                 free(p0);
                 return NULL;
         }
