@@ -700,6 +700,9 @@ fail:
         return ret;
 }
 
+/*
+ * an integer version of Newton's method
+ */
 int
 mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k)
 {
