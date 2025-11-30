@@ -1052,8 +1052,8 @@ mpn_estimate_str_size(const struct mpn *a)
 }
 
 int
-mpn_to_str_impl(char *p, size_t sz, const struct mpn *a,
-                const struct mpn *base)
+mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
+                    const struct mpn *base)
 {
         MPN_DEFINE(q);
         MPN_DEFINE(r);
@@ -1107,7 +1107,7 @@ mp_to_str(bool sign, const struct mpn *a)
         *p++ = 0;
         return p0;
 #else
-        if (mpn_to_str_impl(p, sz, a, &g_ten)) {
+        if (mpn_to_str_into_buf(p, sz, a, &g_ten)) {
                 free(p0);
                 return NULL;
         }
@@ -1151,7 +1151,7 @@ mp_to_hex_str(bool sign, const struct mpn *a)
                 *p++ = 0;
                 return p0;
         }
-        if (mpn_to_str_impl(p, sz, a, &g_16)) {
+        if (mpn_to_str_into_buf(p, sz, a, &g_16)) {
                 free(p0);
                 return NULL;
         }
