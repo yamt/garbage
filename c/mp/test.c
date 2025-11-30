@@ -27,6 +27,23 @@ fixed_point_sqrt(void)
                         goto fail;
                 }
                 printf("sqrt(%3u) * %s = %s\n", i, scale_str, p);
+                /* validate some well known values */
+#define E(n, sqrt_str)                                                        \
+        case n:                                                               \
+                assert(!strncmp(p, sqrt_str, strlen(sqrt_str)));              \
+                break
+                switch (i) {
+                        E(1, "1000000000000");
+                        E(2, "141421356");
+                        E(3, "17320508");
+                        E(4, "2000000000000");
+                        E(5, "22360679");
+                        E(6, "2449489");
+                        E(7, "264575");
+                        E(8, "2828427");
+                        E(9, "3000000000000");
+                        E(10, "31622");
+                }
                 mpn_str_free(p);
         }
 fail:
