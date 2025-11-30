@@ -1169,3 +1169,42 @@ mpn_str_free(char *p)
 {
         free(p);
 }
+
+int
+mpn_gcd(struct mpn *c, const struct mpn *a0, const struct mpn *b0)
+{
+        const struct mpn *a = a0;
+        const struct mpn *b = b0;
+        MPN_DEFINE(q);
+        struct mpn t[3];
+        unsigned int i;
+        int ret;
+
+        for (i = 0; i < 3; i++) {
+                mpn_init(&t[i]);
+        }
+
+        i = 0;
+        while (1) {
+                // print_mpn("a  =", a);
+                // print_mpn("b  =", b);
+                MPN_DIVREM(&q, &t[i], a, b);
+                // print_mpn("a/b=", &q);
+                // print_mpn("a%b=", &t[i]);
+                if (t[i].n == 0) {
+                        break;
+                }
+                a = b;
+                b = &t[i];
+                i = (i + 1) % 3;
+        };
+        MPN_SET(c, b);
+        assert(mpn_is_normal(c));
+        ret = 0;
+fail:
+        mpn_clear(&q);
+        for (i = 0; i < 3; i++) {
+                mpn_clear(&t[i]);
+        }
+        return ret;
+}

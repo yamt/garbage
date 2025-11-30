@@ -139,6 +139,11 @@ char *mpn_to_hex_str(const struct mpn *a);
 void mpn_str_free(char *p);
 
 /*
+ * misc
+ */
+int mpn_gcd(struct mpn *c, const struct mpn *a, const struct mpn *b);
+
+/*
  * internal
  */
 
