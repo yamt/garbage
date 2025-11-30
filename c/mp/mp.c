@@ -411,10 +411,16 @@ mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         assert(mpn_is_normal(a));
         assert(mpn_is_normal(b));
-        if (a->n == 0 || b->n == 0) {
+        if (a->n < b->n) { /* prefer larger inner loop for performance */
+                const struct mpn *tmp = a;
+                a = b;
+                b = tmp;
+        }
+        if (b->n == 0) {
                 c->n = 0;
                 return 0;
         }
+        assert(a->n != 0);
         MPN_DEFINE(t);
         MPN_DEFINE(a0);
         MPN_DEFINE(b0);
