@@ -1,3 +1,6 @@
+#if !defined(_MPZ_H_)
+#define _MPZ_H_
+
 #include "mp.h"
 
 /*
@@ -47,3 +50,5 @@ void mpz_str_free(char *p);
 #define MPZ_SUB(a, b, c) HANDLE_ERROR(mpz_sub(a, b, c))
 #define MPZ_MUL(a, b, c) HANDLE_ERROR(mpz_mul(a, b, c))
 #define MPZ_DIVREM(a, b, c, d) HANDLE_ERROR(mpz_divrem(a, b, c, d))
+
+#endif /* !defined(_MPZ_H_) */
