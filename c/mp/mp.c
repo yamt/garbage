@@ -431,14 +431,15 @@ mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b)
                 ret = EOVERFLOW;
                 goto fail;
         }
-        MPN_ALLOC(c, a->n + b->n + 1);
-        MPN_ALLOC(&t, a->n + 1);
         /*
-         * initialize with 0, as b->d might contain 0s, for which
+         * initialize 'c' with 0, as b->d might contain 0s, for which
          * the following logic can leave the corresponding c->d elements
          * uninitialized.
          */
-        memset(c->d, 0, c->max * sizeof(*c->d));
+        mp_size_t csz = a->n + b->n + 1;
+        MPN_ALLOC(c, csz);
+        memset(c->d, 0, csz * sizeof(*c->d));
+        MPN_ALLOC(&t, a->n + 1);
         mul1(c, a, b->d[0]);
         assert(mpn_is_normal(c));
         mp_size_t i;
