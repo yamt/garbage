@@ -1084,6 +1084,7 @@ int
 mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a)
 {
 #if BASE == 10
+        (void)sz;
         mp_size_t i;
         for (i = 0; i < a->n; i++) {
                 *p++ = a->d[a->n - i - 1] + '0';
