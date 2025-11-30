@@ -120,5 +120,9 @@ for name, e in connections.items():
                 vpc, subnet = a['subnet'].split("/", 1)
                 vpc_conn = f"{vpc}/{name}"
                 subnetnode = f"subnet_{vpc}_{subnet}"
-                print(f"{replace(sw_port)} -- {subnetnode}")
+                if a.get('nativeVLAN', False):
+                    style = "solid" # untagged vlan
+                else:
+                    style = "dotted" # tagged vlan
+                print(f"{replace(sw_port)} -- {subnetnode} [style={style}]")
 print(f"}}")
