@@ -503,10 +503,9 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
         }
         k = (k + 1) / 2;
         MPN_DEFINE(t);
+        MPN_DEFINE(t2);
         MPN_DEFINE(a_copy);
         MPN_DEFINE(b_copy);
-        MPN_DEFINE(a_diff_abs);
-        MPN_DEFINE(b_diff_abs);
         MPN_DEFINE(c1);
         MPN_DEFINE(c2);
         int ret;
@@ -524,16 +523,16 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
         bool b_diff_sign = mpn_cmp(&b1, &b0) < 0;
         /* c2 = |a0 - a1| * |b0 - b1| */
         if (a_diff_sign) {
-                MPN_SUB(&a_diff_abs, &a0, &a1);
+                MPN_SUB(&t, &a0, &a1);
         } else {
-                MPN_SUB(&a_diff_abs, &a1, &a0);
+                MPN_SUB(&t, &a1, &a0);
         }
         if (b_diff_sign) {
-                MPN_SUB(&b_diff_abs, &b0, &b1);
+                MPN_SUB(&t2, &b0, &b1);
         } else {
-                MPN_SUB(&b_diff_abs, &b1, &b0);
+                MPN_SUB(&t2, &b1, &b0);
         }
-        MPN_MUL(&c2, &a_diff_abs, &b_diff_abs);
+        MPN_MUL(&c2, &t, &t2);
         /* c = a0 * b0 */
         MPN_MUL(c, &a0, &b0);
         /* c1 = a1 * b1 */
@@ -565,8 +564,6 @@ fail:
         mpn_clear(&t);
         mpn_clear(&a_copy);
         mpn_clear(&b_copy);
-        mpn_clear(&a_diff_abs);
-        mpn_clear(&b_diff_abs);
         mpn_clear(&c1);
         mpn_clear(&c2);
         return ret;
