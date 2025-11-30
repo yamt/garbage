@@ -1091,6 +1091,7 @@ mp_to_str(bool sign, const struct mpn *a)
         char *p = p0;
         if (sign) {
                 *p++ = '-';
+                sz--;
         }
         if (a->n == 0) {
                 *p++ = '0';
@@ -1142,6 +1143,7 @@ mp_to_hex_str(bool sign, const struct mpn *a)
         char *p = p0;
         if (sign) {
                 *p++ = '-';
+                sz--;
         }
         if (a->n == 0) {
                 *p++ = '0';
