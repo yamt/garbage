@@ -462,6 +462,58 @@ timestamp(void)
         return (uint64_t)tv.tv_sec * 1000000000 + tv.tv_nsec;
 }
 
+static void
+mul_bench(void)
+{
+        MPN_DEFINE(a);
+        MPN_DEFINE(b);
+        MPN_DEFINE(c_basecase);
+        MPN_DEFINE(c_karatsuba);
+        MPN_DEFINE(x);
+        int ret;
+        MPN_SET_UINT(&x, COEFF_MAX);
+        MPN_SUB(&x, &x, &g_one);
+        mp_size_t i;
+        for (i = 1; i < 16384; i *= 2) {
+                uint64_t start_time;
+                uint64_t end_time;
+                MPN_POWINT(&a, &x, i);
+                MPN_SET(&b, &a);
+                double karatsuba;
+                double basecase;
+
+                /* ignore the result of the first run (j=0) */
+                int j;
+                for (j = 0; j < 2; j++) {
+                        start_time = timestamp();
+                        HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba, &a, &b));
+                        end_time = timestamp();
+                        karatsuba =
+                                (double)(end_time - start_time) / 1000000000;
+
+                        start_time = timestamp();
+                        HANDLE_ERROR(mpn_mul_basecase(&c_basecase, &a, &b));
+                        end_time = timestamp();
+                        basecase =
+                                (double)(end_time - start_time) / 1000000000;
+                }
+
+                printf("mul_bench words %zu basecase %.05f karatsuba %.05f "
+                       "(%.05fx)\n",
+                       (size_t)i, basecase, karatsuba,
+                       basecase == 0 ? 0 : karatsuba / basecase);
+                assert(!mpn_cmp(&c_basecase, &c_karatsuba));
+        }
+        ret = 0;
+fail:
+        assert(ret == 0);
+        mpn_clear(&a);
+        mpn_clear(&b);
+        mpn_clear(&c_basecase);
+        mpn_clear(&c_karatsuba);
+        mpn_clear(&x);
+}
+
 int
 bench(void)
 {
@@ -874,6 +926,7 @@ main(void)
         assert(mpn_cmp(&r, &g_zero) == 0);
 
         mpz_test();
+        mul_bench();
         fixed_point_sqrt();
         sha2table();
 
