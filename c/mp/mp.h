@@ -142,13 +142,21 @@ void mpn_str_free(char *p);
 
 /*
  * estimate necessary memory size for a string representation,
- * including the terminating NUL. can return a bit larger value
+ * NOT including a terminating NUL. can return a bit larger value
  * than the exact size.
  */
 size_t mpn_estimate_str_size(const struct mpn *a);
 size_t mpn_estimate_hex_str_size(const struct mpn *a);
-int mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a);
-int mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a);
+
+/*
+ * store the string representation into the buffer specified with p and sz.
+ * do NOT NUL-terminate the string.
+ * return the size of the string via szp.
+ */
+int mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a,
+                            size_t *szp);
+int mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a,
+                            size_t *szp);
 
 /*
  * misc

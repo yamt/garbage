@@ -1040,20 +1040,20 @@ mpn_estimate_str_size(const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         if (a->n == 0) {
-                return 1 + 1;
+                return 1;
         }
 #if BASE == 10
-        return a->n + 1;
+        return a->n;
 #else
         /* l(10) = 2.30258509299404568401 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.30258509299404568401 + 1 + 1;
+        return a->n * LOG_BASE / 2.30258509299404568401 + 1;
 #endif
 }
 
 int
 mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
-                    const struct mpn *base)
+                    const struct mpn *base, size_t *szp)
 {
         MPN_DEFINE(q);
         MPN_DEFINE(r);
@@ -1061,7 +1061,6 @@ mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
 
         mp_size_t n = sz;
         MPN_SET(&q, a);
-        p[--n] = 0;
         do {
                 assert(n > 0);
                 MPN_DIVREM(&q, &r, &q, base);
@@ -1073,6 +1072,7 @@ mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
         if (n > 0) {
                 memmove(p, &p[n], sz - n);
         }
+        *szp = sz - n;
         ret = 0;
 fail:
         mpn_clear(&q);
@@ -1081,7 +1081,7 @@ fail:
 }
 
 int
-mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a)
+mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a, size_t *szp)
 {
 #if BASE == 10
         (void)sz;
@@ -1089,24 +1089,25 @@ mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a)
         for (i = 0; i < a->n; i++) {
                 *p++ = a->d[a->n - i - 1] + '0';
         }
-        *p++ = 0;
+        *szp = a->n;
         return 0;
 #else
-        return mpn_to_str_into_buf(p, sz, a, &g_ten);
+        return mpn_to_str_into_buf(p, sz, a, &g_ten, szp);
 #endif
 }
 
 int
-mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a)
+mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a, size_t *szp)
 {
-        return mpn_to_str_into_buf(p, sz, a, &g_16);
+        return mpn_to_str_into_buf(p, sz, a, &g_16, szp);
 }
 
 char *
 mp_to_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        size_t sz = sign + mpn_estimate_str_size(a); /* XXX check overflow */
+        size_t sz =
+                sign + mpn_estimate_str_size(a) + 1; /* XXX check overflow */
         char *p0 = malloc(sz);
         if (p0 == NULL) {
                 return NULL;
@@ -1121,10 +1122,11 @@ mp_to_str(bool sign, const struct mpn *a)
                 *p++ = 0;
                 return p0;
         }
-        if (mpn_to_dec_str_into_buf(p, sz, a)) {
+        if (mpn_to_dec_str_into_buf(p, sz - 1, a, &sz)) {
                 free(p0);
                 return NULL;
         }
+        p[sz] = 0;
         return p0;
 }
 
@@ -1133,14 +1135,14 @@ mpn_estimate_hex_str_size(const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         if (a->n == 0) {
-                return 1 + 1;
+                return 1;
         }
 #if BASE == 10
-        return a->n + 1;
+        return a->n;
 #else
         /* l(16) = 2.77258872223978123766 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.77258872223978123766 + 1 + 1;
+        return a->n * LOG_BASE / 2.77258872223978123766 + 1;
 #endif
 }
 
@@ -1148,8 +1150,8 @@ char *
 mp_to_hex_str(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        size_t sz =
-                sign + mpn_estimate_hex_str_size(a); /* XXX check overflow */
+        size_t sz = sign + mpn_estimate_hex_str_size(a) +
+                    1; /* XXX check overflow */
         char *p0 = malloc(sz);
         if (p0 == NULL) {
                 return NULL;
@@ -1164,10 +1166,11 @@ mp_to_hex_str(bool sign, const struct mpn *a)
                 *p++ = 0;
                 return p0;
         }
-        if (mpn_to_hex_str_into_buf(p, sz, a)) {
+        if (mpn_to_hex_str_into_buf(p, sz - 1, a, &sz)) {
                 free(p0);
                 return NULL;
         }
+        p[sz] = 0;
         return p0;
 }
 
