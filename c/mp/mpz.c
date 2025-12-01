@@ -213,15 +213,15 @@ mpz_from_hex_strz(struct mpz *a, const char *p)
 }
 
 char *
-mpz_to_str(const struct mpz *a)
+mpz_to_strz(const struct mpz *a)
 {
-        return mp_to_str(a->sign, &a->uint);
+        return mp_to_strz(a->sign, &a->uint);
 }
 
 char *
-mpz_to_hex_str(const struct mpz *a)
+mpz_to_hex_strz(const struct mpz *a)
 {
-        return mp_to_hex_str(a->sign, &a->uint);
+        return mp_to_hex_strz(a->sign, &a->uint);
 }
 
 void

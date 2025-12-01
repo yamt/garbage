@@ -21,7 +21,7 @@ fixed_point_sqrt(void)
                 MPN_MUL(&t, &t, &scale);
                 MPN_MUL(&t, &t, &scale);
                 MPN_ROOTINT(&t, &t, 2);
-                char *p = mpn_to_str(&t);
+                char *p = mpn_to_strz(&t);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
@@ -101,7 +101,7 @@ sha2table(void)
                 /* q = (t % scale) / scale2 */
                 MPN_DIVREM(&unused, &r, &t, &scale);
                 MPN_DIVREM(&q, &unused, &r, &scale2);
-                char *p = mpn_to_hex_str(&q);
+                char *p = mpn_to_hex_strz(&q);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
@@ -123,7 +123,7 @@ sha2table(void)
                 /* take the first 64 bits of the fraction part */
                 MPN_DIVREM(&unused, &r, &t, &scale);
                 MPN_DIVREM(&q, &unused, &r, &scale2);
-                char *p = mpn_to_hex_str(&q);
+                char *p = mpn_to_hex_strz(&q);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
@@ -256,11 +256,11 @@ mpz_test(void)
         MPZ_FROM_STRZ(&b,
                       "-41234095749035790423751234567894120937901743091741");
         assert(mpz_cmp(&c, &b) == 0);
-        p = mpz_to_hex_str(&c);
+        p = mpz_to_hex_strz(&c);
         assert(p != NULL);
         assert(!strcmp(p, "-1c36a8cd37a465d0915d09e96a656ed381a6df301d"));
         mpz_str_free(p);
-        p = mpz_to_str(&c);
+        p = mpz_to_strz(&c);
         assert(p != NULL);
         assert(!strcmp(p,
                        "-41234095749035790423751234567894120937901743091741"));
@@ -273,7 +273,7 @@ mpz_test(void)
 
         MPZ_SUB(&c, &a, &b);
 
-        p = mpz_to_str(&c);
+        p = mpz_to_strz(&c);
         if (p == NULL) {
                 goto fail;
         }
@@ -282,7 +282,7 @@ mpz_test(void)
                        "41234095749035790423751358024683533031691917400915"));
         mpz_str_free(p);
 
-        p = mpz_to_hex_str(&c);
+        p = mpz_to_hex_strz(&c);
         if (p == NULL) {
                 goto fail;
         }
@@ -291,7 +291,7 @@ mpz_test(void)
         mpz_str_free(p);
 
         MPZ_ADD(&c, &a, &b);
-        p = mpz_to_str(&c);
+        p = mpz_to_strz(&c);
         if (p == NULL) {
                 goto fail;
         }
@@ -300,7 +300,7 @@ mpz_test(void)
                        "-41234095749035790423751111111104708844111568782567"));
         mpz_str_free(p);
 
-        p = mpz_to_hex_str(&c);
+        p = mpz_to_hex_strz(&c);
         if (p == NULL) {
                 goto fail;
         }
@@ -384,7 +384,7 @@ test_str_roundtrip(const char *str)
         MPN_DEFINE(a);
         int ret __mp_unused = mpn_from_strz(&a, str);
         assert(ret == 0);
-        char *p = mpn_to_str(&a);
+        char *p = mpn_to_strz(&a);
         printf("expected %s\n", str);
         printf("actual   %s\n", p);
         assert(!strcmp(p, str));
@@ -398,7 +398,7 @@ test_hex_str_roundtrip(const char *str)
         MPN_DEFINE(a);
         int ret __mp_unused = mpn_from_hex_strz(&a, str);
         assert(ret == 0);
-        char *p = mpn_to_hex_str(&a);
+        char *p = mpn_to_hex_strz(&a);
         printf("expected %s\n", str);
         printf("actual   %s\n", p);
         assert(!strcmp(p, str));
@@ -554,11 +554,11 @@ bench(void)
                        (double)(end_time - start_time) / 1000000000);
         }
 #if 0
-        char *ap = mpn_to_str(&a);
+        char *ap = mpn_to_strz(&a);
         if (ap == NULL) {
                 goto fail;
         }
-        char *np = mpn_to_str(&n);
+        char *np = mpn_to_strz(&n);
         if (np == NULL) {
                 mpn_str_free(ap);
                 goto fail;
@@ -577,7 +577,7 @@ fail:
 void
 assert_eq(const struct mpn *a, const char *str)
 {
-        char *p = mpn_to_str(a);
+        char *p = mpn_to_strz(a);
         assert(p != NULL);
         if (strcmp(p, str)) {
                 printf("unexpected value\n");
@@ -715,10 +715,10 @@ main(void)
         assert(mpn_cmp(&b, &a) < 0);
         {
                 char *p __mp_unused;
-                p = mpn_to_hex_str(&a);
+                p = mpn_to_hex_strz(&a);
                 assert(!strcmp(
                         p, "212b125567c1932ed6f400b9e883b365e3a365bac800"));
-                p = mpn_to_hex_str(&b);
+                p = mpn_to_hex_strz(&b);
                 assert(!strcmp(p,
                                "eaa72b959fd1535970dea1d15024b7c1325a43fc6"));
         }
@@ -898,7 +898,7 @@ main(void)
                 ret = mpn_mul(&tmp, &tmp, &tmp2);
                 assert(ret == 0);
                 {
-                        char *p = mpn_to_hex_str(&tmp);
+                        char *p = mpn_to_hex_strz(&tmp);
                         assert(p != NULL);
                         printf("p %s\n", p);
                         assert(!strcmp(p + 1,

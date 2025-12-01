@@ -133,11 +133,13 @@ void mpn_set_zero(struct mpn *a);
 
 /*
  * convert to/from C string
+ *
+ * "strz" functions consume/produce NUL-terminated strings.
  */
 int mpn_from_strz(struct mpn *a, const char *p);
 int mpn_from_hex_strz(struct mpn *a, const char *p);
-char *mpn_to_str(const struct mpn *a);
-char *mpn_to_hex_str(const struct mpn *a);
+char *mpn_to_strz(const struct mpn *a);
+char *mpn_to_hex_strz(const struct mpn *a);
 void mpn_str_free(char *p);
 
 /*
@@ -167,8 +169,8 @@ int mpn_gcd(struct mpn *c, const struct mpn *a, const struct mpn *b);
  * internal
  */
 
-char *mp_to_str(bool sign, const struct mpn *a);
-char *mp_to_hex_str(bool sign, const struct mpn *a);
+char *mp_to_strz(bool sign, const struct mpn *a);
+char *mp_to_hex_strz(bool sign, const struct mpn *a);
 
 /*
  * debug

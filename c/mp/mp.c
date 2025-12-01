@@ -215,7 +215,7 @@ void
 print_mpn(const char *heading, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
-        char *p = mpn_to_str(a);
+        char *p = mpn_to_strz(a);
         printf("%s%s\n", heading, p);
         mpn_str_free(p);
 }
@@ -1103,7 +1103,7 @@ mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a, size_t *szp)
 }
 
 char *
-mp_to_str(bool sign, const struct mpn *a)
+mp_to_strz(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         size_t sz =
@@ -1147,7 +1147,7 @@ mpn_estimate_hex_str_size(const struct mpn *a)
 }
 
 char *
-mp_to_hex_str(bool sign, const struct mpn *a)
+mp_to_hex_strz(bool sign, const struct mpn *a)
 {
         assert(mpn_is_normal(a));
         size_t sz = sign + mpn_estimate_hex_str_size(a) +
@@ -1175,15 +1175,15 @@ mp_to_hex_str(bool sign, const struct mpn *a)
 }
 
 char *
-mpn_to_str(const struct mpn *a)
+mpn_to_strz(const struct mpn *a)
 {
-        return mp_to_str(0, a);
+        return mp_to_strz(0, a);
 }
 
 char *
-mpn_to_hex_str(const struct mpn *a)
+mpn_to_hex_strz(const struct mpn *a)
 {
-        return mp_to_hex_str(0, a);
+        return mp_to_hex_strz(0, a);
 }
 
 void

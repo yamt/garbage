@@ -38,8 +38,8 @@ bool mpz_is_normal(const struct mpz *a);
 
 int mpz_from_strz(struct mpz *a, const char *p);
 int mpz_from_hex_strz(struct mpz *a, const char *p);
-char *mpz_to_str(const struct mpz *a);
-char *mpz_to_hex_str(const struct mpz *a);
+char *mpz_to_strz(const struct mpz *a);
+char *mpz_to_hex_strz(const struct mpz *a);
 void mpz_str_free(char *p);
 
 #define MPZ_DEFINE(a) struct mpz a = MPZ_INITIALIZER0
