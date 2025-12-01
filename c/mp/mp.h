@@ -99,6 +99,8 @@ int mpn_cmp(const struct mpn *a, const struct mpn *b);
 
 /*
  * math
+ *
+ * note: the behavior on division-by-zero attempts is undefined.
  */
 int mpn_add(struct mpn *c, const struct mpn *a, const struct mpn *b);
 int mpn_sub(struct mpn *c, const struct mpn *a, const struct mpn *b);
