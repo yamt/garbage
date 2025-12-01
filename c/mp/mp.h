@@ -210,6 +210,7 @@ void print_mpn(const char *heading, const struct mpn *a);
 #define MPN_ALLOC(a, b) HANDLE_ERROR(mpn_alloc(a, b))
 #define MPN_SET_UINT(a, b) HANDLE_ERROR(mpn_set_uint(a, b))
 #define MPN_FROM_STRZ(a, b) HANDLE_ERROR(mpn_from_strz(a, b))
+#define MPN_FROM_HEX_STRZ(a, b) HANDLE_ERROR(mpn_from_hex_strz(a, b))
 #define MPN_TO_UINT(a, b) HANDLE_ERROR(mpn_to_uint(a, b))
 #define MPN_SET(a, b) HANDLE_ERROR(mpn_set(a, b))
 #define MPN_ADD(a, b, c) HANDLE_ERROR(mpn_add(a, b, c))
