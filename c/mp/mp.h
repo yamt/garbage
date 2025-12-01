@@ -134,8 +134,8 @@ void mpn_set_zero(struct mpn *a);
 /*
  * convert to/from C string
  */
-int mpn_from_str(struct mpn *a, const char *p);
-int mpn_from_hex_str(struct mpn *a, const char *p);
+int mpn_from_strz(struct mpn *a, const char *p);
+int mpn_from_hex_strz(struct mpn *a, const char *p);
 char *mpn_to_str(const struct mpn *a);
 char *mpn_to_hex_str(const struct mpn *a);
 void mpn_str_free(char *p);
@@ -209,7 +209,7 @@ void print_mpn(const char *heading, const struct mpn *a);
 #define MPN_DEFINE(a) struct mpn a = MPN_INITIALIZER0
 #define MPN_ALLOC(a, b) HANDLE_ERROR(mpn_alloc(a, b))
 #define MPN_SET_UINT(a, b) HANDLE_ERROR(mpn_set_uint(a, b))
-#define MPN_FROM_STR(a, b) HANDLE_ERROR(mpn_from_str(a, b))
+#define MPN_FROM_STRZ(a, b) HANDLE_ERROR(mpn_from_strz(a, b))
 #define MPN_TO_UINT(a, b) HANDLE_ERROR(mpn_to_uint(a, b))
 #define MPN_SET(a, b) HANDLE_ERROR(mpn_set(a, b))
 #define MPN_ADD(a, b, c) HANDLE_ERROR(mpn_add(a, b, c))

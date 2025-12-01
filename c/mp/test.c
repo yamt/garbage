@@ -14,7 +14,7 @@ fixed_point_sqrt(void)
         MPN_DEFINE(scale);
         MPN_DEFINE(t);
         int ret;
-        MPN_FROM_STR(&scale, scale_str);
+        MPN_FROM_STRZ(&scale, scale_str);
         unsigned int i;
         for (i = 1; i < 256; i++) {
                 MPN_SET_UINT(&t, i);
@@ -87,9 +87,9 @@ sha2table(void)
         MPN_DEFINE(q);
         MPN_DEFINE(r);
         int ret;
-        MPN_FROM_STR(&scale,
-                     "340282366920938463463374607431768211456"); /* 2^128 */
-        MPN_FROM_STR(&scale2, "18446744073709551616"); /* 2^(128-64) */
+        MPN_FROM_STRZ(&scale,
+                      "340282366920938463463374607431768211456"); /* 2^128 */
+        MPN_FROM_STRZ(&scale2, "18446744073709551616"); /* 2^(128-64) */
         unsigned int i;
         for (i = 0; i < 8; i++) {
                 /* sqrt of prime */
@@ -152,8 +152,8 @@ mpz_cmp_test(const char *a_str, const char *b_str)
         int cmp = 0;
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
-        MPZ_FROM_STR(&a, a_str);
-        MPZ_FROM_STR(&b, b_str);
+        MPZ_FROM_STRZ(&a, a_str);
+        MPZ_FROM_STRZ(&b, b_str);
         cmp = mpz_cmp(&a, &b);
 fail:
         mpz_clear(&a);
@@ -168,10 +168,10 @@ mpz_add_test(const char *a_str, const char *b_str, const char *expected_str)
         int ret;
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
-        MPZ_FROM_STR(&a, a_str);
-        MPZ_FROM_STR(&b, b_str);
+        MPZ_FROM_STRZ(&a, a_str);
+        MPZ_FROM_STRZ(&b, b_str);
         MPZ_ADD(&a, &a, &b);
-        MPZ_FROM_STR(&b, expected_str);
+        MPZ_FROM_STRZ(&b, expected_str);
         assert(mpz_cmp(&a, &b) == 0);
 fail:
         mpz_clear(&a);
@@ -185,10 +185,10 @@ mpz_sub_test(const char *a_str, const char *b_str, const char *expected_str)
         int ret;
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
-        MPZ_FROM_STR(&a, a_str);
-        MPZ_FROM_STR(&b, b_str);
+        MPZ_FROM_STRZ(&a, a_str);
+        MPZ_FROM_STRZ(&b, b_str);
         MPZ_SUB(&a, &a, &b);
-        MPZ_FROM_STR(&b, expected_str);
+        MPZ_FROM_STRZ(&b, expected_str);
         assert(mpz_cmp(&a, &b) == 0);
 fail:
         mpz_clear(&a);
@@ -202,10 +202,10 @@ mpz_mul_test(const char *a_str, const char *b_str, const char *expected_str)
         int ret;
         MPZ_DEFINE(a);
         MPZ_DEFINE(b);
-        MPZ_FROM_STR(&a, a_str);
-        MPZ_FROM_STR(&b, b_str);
+        MPZ_FROM_STRZ(&a, a_str);
+        MPZ_FROM_STRZ(&b, b_str);
         MPZ_MUL(&a, &a, &b);
-        MPZ_FROM_STR(&b, expected_str);
+        MPZ_FROM_STRZ(&b, expected_str);
         assert(mpz_cmp(&a, &b) == 0);
 fail:
         mpz_clear(&a);
@@ -222,11 +222,11 @@ mpz_divrem_test(const char *a_str, const char *b_str, const char *q_str,
         MPZ_DEFINE(b);
         MPZ_DEFINE(q);
         MPZ_DEFINE(r);
-        MPZ_FROM_STR(&a, a_str);
-        MPZ_FROM_STR(&b, b_str);
+        MPZ_FROM_STRZ(&a, a_str);
+        MPZ_FROM_STRZ(&b, b_str);
         MPZ_DIVREM(&a, &b, &a, &b);
-        MPZ_FROM_STR(&q, q_str);
-        MPZ_FROM_STR(&r, r_str);
+        MPZ_FROM_STRZ(&q, q_str);
+        MPZ_FROM_STRZ(&r, r_str);
         assert(mpz_cmp(&a, &q) == 0);
         assert(mpz_cmp(&b, &r) == 0);
 fail:
@@ -246,12 +246,25 @@ mpz_test(void)
         MPZ_DEFINE(b);
         MPZ_DEFINE(c);
 
-        assert(mpz_from_str(&a, "-0") == EINVAL);
-        assert(mpz_from_hex_str(&a, "-0") == EINVAL);
+        assert(mpz_from_strz(&a, "-0") == EINVAL);
+        assert(mpz_from_hex_strz(&a, "-0") == EINVAL);
 
-        MPZ_FROM_STR(&a, "123456789412093790174309174");
-        MPZ_FROM_STR(&b,
-                     "-41234095749035790423751234567894120937901743091741");
+        MPZ_FROM_STRZ(&a, "123456789412093790174309174");
+        MPZ_FROM_HEX_STRZ(&b, "661efdf6e5237238afeb36");
+        assert(mpz_cmp(&a, &b) == 0);
+        MPZ_FROM_HEX_STRZ(&c, "-1c36a8cd37a465d0915d09e96a656ed381a6df301d");
+        MPZ_FROM_STRZ(&b,
+                      "-41234095749035790423751234567894120937901743091741");
+        assert(mpz_cmp(&c, &b) == 0);
+        p = mpz_to_hex_str(&c);
+        assert(p != NULL);
+        assert(!strcmp(p, "-1c36a8cd37a465d0915d09e96a656ed381a6df301d"));
+        mpz_str_free(p);
+        p = mpz_to_str(&c);
+        assert(p != NULL);
+        assert(!strcmp(p,
+                       "-41234095749035790423751234567894120937901743091741"));
+        mpz_str_free(p);
         assert(mpz_cmp(&a, &b) > 0);
         MPZ_SET(&c, &a);
         assert(mpz_cmp(&c, &a) == 0);
@@ -369,7 +382,7 @@ static void
 test_str_roundtrip(const char *str)
 {
         MPN_DEFINE(a);
-        int ret __mp_unused = mpn_from_str(&a, str);
+        int ret __mp_unused = mpn_from_strz(&a, str);
         assert(ret == 0);
         char *p = mpn_to_str(&a);
         printf("expected %s\n", str);
@@ -383,7 +396,7 @@ static void
 test_hex_str_roundtrip(const char *str)
 {
         MPN_DEFINE(a);
-        int ret __mp_unused = mpn_from_hex_str(&a, str);
+        int ret __mp_unused = mpn_from_hex_strz(&a, str);
         assert(ret == 0);
         char *p = mpn_to_hex_str(&a);
         printf("expected %s\n", str);
@@ -692,10 +705,10 @@ main(void)
         assert(mpn_cmp(&b, &b) == 0);
         assert(mpn_cmp(&a, &b) == 0);
         assert(mpn_cmp(&b, &a) == 0);
-        mpn_from_str(&a, a_str);
+        mpn_from_strz(&a, a_str);
         assert(mpn_cmp(&a, &b) > 0);
         assert(mpn_cmp(&b, &a) < 0);
-        mpn_from_str(&b, b_str);
+        mpn_from_strz(&b, b_str);
         assert(mpn_cmp(&a, &a) == 0);
         assert(mpn_cmp(&b, &b) == 0);
         assert(mpn_cmp(&a, &b) > 0);
@@ -710,9 +723,9 @@ main(void)
                                "eaa72b959fd1535970dea1d15024b7c1325a43fc6"));
         }
 
-        ret = mpn_from_str(&tmp, "1a");
+        ret = mpn_from_strz(&tmp, "1a");
         assert(ret == EINVAL);
-        ret = mpn_from_hex_str(&tmp, "1ag");
+        ret = mpn_from_hex_strz(&tmp, "1ag");
         assert(ret == EINVAL);
 
         ret = mpn_set_uint(&tmp, COEFF_MAX);
@@ -826,22 +839,22 @@ main(void)
                 "4197120498396607215591335428173152693230870028182089997270853"
                 "6069330754570442595589039401459533054433958581052481145809073"
                 "1724112268437214279885725005890989112084863152144";
-        ret = mpn_from_str(&c, tiny_int_str);
+        ret = mpn_from_strz(&c, tiny_int_str);
         assert(ret == 0);
         ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
         assert_eq(&prod, tiny_int_pow2_str);
-        ret = mpn_from_str(&c, small_int_str);
+        ret = mpn_from_strz(&c, small_int_str);
         assert(ret == 0);
         ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
         assert_eq(&prod, small_int_pow2_str);
-        ret = mpn_from_str(&c, mid_int_str);
+        ret = mpn_from_strz(&c, mid_int_str);
         assert(ret == 0);
         ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
         assert_eq(&prod, mid_int_pow2_str);
-        ret = mpn_from_str(&c, large_int_str);
+        ret = mpn_from_strz(&c, large_int_str);
         assert(ret == 0);
         ret = mpn_mul(&prod, &c, &c);
         assert(ret == 0);
@@ -872,9 +885,9 @@ main(void)
         assert(mpn_cmp(&q, &a) == 0);
         assert(mpn_cmp(&r, &g_zero) == 0);
 
-        ret = mpn_from_hex_str(&tmp, "100000000000000000000000000000000");
+        ret = mpn_from_hex_strz(&tmp, "100000000000000000000000000000000");
         assert(ret == 0);
-        ret = mpn_from_str(&tmp2, "340282366920938463463374607431768211456");
+        ret = mpn_from_strz(&tmp2, "340282366920938463463374607431768211456");
         assert(ret == 0);
         assert(mpn_cmp(&tmp, &tmp2) == 0);
         int i;
@@ -957,11 +970,11 @@ main(void)
         print_mpn("b        = ", &b);
         print_mpn("gcd(a,b) = ", &tmp);
 
-        ret = mpn_from_str(
+        ret = mpn_from_strz(
                 &a, "533509908571101979294464811598952141168153495025132870832"
                     "519126598141168533509908571101979294464811598952141168");
         assert(ret == 0);
-        ret = mpn_from_str(
+        ret = mpn_from_strz(
                 &b, "533509908571101979294464811598952141168533509908571101979"
                     "294464811598952141168533509908571101979294464811598952141"
                     "168533509908571101979294464811598952141168533509908571101"
@@ -972,7 +985,7 @@ main(void)
         print_mpn("a        = ", &a);
         print_mpn("b        = ", &b);
         print_mpn("gcd(a,b) = ", &tmp);
-        ret = mpn_from_str(&tmp2, "1975308624");
+        ret = mpn_from_strz(&tmp2, "1975308624");
         assert(ret == 0);
         assert(mpn_cmp(&tmp, &tmp2) == 0);
 

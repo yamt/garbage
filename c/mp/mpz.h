@@ -36,15 +36,16 @@ int mpz_set(struct mpz *d, const struct mpz *s);
 
 bool mpz_is_normal(const struct mpz *a);
 
-int mpz_from_str(struct mpz *a, const char *p);
-int mpz_from_hex_str(struct mpz *a, const char *p);
+int mpz_from_strz(struct mpz *a, const char *p);
+int mpz_from_hex_strz(struct mpz *a, const char *p);
 char *mpz_to_str(const struct mpz *a);
 char *mpz_to_hex_str(const struct mpz *a);
 void mpz_str_free(char *p);
 
 #define MPZ_DEFINE(a) struct mpz a = MPZ_INITIALIZER0
 #define MPZ_ALLOC(a, b) HANDLE_ERROR(mpz_alloc(a, b))
-#define MPZ_FROM_STR(a, b) HANDLE_ERROR(mpz_from_str(a, b))
+#define MPZ_FROM_STRZ(a, b) HANDLE_ERROR(mpz_from_strz(a, b))
+#define MPZ_FROM_HEX_STRZ(a, b) HANDLE_ERROR(mpz_from_hex_strz(a, b))
 #define MPZ_SET(a, b) HANDLE_ERROR(mpz_set(a, b))
 #define MPZ_ADD(a, b, c) HANDLE_ERROR(mpz_add(a, b, c))
 #define MPZ_SUB(a, b, c) HANDLE_ERROR(mpz_sub(a, b, c))

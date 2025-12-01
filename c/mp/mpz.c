@@ -173,7 +173,7 @@ mpz_set(struct mpz *d, const struct mpz *s)
 }
 
 int
-mpz_from_str(struct mpz *a, const char *p)
+mpz_from_strz(struct mpz *a, const char *p)
 {
         if (*p == '-') {
                 a->sign = 1;
@@ -181,7 +181,7 @@ mpz_from_str(struct mpz *a, const char *p)
         } else {
                 a->sign = 0;
         }
-        int ret = mpn_from_str(&a->uint, p);
+        int ret = mpn_from_strz(&a->uint, p);
         if (ret != 0) {
                 return ret;
         }
@@ -193,7 +193,7 @@ mpz_from_str(struct mpz *a, const char *p)
 }
 
 int
-mpz_from_hex_str(struct mpz *a, const char *p)
+mpz_from_hex_strz(struct mpz *a, const char *p)
 {
         if (*p == '-') {
                 a->sign = 1;
@@ -201,7 +201,7 @@ mpz_from_hex_str(struct mpz *a, const char *p)
         } else {
                 a->sign = 0;
         }
-        int ret = mpn_from_str(&a->uint, p);
+        int ret = mpn_from_hex_strz(&a->uint, p);
         if (ret != 0) {
                 return ret;
         }

@@ -968,9 +968,9 @@ digit_chr(unsigned int x)
 }
 
 static int
-mpn_from_str_base(struct mpn *a, const struct mpn *base, const char *p)
+mpn_from_str_base(struct mpn *a, const struct mpn *base, const char *p,
+                  size_t n)
 {
-        size_t n = strlen(p);
         int ret;
 
         MPN_DEFINE(tmp);
@@ -998,10 +998,10 @@ fail:
 }
 
 int
-mpn_from_str(struct mpn *a, const char *p)
+mpn_from_strz(struct mpn *a, const char *p)
 {
-#if BASE == 10
         size_t n = strlen(p);
+#if BASE == 10
         int ret;
         MPN_ALLOC(a, n);
         mp_size_t i;
@@ -1025,14 +1025,14 @@ mpn_from_str(struct mpn *a, const char *p)
 fail:
         return ret;
 #else
-        return mpn_from_str_base(a, &g_ten, p);
+        return mpn_from_str_base(a, &g_ten, p, n);
 #endif
 }
 
 int
-mpn_from_hex_str(struct mpn *a, const char *p)
+mpn_from_hex_strz(struct mpn *a, const char *p)
 {
-        return mpn_from_str_base(a, &g_16, p);
+        return mpn_from_str_base(a, &g_16, p, strlen(p));
 }
 
 size_t
