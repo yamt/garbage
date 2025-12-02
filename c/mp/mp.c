@@ -152,14 +152,22 @@ static coeff_t
 coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 {
         assert(dividend_high < divisor);
-#if UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
+#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+        uint64_t q;
+        uint64_t r; /* unused */
+        __asm__ __volatile__("divq %4"
+                             : "=d"(r), "=a"(q)
+                             : "0"(dividend_high), "1"(dividend_low),
+                               "r"(divisor)
+                             : "cc");
+        return q;
+#elif UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
         ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
         uintmax_t q =
                 ((uintmax_t)dividend_high * BASE + dividend_low) / divisor;
         assert(q <= COEFF_MAX);
         return q;
 #else
-        /* revisit: use divq on x86 */
         coeff_t h = dividend_high;
         coeff_t l = dividend_low;
         coeff_t q = 0;
