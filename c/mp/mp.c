@@ -707,8 +707,11 @@ fail:
 int
 mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k)
 {
-        assert(mpn_cmp(m, &g_zero) > 0);
         assert(k >= 2);
+        if (m->n == 0) {
+                s->n = 0;
+                return 0;
+        }
         MPN_DEFINE(m1);
         MPN_DEFINE(bk);
         MPN_DEFINE(bk_minus_1);
