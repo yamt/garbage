@@ -164,6 +164,9 @@ int mpn_to_hex_str_into_buf(char *p, size_t sz, const struct mpn *a,
 
 /*
  * misc
+ *
+ * note: gcd(0,0) is undefined.
+ * note: gcd(a,0) and gcd(0,a) where a!=0 is a.
  */
 int mpn_gcd(struct mpn *c, const struct mpn *a, const struct mpn *b);
 
