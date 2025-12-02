@@ -971,9 +971,11 @@ static int
 mpn_from_str_base(struct mpn *a, const struct mpn *base, const char *p,
                   size_t n)
 {
-        int ret;
-
+        if (n == 0) {
+                return EINVAL;
+        }
         MPN_DEFINE(tmp);
+        int ret;
         a->n = 0; /* a = 0 */
         size_t i;
         for (i = 0; i < n; i++) {
