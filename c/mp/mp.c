@@ -1018,10 +1018,7 @@ mpn_from_strz(struct mpn *a, const char *p)
                 a->d[i] = x;
         }
         a->n = n;
-        if (a->d[a->n - 1] == 0) {
-                a->n--;
-        }
-        assert(mpn_is_normal(a));
+        mpn_normalize(a);
 fail:
         return ret;
 #else
