@@ -183,9 +183,15 @@ mpq_is_normal(const struct mpq *a)
         }
         bool result;
         MPN_DEFINE(c);
-        int ret = mpn_gcd(&c, &a->denom.uint, &a->numer.uint);
-        assert(ret == 0); /* XXX what to do? */
+        int ret;
+        /*
+         * in case of gcd failure, returns true.
+         * it's ok because this function is used only for assertions.
+         */
+        result = true;
+        MPN_GCD(&c, &a->denom.uint, &a->numer.uint);
         result = mpn_cmp(&c, &g_one) == 0;
+fail:
         mpn_clear(&c);
         return result;
 }

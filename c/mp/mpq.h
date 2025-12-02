@@ -36,6 +36,10 @@ int mpq_set(struct mpq *d, const struct mpq *s);
 
 int mpq_reduce(struct mpq *a);
 
+/*
+ * note: mpq_is_normal can return false positive.
+ * (returns true while the mpq is not normal.
+ */
 bool mpq_is_normal(const struct mpq *a);
 
 int mpq_from_str(struct mpq *a, const char *p, size_t sz);
