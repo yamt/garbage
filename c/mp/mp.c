@@ -1003,9 +1003,8 @@ fail:
 }
 
 int
-mpn_from_strz(struct mpn *a, const char *p)
+mpn_from_str(struct mpn *a, const char *p, size_t n)
 {
-        size_t n = strlen(p);
 #if BASE == 10
         int ret;
         MPN_ALLOC(a, n);
@@ -1032,9 +1031,21 @@ fail:
 }
 
 int
+mpn_from_strz(struct mpn *a, const char *p)
+{
+        return mpn_from_str(a, p, strlen(p));
+}
+
+int
+mpn_from_hex_str(struct mpn *a, const char *p, size_t sz)
+{
+        return mpn_from_str_base(a, &g_16, p, sz);
+}
+
+int
 mpn_from_hex_strz(struct mpn *a, const char *p)
 {
-        return mpn_from_str_base(a, &g_16, p, strlen(p));
+        return mpn_from_hex_str(a, p, strlen(p));
 }
 
 size_t

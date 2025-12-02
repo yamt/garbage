@@ -138,7 +138,9 @@ void mpn_set_zero(struct mpn *a);
  *
  * "strz" functions consume/produce NUL-terminated strings.
  */
+int mpn_from_str(struct mpn *a, const char *p, size_t sz);
 int mpn_from_strz(struct mpn *a, const char *p);
+int mpn_from_hex_str(struct mpn *a, const char *p, size_t sz);
 int mpn_from_hex_strz(struct mpn *a, const char *p);
 char *mpn_to_strz(const struct mpn *a);
 char *mpn_to_hex_strz(const struct mpn *a);
@@ -216,6 +218,7 @@ void print_mpn(const char *heading, const struct mpn *a);
 #define MPN_DEFINE(a) struct mpn a = MPN_INITIALIZER0
 #define MPN_ALLOC(a, b) HANDLE_ERROR(mpn_alloc(a, b))
 #define MPN_SET_UINT(a, b) HANDLE_ERROR(mpn_set_uint(a, b))
+#define MPN_FROM_STR(a, b, c) HANDLE_ERROR(mpn_from_str(a, b, c))
 #define MPN_FROM_STRZ(a, b) HANDLE_ERROR(mpn_from_strz(a, b))
 #define MPN_FROM_HEX_STRZ(a, b) HANDLE_ERROR(mpn_from_hex_strz(a, b))
 #define MPN_TO_UINT(a, b) HANDLE_ERROR(mpn_to_uint(a, b))
