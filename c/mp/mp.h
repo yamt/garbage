@@ -234,5 +234,6 @@ void print_mpn(const char *heading, const struct mpn *a);
 #define MPN_DIVREM(a, b, c, d) MP_HANDLE_ERROR(mpn_divrem(a, b, c, d))
 #define MPN_ROOTINT(a, b, c) MP_HANDLE_ERROR(mpn_rootint(a, b, c))
 #define MPN_POWINT(a, b, c) MP_HANDLE_ERROR(mpn_powint(a, b, c))
+#define MPN_GCD(a, b, c) MP_HANDLE_ERROR(mpn_gcd(a, b, c))
 
 #endif /* !defined(_MP_H_) */
