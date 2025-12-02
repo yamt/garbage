@@ -1,3 +1,6 @@
+/* building this module with NDEBUG doesn't make much sense */
+#undef NDEBUG
+
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
@@ -7,6 +10,8 @@
 #include "mp.h"
 #include "mpq.h"
 #include "mpz.h"
+
+#undef __up_unused
 
 void
 gcd_test1(const char *a_str, const char *b_str,
