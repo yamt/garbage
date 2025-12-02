@@ -197,6 +197,7 @@ void print_mpn(const char *heading, const struct mpn *a);
  * the use of these macros is completely optional
  */
 
+#if !defined(MP_HANDLE_ERROR)
 #define MP_HANDLE_ERROR(call)                                                 \
         do {                                                                  \
                 ret = call;                                                   \
@@ -204,6 +205,7 @@ void print_mpn(const char *heading, const struct mpn *a);
                         goto fail;                                            \
                 }                                                             \
         } while (0)
+#endif
 
 #define MP_NO_ERROR(call)                                                     \
         do {                                                                  \
