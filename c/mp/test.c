@@ -9,7 +9,8 @@
 #include "mpz.h"
 
 void
-gcd_test1(const char *a_str, const char *b_str, const char *gcd_str)
+gcd_test1(const char *a_str, const char *b_str,
+          const char *gcd_str __mp_unused)
 {
         MPN_DEFINE(a);
         MPN_DEFINE(b);
