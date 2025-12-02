@@ -82,7 +82,17 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 static coeff_t
 coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-#if COEFF_MAX == COEFF_TYPE_MAX
+#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+        uint64_t low;
+        uint64_t high;
+        __asm__ __volatile__(
+                "subq %4, %1; adcq $0, %0; subq %5, %1; adcq $0, %0"
+                : "=&r"(high), "=&r"(low)
+                : "0"(0), "1"(a), "r"(b), "r"(carry_in)
+                : "cc");
+        *carry_out = high;
+        return low;
+#elif COEFF_MAX == COEFF_TYPE_MAX
         coeff_t t;
         coeff_t carry = 0;
         if (__builtin_sub_overflow(a, b, &t)) {
