@@ -7,6 +7,43 @@
 #include "mp.h"
 #include "mpz.h"
 
+void
+gcd_test1(const char *a_str, const char *b_str, const char *gcd_str)
+{
+        MPN_DEFINE(a);
+        MPN_DEFINE(b);
+        MPN_DEFINE(c);
+        int ret;
+        MPN_FROM_STRZ(&a, a_str);
+        MPN_FROM_STRZ(&b, b_str);
+        HANDLE_ERROR(mpn_gcd(&c, &a, &b));
+        char *p = mpn_to_strz(&c);
+        assert(p != NULL);
+        assert(!strcmp(p, gcd_str));
+        mpn_str_free(p);
+        ret = 0;
+fail:
+        assert(ret == 0);
+        mpn_clear(&a);
+        mpn_clear(&b);
+        mpn_clear(&c);
+}
+
+void
+gcd_test(void)
+{
+        gcd_test1("1", "1", "1");
+        gcd_test1("1000", "100", "100");
+        gcd_test1("7", "13", "1");
+        gcd_test1("0", "1", "1");
+        gcd_test1("1", "0", "1");
+        gcd_test1("58904372341087431207431289790321749873299017192600951093245"
+                  "19507623409815940690179120301560415605160516",
+                  "56490581724309865140982103444447895567102345750625084972590"
+                  "73298790842390165490276901846901862",
+                  "2");
+}
+
 int
 fixed_point_sqrt(void)
 {
@@ -935,6 +972,7 @@ main(void)
         assert(mpn_cmp(&q, &g_one) == 0);
         assert(mpn_cmp(&r, &g_zero) == 0);
 
+        gcd_test();
         mpz_test();
         mul_bench();
         fixed_point_sqrt();
