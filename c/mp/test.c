@@ -16,7 +16,16 @@ gcd_test1(const char *a_str, const char *b_str, const char *gcd_str)
         int ret;
         MPN_FROM_STRZ(&a, a_str);
         MPN_FROM_STRZ(&b, b_str);
+        if (!mpn_is_zero(&b)) {
+                HANDLE_ERROR(mpn_gcd(&c, &b, &b)); /* test a == b case */
+                assert(mpn_cmp(&c, &b) == 0);
+        }
         HANDLE_ERROR(mpn_gcd(&c, &a, &b));
+        HANDLE_ERROR(mpn_gcd(&a, &a, &b)); /* test c == a case */
+        assert(mpn_cmp(&c, &a) == 0);
+        MPN_FROM_STRZ(&a, a_str);          /* restore a */
+        HANDLE_ERROR(mpn_gcd(&b, &a, &b)); /* test c == b case */
+        assert(mpn_cmp(&c, &b) == 0);
         char *p = mpn_to_strz(&c);
         assert(p != NULL);
         assert(!strcmp(p, gcd_str));
