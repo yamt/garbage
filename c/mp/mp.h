@@ -11,6 +11,10 @@
 
 #define __mp_unused __attribute__((unused))
 
+#if !defined(MP_USE_ASM)
+#define MP_USE_ASM 1
+#endif
+
 #if !defined(BASE) && !defined(BASE_BITS)
 #define BASE_BITS 32
 #endif

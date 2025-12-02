@@ -44,7 +44,7 @@ dig(const struct mpn *a, mp_size_t i)
 static coeff_t
 coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+#if MP_USE_ASM && defined(__x86_64__) && COEFF_MAX == UINT64_MAX
         uint64_t low;
         uint64_t high;
         __asm__ __volatile__(
@@ -82,7 +82,7 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 static coeff_t
 coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 {
-#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+#if MP_USE_ASM && defined(__x86_64__) && COEFF_MAX == UINT64_MAX
         uint64_t low;
         uint64_t high;
         __asm__ __volatile__(
@@ -119,7 +119,7 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 static coeff_t
 coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
 {
-#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+#if MP_USE_ASM && defined(__x86_64__) && COEFF_MAX == UINT64_MAX
         uint64_t rax;
         uint64_t rdx;
         __asm__ __volatile__("mulq %3; addq %4, %1; adcq $0, %0"
@@ -172,7 +172,7 @@ static coeff_t
 coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 {
         assert(dividend_high < divisor);
-#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+#if MP_USE_ASM && defined(__x86_64__) && COEFF_MAX == UINT64_MAX
         uint64_t q;
         uint64_t r; /* unused */
         __asm__ __volatile__("divq %4"
