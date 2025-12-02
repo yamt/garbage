@@ -23,6 +23,7 @@ struct mpq {
 void mpq_init(struct mpq *a);
 void mpq_clear(struct mpq *a);
 
+/* note: mpq_cmp can fail */
 int mpq_cmp(int *resultp, const struct mpq *a, const struct mpq *b);
 bool mpq_eq(const struct mpq *a, const struct mpq *b);
 
