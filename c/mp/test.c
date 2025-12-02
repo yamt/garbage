@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "mp.h"
+#include "mpq.h"
 #include "mpz.h"
 
 void
@@ -423,6 +424,289 @@ fail:
         mpz_clear(&c);
         assert(ret == 0);
 }
+
+#define P(X)                                                                  \
+        do {                                                                  \
+                char *p = mpq_to_strz(&X);                                    \
+                assert(p != NULL);                                            \
+                printf("%s\n", p);                                            \
+                mpq_str_free(p);                                              \
+        } while (0)
+
+#define P1(X)                                                                 \
+        do {                                                                  \
+                char *p = mpq_to_strz(&X);                                    \
+                assert(p != NULL);                                            \
+                printf("mpq " #X " = %s\n", p);                               \
+                mpq_str_free(p);                                              \
+        } while (0)
+
+void
+mpq_add_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_FROM_STRZ(&a, a_str);
+        MPQ_FROM_STRZ(&b, b_str);
+        MPQ_ADD(&a, &a, &b);
+        printf("(%s) + (%s) = ", a_str, b_str);
+        P(a);
+        MPQ_FROM_STRZ(&b, expected_str);
+        assert(mpq_cmp(&a, &b) == 0);
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpq_sub_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_FROM_STRZ(&a, a_str);
+        MPQ_FROM_STRZ(&b, b_str);
+        MPQ_SUB(&a, &a, &b);
+        printf("(%s) - (%s) = ", a_str, b_str);
+        P(a);
+        MPQ_FROM_STRZ(&b, expected_str);
+        assert(mpq_cmp(&a, &b) == 0);
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpq_mul_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_FROM_STRZ(&a, a_str);
+        MPQ_FROM_STRZ(&b, b_str);
+        MPQ_MUL(&a, &a, &b);
+        printf("(%s) * (%s) = ", a_str, b_str);
+        P(a);
+        MPQ_FROM_STRZ(&b, expected_str);
+        assert(mpq_cmp(&a, &b) == 0);
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        assert(ret == 0);
+}
+
+void
+mpq_div_test(const char *a_str, const char *b_str, const char *expected_str)
+{
+        int ret;
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_FROM_STRZ(&a, a_str);
+        MPQ_FROM_STRZ(&b, b_str);
+        MPQ_DIV(&a, &a, &b);
+        printf("(%s) / (%s) = ", a_str, b_str);
+        P(a);
+        MPQ_FROM_STRZ(&b, expected_str);
+        assert(mpq_cmp(&a, &b) == 0);
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        assert(ret == 0);
+}
+
+int
+gls(struct mpq *pi, unsigned int iterations)
+{
+        /*
+         * pi = 4 - (4/3) + (4/5) - (4/7) + ...
+         */
+        MPQ_DEFINE(t);
+        MPN_DEFINE(two);
+        int ret;
+        MPN_SET_UINT(&t.numer.uint, 4);
+        MPN_SET_UINT(&t.denom.uint, 1);
+        MPN_SET_UINT(&two, 2);
+        MPQ_FROM_STRZ(pi, "0");
+        unsigned int i;
+        for (i = 0; i < iterations; i++) {
+                t.numer.sign = (i % 2) != 0;
+                MPQ_ADD(pi, pi, &t);
+                MPN_ADD(&t.denom.uint, &t.denom.uint, &two);
+        }
+fail:
+        mpq_clear(&t);
+        mpn_clear(&two);
+        return ret;
+}
+
+static int
+mpq_sqrt_inplace(struct mpq *a, const struct mpn *scale)
+{
+        assert(mpq_is_normal(a));
+        assert(!a->numer.sign);
+        int ret;
+        struct mpn *n = &a->numer.uint;
+        MPN_MUL(n, n, scale);
+        MPN_MUL(n, n, scale);
+        MPN_ROOTINT(n, n, 2);
+        n = &a->denom.uint;
+        MPN_MUL(n, n, scale);
+        MPN_MUL(n, n, scale);
+        MPN_ROOTINT(n, n, 2);
+        MPQ_REDUCE(a);
+        ret = 0;
+fail:
+        return ret;
+}
+
+/* https://ja.wikipedia.org/wiki/%E3%82%AC%E3%82%A6%E3%82%B9%EF%BC%9D%E3%83%AB%E3%82%B8%E3%83%A3%E3%83%B3%E3%83%89%E3%83%AB%E3%81%AE%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0
+ */
+int
+gla(struct mpq *pi, unsigned int iterations)
+{
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_DEFINE(t);
+        MPQ_DEFINE(p);
+        MPQ_DEFINE(oa);
+        MPQ_DEFINE(tmp);
+        MPQ_DEFINE(two);
+        MPN_DEFINE(scale);
+        int ret;
+        MPN_SET_UINT(&scale, 1024);
+        MPN_POWINT(&scale, &scale, iterations);
+        MPQ_FROM_STRZ(&a, "1");
+        /* b = 1/sqrt(2) = sqrt(1/2) */
+        MPQ_FROM_STRZ(&b, "1/2");
+        HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+        MPQ_FROM_STRZ(&t, "1/4");
+        MPQ_FROM_STRZ(&p, "1");
+        MPQ_FROM_STRZ(&two, "2");
+        unsigned int i;
+        for (i = 0; i < iterations; i++) {
+                MPQ_SET(&oa, &a);
+
+                /* a = (a + b) / 2 */
+                MPQ_ADD(&a, &a, &b);
+                MPQ_DIV(&a, &a, &two);
+
+                /* b = sqrt(oa * b) */
+                MPQ_MUL(&b, &oa, &b);
+                HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+
+                /* t = t - ((oa - a) ** 2) * p */
+                MPQ_SUB(&tmp, &oa, &a);
+                MPQ_MUL(&tmp, &tmp, &tmp);
+                MPQ_MUL(&tmp, &tmp, &p);
+                MPQ_SUB(&t, &t, &tmp);
+
+                /* p = 2 * p */
+                MPQ_MUL(&p, &p, &two);
+        }
+        /* pi = (a + b) ** 2 / t / 4 */
+        MPQ_ADD(pi, &a, &b);
+        MPQ_MUL(pi, pi, pi);
+        MPQ_DIV(pi, pi, &t);
+        MPQ_DIV(pi, pi, &two);
+        MPQ_DIV(pi, pi, &two);
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        mpq_clear(&t);
+        mpq_clear(&p);
+        mpq_clear(&oa);
+        mpq_clear(&tmp);
+        mpq_clear(&two);
+        mpn_clear(&scale);
+        return ret;
+}
+
+void
+mpq_test(void)
+{
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        MPQ_DEFINE(c);
+        int ret;
+
+        assert(mpq_from_strz(&a, "") == EINVAL);
+        assert(mpq_from_strz(&a, "-") == EINVAL);
+        assert(mpq_from_strz(&a, "-/1") == EINVAL);
+        assert(mpq_from_strz(&a, "-1/") == EINVAL);
+        assert(mpq_from_strz(&a, "1/-1") == EINVAL);
+        assert(mpq_from_strz(&a, "1/0") == EINVAL);
+        assert(mpq_from_strz(&a, "0/0") == EINVAL);
+        assert(mpq_from_strz(&a, "-0") == EINVAL);
+        assert(mpq_from_strz(&a, "-0/1") == EINVAL);
+
+        MPQ_FROM_STRZ(&a, "1000");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "-800");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "800/3");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "-800/3");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "800/5");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "-800/5");
+        P1(a);
+        MPQ_FROM_STRZ(&b, "-4/292972481912222218180035883199999999997729728");
+        P1(b);
+        MPQ_FROM_STRZ(&c, "-32143124097890790785901745980719047509732143124097"
+                          "8907907859017459807190475097/"
+                          "235426271084290595185291909261581578442512042052952"
+                          "982662498025368983106742743735655781868692067312733"
+                          "45972152516430145904");
+        P1(c);
+        assert(mpq_cmp(&b, &c) == 0);
+
+        MPQ_FROM_STRZ(&a, "7/3");
+        MPQ_FROM_STRZ(&b, "5/2");
+        assert(mpq_cmp(&a, &b) < 0);
+
+        MPQ_FROM_STRZ(&a, "1489/4451");
+        MPQ_FROM_STRZ(&b, "1490/4453");
+        assert(mpq_cmp(&a, &b) < 0);
+
+        mpq_add_test("-11/2", "3/5", "-49/10");
+        mpq_sub_test("-11/2", "3/5", "-61/10");
+        mpq_mul_test("-11/2", "3/5", "-33/10");
+        mpq_div_test("-11/2", "3/5", "-55/6");
+
+        mpq_add_test("-1", "3", "2");
+        mpq_sub_test("-1", "3", "-4");
+        mpq_mul_test("-1", "3", "-3");
+        mpq_div_test("-1", "3", "-1/3");
+
+        mpq_add_test("14/15", "1/15", "1");
+        mpq_sub_test("14/15", "1/15", "13/15");
+        mpq_mul_test("14/15", "1/15", "14/225");
+        mpq_div_test("14/15", "1/15", "14");
+
+        unsigned int i;
+        for (i = 1; i < 8; i++) {
+                gla(&a, i);
+                printf("gla(%u) = ", i);
+                P(a);
+        }
+        for (i = 1; i <= 128; i *= 2) {
+                gls(&a, i);
+                printf("gls(%u) = ", i);
+                P(a);
+        }
+fail:
+        mpq_clear(&a);
+        mpq_clear(&b);
+        mpq_clear(&c);
+        assert(ret == 0);
+}
+
+#undef P
+#undef P1
 
 static void
 test_str_roundtrip(const char *str)
@@ -983,6 +1267,7 @@ main(void)
 
         gcd_test();
         mpz_test();
+        mpq_test();
         mul_bench();
         fixed_point_sqrt();
         sha2table();
