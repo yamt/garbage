@@ -774,7 +774,7 @@ fail:
         return ret;
 }
 
-__attribute__((unused)) static int
+__mp_unused static int
 mpn_set_uint1(struct mpn *a, coeff_t v)
 {
         assert(v <= COEFF_MAX);
@@ -823,7 +823,7 @@ fail:
 #endif
 }
 
-__attribute__((unused)) static int
+__mp_unused static int
 mpn_to_uint1(const struct mpn *a, coeff_t *vp)
 {
         if (a->n == 0) {
