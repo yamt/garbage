@@ -45,13 +45,13 @@ char *mpz_to_hex_strz(const struct mpz *a);
 void mpz_str_free(char *p);
 
 #define MPZ_DEFINE(a) struct mpz a = MPZ_INITIALIZER0
-#define MPZ_ALLOC(a, b) HANDLE_ERROR(mpz_alloc(a, b))
-#define MPZ_FROM_STRZ(a, b) HANDLE_ERROR(mpz_from_strz(a, b))
-#define MPZ_FROM_HEX_STRZ(a, b) HANDLE_ERROR(mpz_from_hex_strz(a, b))
-#define MPZ_SET(a, b) HANDLE_ERROR(mpz_set(a, b))
-#define MPZ_ADD(a, b, c) HANDLE_ERROR(mpz_add(a, b, c))
-#define MPZ_SUB(a, b, c) HANDLE_ERROR(mpz_sub(a, b, c))
-#define MPZ_MUL(a, b, c) HANDLE_ERROR(mpz_mul(a, b, c))
-#define MPZ_DIVREM(a, b, c, d) HANDLE_ERROR(mpz_divrem(a, b, c, d))
+#define MPZ_ALLOC(a, b) MP_HANDLE_ERROR(mpz_alloc(a, b))
+#define MPZ_FROM_STRZ(a, b) MP_HANDLE_ERROR(mpz_from_strz(a, b))
+#define MPZ_FROM_HEX_STRZ(a, b) MP_HANDLE_ERROR(mpz_from_hex_strz(a, b))
+#define MPZ_SET(a, b) MP_HANDLE_ERROR(mpz_set(a, b))
+#define MPZ_ADD(a, b, c) MP_HANDLE_ERROR(mpz_add(a, b, c))
+#define MPZ_SUB(a, b, c) MP_HANDLE_ERROR(mpz_sub(a, b, c))
+#define MPZ_MUL(a, b, c) MP_HANDLE_ERROR(mpz_mul(a, b, c))
+#define MPZ_DIVREM(a, b, c, d) MP_HANDLE_ERROR(mpz_divrem(a, b, c, d))
 
 #endif /* !defined(_MPZ_H_) */

@@ -15,30 +15,30 @@
 #define MP_USE_ASM 1
 #endif
 
-#if !defined(BASE) && !defined(BASE_BITS)
-#define BASE_BITS 32
+#if !defined(MP_BASE) && !defined(MP_BASE_BITS)
+#define MP_BASE_BITS 32
 #endif
 
-#if BASE == 10
+#if MP_BASE == 10
 typedef signed char coeff_t;
-#define LOG_BASE 2.30258509299404568401 /* l(BASE) */
+#define MP_LOG_BASE 2.30258509299404568401 /* l(BASE) */
 #define COEFF_MAX 9
 #define COEFF_TYPE_MAX 127
-#elif BASE_BITS == 32
+#elif MP_BASE_BITS == 32
 #include <stdint.h>
 
 typedef uint32_t coeff_t;
-#define BASE 4294967296                  /* 2^32 */
-#define LOG_BASE 22.18070977791824990135 /* l(2^32) */
+#define MP_BASE 4294967296                  /* 2^32 */
+#define MP_LOG_BASE 22.18070977791824990135 /* l(2^32) */
 #define COEFF_BITS 32
 #define COEFF_MAX UINT32_MAX
 #define COEFF_TYPE_MAX UINT32_MAX
-#elif BASE_BITS == 64
+#elif MP_BASE_BITS == 64
 #include <stdint.h>
 
 typedef uint64_t coeff_t;
-#undef BASE /* 2^64, which is not likely representable */
-#define LOG_BASE 44.36141955583649980270 /* l(2^64) */
+#undef MP_BASE /* 2^64, which is not likely representable */
+#define MP_LOG_BASE 44.36141955583649980270 /* l(2^64) */
 #define COEFF_BITS 64
 #define COEFF_MAX UINT64_MAX
 #define COEFF_TYPE_MAX UINT64_MAX
@@ -197,7 +197,7 @@ void print_mpn(const char *heading, const struct mpn *a);
  * the use of these macros is completely optional
  */
 
-#define HANDLE_ERROR(call)                                                    \
+#define MP_HANDLE_ERROR(call)                                                    \
         do {                                                                  \
                 ret = call;                                                   \
                 if (ret != 0) {                                               \
@@ -205,13 +205,13 @@ void print_mpn(const char *heading, const struct mpn *a);
                 }                                                             \
         } while (0)
 
-#define NO_ERROR(call)                                                        \
+#define MP_NO_ERROR(call)                                                        \
         do {                                                                  \
                 int ret2 __mp_unused = call;                                  \
                 assert(ret2 == 0);                                            \
         } while (0)
 
-#define COPY_IF(cond, a, a0)                                                  \
+#define MPN_COPY_IF(cond, a, a0)                                                  \
         do {                                                                  \
                 if (cond) {                                                   \
                         MPN_SET(&a0, a);                                      \
@@ -220,19 +220,19 @@ void print_mpn(const char *heading, const struct mpn *a);
         } while (false)
 
 #define MPN_DEFINE(a) struct mpn a = MPN_INITIALIZER0
-#define MPN_ALLOC(a, b) HANDLE_ERROR(mpn_alloc(a, b))
-#define MPN_SET_UINT(a, b) HANDLE_ERROR(mpn_set_uint(a, b))
-#define MPN_FROM_STR(a, b, c) HANDLE_ERROR(mpn_from_str(a, b, c))
-#define MPN_FROM_STRZ(a, b) HANDLE_ERROR(mpn_from_strz(a, b))
-#define MPN_FROM_HEX_STRZ(a, b) HANDLE_ERROR(mpn_from_hex_strz(a, b))
-#define MPN_TO_UINT(a, b) HANDLE_ERROR(mpn_to_uint(a, b))
-#define MPN_SET(a, b) HANDLE_ERROR(mpn_set(a, b))
-#define MPN_ADD(a, b, c) HANDLE_ERROR(mpn_add(a, b, c))
-#define MPN_SUB(a, b, c) HANDLE_ERROR(mpn_sub(a, b, c))
-#define MPN_SUB_NOFAIL(a, b, c) NO_ERROR(mpn_sub(a, b, c))
-#define MPN_MUL(a, b, c) HANDLE_ERROR(mpn_mul(a, b, c))
-#define MPN_DIVREM(a, b, c, d) HANDLE_ERROR(mpn_divrem(a, b, c, d))
-#define MPN_ROOTINT(a, b, c) HANDLE_ERROR(mpn_rootint(a, b, c))
-#define MPN_POWINT(a, b, c) HANDLE_ERROR(mpn_powint(a, b, c))
+#define MPN_ALLOC(a, b) MP_HANDLE_ERROR(mpn_alloc(a, b))
+#define MPN_SET_UINT(a, b) MP_HANDLE_ERROR(mpn_set_uint(a, b))
+#define MPN_FROM_STR(a, b, c) MP_HANDLE_ERROR(mpn_from_str(a, b, c))
+#define MPN_FROM_STRZ(a, b) MP_HANDLE_ERROR(mpn_from_strz(a, b))
+#define MPN_FROM_HEX_STRZ(a, b) MP_HANDLE_ERROR(mpn_from_hex_strz(a, b))
+#define MPN_TO_UINT(a, b) MP_HANDLE_ERROR(mpn_to_uint(a, b))
+#define MPN_SET(a, b) MP_HANDLE_ERROR(mpn_set(a, b))
+#define MPN_ADD(a, b, c) MP_HANDLE_ERROR(mpn_add(a, b, c))
+#define MPN_SUB(a, b, c) MP_HANDLE_ERROR(mpn_sub(a, b, c))
+#define MPN_SUB_NOFAIL(a, b, c) MP_NO_ERROR(mpn_sub(a, b, c))
+#define MPN_MUL(a, b, c) MP_HANDLE_ERROR(mpn_mul(a, b, c))
+#define MPN_DIVREM(a, b, c, d) MP_HANDLE_ERROR(mpn_divrem(a, b, c, d))
+#define MPN_ROOTINT(a, b, c) MP_HANDLE_ERROR(mpn_rootint(a, b, c))
+#define MPN_POWINT(a, b, c) MP_HANDLE_ERROR(mpn_powint(a, b, c))
 
 #endif /* !defined(_MP_H_) */

@@ -18,14 +18,14 @@ gcd_test1(const char *a_str, const char *b_str, const char *gcd_str)
         MPN_FROM_STRZ(&a, a_str);
         MPN_FROM_STRZ(&b, b_str);
         if (!mpn_is_zero(&b)) {
-                HANDLE_ERROR(mpn_gcd(&c, &b, &b)); /* test a == b case */
+                MP_HANDLE_ERROR(mpn_gcd(&c, &b, &b)); /* test a == b case */
                 assert(mpn_cmp(&c, &b) == 0);
         }
-        HANDLE_ERROR(mpn_gcd(&c, &a, &b));
-        HANDLE_ERROR(mpn_gcd(&a, &a, &b)); /* test c == a case */
+        MP_HANDLE_ERROR(mpn_gcd(&c, &a, &b));
+        MP_HANDLE_ERROR(mpn_gcd(&a, &a, &b)); /* test c == a case */
         assert(mpn_cmp(&c, &a) == 0);
         MPN_FROM_STRZ(&a, a_str);          /* restore a */
-        HANDLE_ERROR(mpn_gcd(&b, &a, &b)); /* test c == b case */
+        MP_HANDLE_ERROR(mpn_gcd(&b, &a, &b)); /* test c == b case */
         assert(mpn_cmp(&c, &b) == 0);
         char *p = mpn_to_strz(&c);
         assert(p != NULL);
@@ -581,7 +581,7 @@ gla(struct mpq *pi, unsigned int iterations)
         MPQ_FROM_STRZ(&a, "1");
         /* b = 1/sqrt(2) = sqrt(1/2) */
         MPQ_FROM_STRZ(&b, "1/2");
-        HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+        MP_HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
         MPQ_FROM_STRZ(&t, "1/4");
         MPQ_FROM_STRZ(&p, "1");
         MPQ_FROM_STRZ(&two, "2");
@@ -595,7 +595,7 @@ gla(struct mpq *pi, unsigned int iterations)
 
                 /* b = sqrt(oa * b) */
                 MPQ_MUL(&b, &oa, &b);
-                HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+                MP_HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
 
                 /* t = t - ((oa - a) ** 2) * p */
                 MPQ_SUB(&tmp, &oa, &a);
@@ -822,14 +822,14 @@ mul_bench(void)
                         int j;
                         for (j = 0; j < 2; j++) {
                                 start_time = timestamp();
-                                HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba,
+                                MP_HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba,
                                                                &a, &b));
                                 end_time = timestamp();
                                 karatsuba = (double)(end_time - start_time) /
                                             1000000000;
 
                                 start_time = timestamp();
-                                HANDLE_ERROR(
+                                MP_HANDLE_ERROR(
                                         mpn_mul_basecase(&c_basecase, &a, &b));
                                 end_time = timestamp();
                                 basecase = (double)(end_time - start_time) /

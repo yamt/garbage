@@ -13,8 +13,8 @@
 
 #define ctassert(a) _Static_assert(a, #a)
 
-#if defined(BASE)
-ctassert(COEFF_MAX == BASE - 1);
+#if defined(MP_BASE)
+ctassert(COEFF_MAX == MP_BASE - 1);
 #endif
 
 const struct mpn g_zero = MPN_INITIALIZER0;
@@ -28,8 +28,8 @@ const struct mpn g_ten = MPN_INITIALIZER(1, 10);
 #endif
 #if COEFF_MAX >= 16
 const struct mpn g_16 = MPN_INITIALIZER(1, 16);
-#elif defined(BASE) && 16 / BASE < BASE
-const struct mpn g_16 = MPN_INITIALIZER(2, 16 % BASE, 16 / BASE);
+#elif defined(MP_BASE) && 16 / MP_BASE < MP_BASE
+const struct mpn g_16 = MPN_INITIALIZER(2, 16 % MP_BASE, 16 / MP_BASE);
 #endif
 
 static coeff_t
@@ -75,7 +75,7 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
         *carry_out = c > COEFF_MAX;
         assert(0 <= *carry_out);
         assert(*carry_out <= 1);
-        return c % BASE;
+        return c % MP_BASE;
 #endif
 }
 
@@ -109,7 +109,7 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
         coeff_t c = a - b - carry_in;
         if (c < 0) {
                 *carry_out = 1;
-                return c + BASE;
+                return c + MP_BASE;
         }
         *carry_out = 0;
         return c;
@@ -134,8 +134,8 @@ coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
         assert(b <= COEFF_MAX);
         assert(carry_in <= COEFF_MAX);
         uintmax_t prod = (uintmax_t)a * b + carry_in;
-        *highp = prod / BASE;
-        return prod % BASE;
+        *highp = prod / MP_BASE;
+        return prod % MP_BASE;
 #else
         ctassert(COEFF_BITS / 2 * 2 == COEFF_BITS);
         const unsigned int hbits = COEFF_BITS / 2;
@@ -184,7 +184,7 @@ coeff_div(coeff_t dividend_high, coeff_t dividend_low, coeff_t divisor)
 #elif UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
         ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
         uintmax_t q =
-                ((uintmax_t)dividend_high * BASE + dividend_low) / divisor;
+                ((uintmax_t)dividend_high * MP_BASE + dividend_low) / divisor;
         assert(q <= COEFF_MAX);
         return q;
 #else
@@ -235,9 +235,9 @@ static int mpn_set_uint1(struct mpn *a, coeff_t v);
 static int mpn_to_uint1(const struct mpn *a, coeff_t *vp);
 static int mpn_mul_uint1(struct mpn *d, const struct mpn *a, coeff_t b);
 
-#define MPN_SET_UINT1(a, b) HANDLE_ERROR(mpn_set_uint1(a, b))
-#define MPN_MUL_UINT1(a, b, c) HANDLE_ERROR(mpn_mul_uint1(a, b, c))
-#define SHIFT_LEFT_WORDS(a, b, c) HANDLE_ERROR(shift_left_words(a, b, c))
+#define MPN_SET_UINT1(a, b) MP_HANDLE_ERROR(mpn_set_uint1(a, b))
+#define MPN_MUL_UINT1(a, b, c) MP_HANDLE_ERROR(mpn_mul_uint1(a, b, c))
+#define SHIFT_LEFT_WORDS(a, b, c) MP_HANDLE_ERROR(shift_left_words(a, b, c))
 
 void
 mpn_poison(struct mpn *a __mp_unused)
@@ -461,8 +461,8 @@ mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b)
         MPN_DEFINE(a0);
         MPN_DEFINE(b0);
         int ret;
-        COPY_IF(c == a, a, a0);
-        COPY_IF(c == b, b, b0);
+        MPN_COPY_IF(c == a, a, a0);
+        MPN_COPY_IF(c == b, b, b0);
         if (a->n > MP_SIZE_MAX - 1 || b->n > MP_SIZE_MAX - 1 - a->n) {
                 ret = EOVERFLOW;
                 goto fail;
@@ -552,8 +552,8 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
         MPN_DEFINE(c1);
         MPN_DEFINE(c2);
         int ret;
-        COPY_IF(c == a, a, a_copy);
-        COPY_IF(c == b, b, b_copy);
+        MPN_COPY_IF(c == a, a, a_copy);
+        MPN_COPY_IF(c == b, b, b_copy);
         /* note: these mpn are aliases. do not call mpn_clear on them. */
         struct mpn a0;
         struct mpn b0;
@@ -619,12 +619,12 @@ div_normalize(struct mpn *a, struct mpn *b, unsigned int *kp)
 
         unsigned int k = 0;
         int ret;
-#if defined(BASE)
-#define HALF_BASE (BASE / 2)
+#if defined(MP_BASE)
+#define HALF_MP_BASE (MP_BASE / 2)
 #else
-#define HALF_BASE ((coeff_t)1 << (BASE_BITS - 1))
+#define HALF_MP_BASE ((coeff_t)1 << (MP_BASE_BITS - 1))
 #endif
-        while (b->d[b->n - 1] < HALF_BASE) {
+        while (b->d[b->n - 1] < HALF_MP_BASE) {
                 k++;
                 mul1(b, b, 2);
         }
@@ -655,7 +655,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
         unsigned int k;
         int ret;
 
-        COPY_IF(q == b0 || r == b0, b0, b1);
+        MPN_COPY_IF(q == b0 || r == b0, b0, b1);
         assert(mpn_is_normal(a));
         assert(mpn_is_normal(b0));
         assert(b0->n != 0); /* XXX report division-by-zero? */
@@ -674,7 +674,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
         assert(r->n >= n);
         mp_size_t m = r->n - n;
 #if !defined(NDEBUG)
-        /* assert(r < 2 * (BASE ** m) * b) */
+        /* assert(r < 2 * (MP_BASE ** m) * b) */
         SHIFT_LEFT_WORDS(&tmp, &b, m);
         MPN_ADD(&tmp, &tmp, &tmp);
         assert(mpn_cmp(r, &tmp) < 0);
@@ -682,7 +682,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
         assert(n > 0);
         assert(m < MP_SIZE_MAX);
         MPN_ALLOC(q, m + 1);
-        SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (BASE ** m) * b */
+        SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (MP_BASE ** m) * b */
         if (mpn_cmp(r, &tmp) >= 0) {
                 q->d[m] = 1;
                 q->n = m + 1;
@@ -693,7 +693,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
         for (; m > 0; m--) {
                 mp_size_t j = m - 1;
 #if !defined(NDEBUG) && 0
-                /* assert(r < (BASE ** (j + 1)) * b) */
+                /* assert(r < (MP_BASE ** (j + 1)) * b) */
                 SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
                 assert(mpn_cmp(r, &b) < 0);
 #endif
@@ -708,7 +708,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
                         q_j = coeff_div(high, low, divisor);
                         assert(q_j <= COEFF_MAX);
                 }
-                SHIFT_LEFT_WORDS(&tmp, &b, j);   /* tmp = (BASE ** j) * b */
+                SHIFT_LEFT_WORDS(&tmp, &b, j);   /* tmp = (MP_BASE ** j) * b */
                 MPN_MUL_UINT1(&tmp2, &tmp, q_j); /* tmp2 = q_j * tmp */
                 while (mpn_cmp(r, &tmp2) < 0) {
                         q_j--;
@@ -755,7 +755,7 @@ mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k)
         MPN_DEFINE(tmp);
         MPN_DEFINE(unused);
         int ret;
-        COPY_IF(s == m, m, m1);
+        MPN_COPY_IF(s == m, m, m1);
         MPN_SET_UINT(&bk, k);
         MPN_SET_UINT(&bk_minus_1, k - 1);
         MPN_SET(&u, m);
@@ -788,7 +788,7 @@ mpn_powint(struct mpn *s, const struct mpn *m, unsigned int k)
         MPN_DEFINE(m1);
         unsigned int i;
         int ret;
-        COPY_IF(s == m, m, m1);
+        MPN_COPY_IF(s == m, m, m1);
         MPN_SET_UINT(s, 1);
         for (i = 0; i < k; i++) {
                 MPN_MUL(s, s, m);
@@ -832,7 +832,7 @@ fail:
 int
 mpn_set_uint(struct mpn *a, uintmax_t v)
 {
-#if defined(BASE)
+#if defined(MP_BASE)
         if (v <= COEFF_MAX) {
                 return mpn_set_uint1(a, v);
         }
@@ -842,15 +842,15 @@ mpn_set_uint(struct mpn *a, uintmax_t v)
         mpn_set_zero(a);       /* a = 0 */
         MPN_SET_UINT1(&bb, 1); /* bb = 1 */
         while (true) {
-                coeff_t d = v % BASE;
+                coeff_t d = v % MP_BASE;
                 MPN_SET_UINT1(&t, d);
                 MPN_MUL(&t, &t, &bb);
                 MPN_ADD(a, a, &t); /* a += d * bb */
-                v /= BASE;
+                v /= MP_BASE;
                 if (v == 0) {
                         break;
                 }
-                MPN_MUL(&bb, &bb, &g_base); /* bb *= BASE */
+                MPN_MUL(&bb, &bb, &g_base); /* bb *= MP_BASE */
         }
 fail:
         mpn_clear(&t);
@@ -893,11 +893,11 @@ mpn_to_uint(const struct mpn *a, uintmax_t *vp)
         uintmax_t v = 0;
         mp_size_t i;
         for (i = 0; i < a->n; i++) {
-#if defined(BASE)
-                if (UINTMAX_MAX / BASE < v) {
+#if defined(MP_BASE)
+                if (UINTMAX_MAX / MP_BASE < v) {
                         return EOVERFLOW;
                 }
-                v *= BASE;
+                v *= MP_BASE;
 #else
                 if ((UINTMAX_MAX >> COEFF_BITS) < v) {
                         return EOVERFLOW;
@@ -1041,7 +1041,7 @@ fail:
 int
 mpn_from_str(struct mpn *a, const char *p, size_t n)
 {
-#if BASE == 10
+#if MP_BASE == 10
         int ret;
         MPN_ALLOC(a, n);
         mp_size_t i;
@@ -1091,12 +1091,12 @@ mpn_estimate_str_size(const struct mpn *a)
         if (a->n == 0) {
                 return 1;
         }
-#if BASE == 10
+#if MP_BASE == 10
         return a->n;
 #else
         /* l(10) = 2.30258509299404568401 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.30258509299404568401 + 1;
+        return a->n * MP_LOG_BASE / 2.30258509299404568401 + 1;
 #endif
 }
 
@@ -1132,7 +1132,7 @@ fail:
 int
 mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a, size_t *szp)
 {
-#if BASE == 10
+#if MP_BASE == 10
         (void)sz;
         mp_size_t i;
         for (i = 0; i < a->n; i++) {
@@ -1186,12 +1186,12 @@ mpn_estimate_hex_str_size(const struct mpn *a)
         if (a->n == 0) {
                 return 1;
         }
-#if BASE == 10
+#if MP_BASE == 10
         return a->n;
 #else
         /* l(16) = 2.77258872223978123766 */
         /* XXX check overflow */
-        return a->n * LOG_BASE / 2.77258872223978123766 + 1;
+        return a->n * MP_LOG_BASE / 2.77258872223978123766 + 1;
 #endif
 }
 

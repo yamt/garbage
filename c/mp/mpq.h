@@ -45,16 +45,16 @@ char *mpq_to_strz(const struct mpq *a);
 void mpq_str_free(char *p);
 
 #define MPQ_DEFINE(a) struct mpq a = MPQ_INITIALIZER0
-#define MPQ_ALLOC(a, b) HANDLE_ERROR(mpq_alloc(a, b))
-#define MPQ_SET(a, b) HANDLE_ERROR(mpq_set(a, b))
-#define MPQ_ADD(a, b, c) HANDLE_ERROR(mpq_add(a, b, c))
-#define MPQ_SUB(a, b, c) HANDLE_ERROR(mpq_sub(a, b, c))
-#define MPQ_MUL(a, b, c) HANDLE_ERROR(mpq_mul(a, b, c))
-#define MPQ_DIV(a, b, c) HANDLE_ERROR(mpq_div(a, b, c))
+#define MPQ_ALLOC(a, b) MP_HANDLE_ERROR(mpq_alloc(a, b))
+#define MPQ_SET(a, b) MP_HANDLE_ERROR(mpq_set(a, b))
+#define MPQ_ADD(a, b, c) MP_HANDLE_ERROR(mpq_add(a, b, c))
+#define MPQ_SUB(a, b, c) MP_HANDLE_ERROR(mpq_sub(a, b, c))
+#define MPQ_MUL(a, b, c) MP_HANDLE_ERROR(mpq_mul(a, b, c))
+#define MPQ_DIV(a, b, c) MP_HANDLE_ERROR(mpq_div(a, b, c))
 
-#define MPQ_REDUCE(a) HANDLE_ERROR(mpq_reduce(a))
+#define MPQ_REDUCE(a) MP_HANDLE_ERROR(mpq_reduce(a))
 
-#define MPQ_FROM_STRZ(a, b) HANDLE_ERROR(mpq_from_strz(a, b))
+#define MPQ_FROM_STRZ(a, b) MP_HANDLE_ERROR(mpq_from_strz(a, b))
 
 #define MPQ_COPY_IF(cond, a, a0)                                              \
         do {                                                                  \

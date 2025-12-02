@@ -127,7 +127,7 @@ mpq_reduce(struct mpq *a)
         MPN_DEFINE(c);
         MPN_DEFINE(r);
         int ret;
-        HANDLE_ERROR(mpn_gcd(&c, &a->denom.uint, &a->numer.uint));
+        MP_HANDLE_ERROR(mpn_gcd(&c, &a->denom.uint, &a->numer.uint));
         MPN_DIVREM(&a->denom.uint, &r, &a->denom.uint, &c);
         assert(mpn_is_zero(&r));
         MPN_DIVREM(&a->numer.uint, &r, &a->numer.uint, &c);
@@ -245,11 +245,11 @@ mpq_to_str_into_buf(char *p, size_t sz, const struct mpq *a, size_t *szp)
                 *p++ = '-';
         }
         size_t asz;
-        HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->numer.uint, &asz));
+        MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->numer.uint, &asz));
         p += asz;
         if (mpn_cmp(&a->denom.uint, &g_one) != 0) {
                 *p++ = '/';
-                HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->denom.uint,
+                MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->denom.uint,
                                                      &asz));
                 p += asz;
         }
