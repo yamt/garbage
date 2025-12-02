@@ -34,6 +34,8 @@ int mpz_divrem(struct mpz *q, struct mpz *r, const struct mpz *a,
 
 int mpz_set(struct mpz *d, const struct mpz *s);
 
+int mpz_cmp_zero(const struct mpz *a);
+
 bool mpz_is_normal(const struct mpz *a);
 
 int mpz_from_strz(struct mpz *a, const char *p);

@@ -173,6 +173,18 @@ mpz_set(struct mpz *d, const struct mpz *s)
 }
 
 int
+mpz_cmp_zero(const struct mpz *a)
+{
+        if (a->sign) {
+                return -1;
+        }
+        if (mpn_is_zero(&a->uint)) {
+                return 0;
+        }
+        return 1;
+}
+
+int
 mpz_from_strz(struct mpz *a, const char *p)
 {
         if (*p == '-') {
