@@ -23,7 +23,8 @@ struct mpq {
 void mpq_init(struct mpq *a);
 void mpq_clear(struct mpq *a);
 
-int mpq_cmp(const struct mpq *a, const struct mpq *b);
+int mpq_cmp(int *resultp, const struct mpq *a, const struct mpq *b);
+bool mpq_eq(const struct mpq *a, const struct mpq *b);
 
 int mpq_add(struct mpq *c, const struct mpq *a, const struct mpq *b);
 int mpq_sub(struct mpq *c, const struct mpq *a, const struct mpq *b);
@@ -47,6 +48,7 @@ void mpq_str_free(char *p);
 #define MPQ_DEFINE(a) struct mpq a = MPQ_INITIALIZER0
 #define MPQ_ALLOC(a, b) MP_HANDLE_ERROR(mpq_alloc(a, b))
 #define MPQ_SET(a, b) MP_HANDLE_ERROR(mpq_set(a, b))
+#define MPQ_CMP(a, b, c) MP_HANDLE_ERROR(mpq_cmp(a, b, c))
 #define MPQ_ADD(a, b, c) MP_HANDLE_ERROR(mpq_add(a, b, c))
 #define MPQ_SUB(a, b, c) MP_HANDLE_ERROR(mpq_sub(a, b, c))
 #define MPQ_MUL(a, b, c) MP_HANDLE_ERROR(mpq_mul(a, b, c))

@@ -21,16 +21,32 @@ mpq_clear(struct mpq *a)
 }
 
 int
-mpq_cmp(const struct mpq *a, const struct mpq *b)
+mpq_cmp(int *resultp, const struct mpq *a, const struct mpq *b)
 {
         assert(mpq_is_normal(a));
         assert(mpq_is_normal(b));
         MPQ_DEFINE(c);
-        int ret = mpq_sub(&c, a, b);
-        assert(ret == 0); /* XXX what to do? */
-        int result = mpz_cmp_zero(&c.numer);
+        int ret;
+        MPQ_SUB(&c, a, b);
+        *resultp = mpz_cmp_zero(&c.numer);
+        ret = 0;
+fail:
         mpq_clear(&c);
-        return result;
+        return ret;
+}
+
+bool
+mpq_eq(const struct mpq *a, const struct mpq *b)
+{
+        assert(mpq_is_normal(a));
+        assert(mpq_is_normal(b));
+        if (mpz_cmp(&a->numer, &b->numer) != 0) {
+                return false;
+        }
+        if (mpz_cmp(&a->denom, &b->denom) != 0) {
+                return false;
+        }
+        return true;
 }
 
 int
@@ -245,12 +261,13 @@ mpq_to_str_into_buf(char *p, size_t sz, const struct mpq *a, size_t *szp)
                 *p++ = '-';
         }
         size_t asz;
-        MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->numer.uint, &asz));
+        MP_HANDLE_ERROR(
+                mpn_to_dec_str_into_buf(p, ep - p, &a->numer.uint, &asz));
         p += asz;
         if (mpn_cmp(&a->denom.uint, &g_one) != 0) {
                 *p++ = '/';
-                MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p, &a->denom.uint,
-                                                     &asz));
+                MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, ep - p,
+                                                        &a->denom.uint, &asz));
                 p += asz;
         }
         assert(p <= ep);

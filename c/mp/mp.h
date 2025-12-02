@@ -197,7 +197,7 @@ void print_mpn(const char *heading, const struct mpn *a);
  * the use of these macros is completely optional
  */
 
-#define MP_HANDLE_ERROR(call)                                                    \
+#define MP_HANDLE_ERROR(call)                                                 \
         do {                                                                  \
                 ret = call;                                                   \
                 if (ret != 0) {                                               \
@@ -205,13 +205,13 @@ void print_mpn(const char *heading, const struct mpn *a);
                 }                                                             \
         } while (0)
 
-#define MP_NO_ERROR(call)                                                        \
+#define MP_NO_ERROR(call)                                                     \
         do {                                                                  \
                 int ret2 __mp_unused = call;                                  \
                 assert(ret2 == 0);                                            \
         } while (0)
 
-#define MPN_COPY_IF(cond, a, a0)                                                  \
+#define MPN_COPY_IF(cond, a, a0)                                              \
         do {                                                                  \
                 if (cond) {                                                   \
                         MPN_SET(&a0, a);                                      \

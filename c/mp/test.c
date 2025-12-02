@@ -24,7 +24,7 @@ gcd_test1(const char *a_str, const char *b_str, const char *gcd_str)
         MP_HANDLE_ERROR(mpn_gcd(&c, &a, &b));
         MP_HANDLE_ERROR(mpn_gcd(&a, &a, &b)); /* test c == a case */
         assert(mpn_cmp(&c, &a) == 0);
-        MPN_FROM_STRZ(&a, a_str);          /* restore a */
+        MPN_FROM_STRZ(&a, a_str);             /* restore a */
         MP_HANDLE_ERROR(mpn_gcd(&b, &a, &b)); /* test c == b case */
         assert(mpn_cmp(&c, &b) == 0);
         char *p = mpn_to_strz(&c);
@@ -453,7 +453,7 @@ mpq_add_test(const char *a_str, const char *b_str, const char *expected_str)
         printf("(%s) + (%s) = ", a_str, b_str);
         P(a);
         MPQ_FROM_STRZ(&b, expected_str);
-        assert(mpq_cmp(&a, &b) == 0);
+        assert(mpq_eq(&a, &b));
 fail:
         mpq_clear(&a);
         mpq_clear(&b);
@@ -472,7 +472,7 @@ mpq_sub_test(const char *a_str, const char *b_str, const char *expected_str)
         printf("(%s) - (%s) = ", a_str, b_str);
         P(a);
         MPQ_FROM_STRZ(&b, expected_str);
-        assert(mpq_cmp(&a, &b) == 0);
+        assert(mpq_eq(&a, &b));
 fail:
         mpq_clear(&a);
         mpq_clear(&b);
@@ -491,7 +491,7 @@ mpq_mul_test(const char *a_str, const char *b_str, const char *expected_str)
         printf("(%s) * (%s) = ", a_str, b_str);
         P(a);
         MPQ_FROM_STRZ(&b, expected_str);
-        assert(mpq_cmp(&a, &b) == 0);
+        assert(mpq_eq(&a, &b));
 fail:
         mpq_clear(&a);
         mpq_clear(&b);
@@ -510,7 +510,7 @@ mpq_div_test(const char *a_str, const char *b_str, const char *expected_str)
         printf("(%s) / (%s) = ", a_str, b_str);
         P(a);
         MPQ_FROM_STRZ(&b, expected_str);
-        assert(mpq_cmp(&a, &b) == 0);
+        assert(mpq_eq(&a, &b));
 fail:
         mpq_clear(&a);
         mpq_clear(&b);
@@ -662,15 +662,18 @@ mpq_test(void)
                           "982662498025368983106742743735655781868692067312733"
                           "45972152516430145904");
         P1(c);
-        assert(mpq_cmp(&b, &c) == 0);
+        assert(mpq_eq(&b, &c));
 
         MPQ_FROM_STRZ(&a, "7/3");
         MPQ_FROM_STRZ(&b, "5/2");
-        assert(mpq_cmp(&a, &b) < 0);
+        int cmp;
+        MPQ_CMP(&cmp, &a, &b);
+        assert(cmp < 0);
 
         MPQ_FROM_STRZ(&a, "1489/4451");
         MPQ_FROM_STRZ(&b, "1490/4453");
-        assert(mpq_cmp(&a, &b) < 0);
+        MPQ_CMP(&cmp, &a, &b);
+        assert(cmp < 0);
 
         mpq_add_test("-11/2", "3/5", "-49/10");
         mpq_sub_test("-11/2", "3/5", "-61/10");
@@ -823,7 +826,7 @@ mul_bench(void)
                         for (j = 0; j < 2; j++) {
                                 start_time = timestamp();
                                 MP_HANDLE_ERROR(mpn_mul_karatsuba(&c_karatsuba,
-                                                               &a, &b));
+                                                                  &a, &b));
                                 end_time = timestamp();
                                 karatsuba = (double)(end_time - start_time) /
                                             1000000000;
