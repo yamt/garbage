@@ -99,7 +99,16 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 static coeff_t
 coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
 {
-#if UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
+#if defined(__x86_64__) && COEFF_MAX == UINT64_MAX
+        uint64_t rax;
+        uint64_t rdx;
+        __asm__ __volatile__("mulq %3; addq %4, %1; adcq $0, %0"
+                             : "=&d"(rdx), "=&a"(rax)
+                             : "a"(a), "r"(b), "r"(carry_in)
+                             : "cc");
+        *highp = rdx;
+        return rax;
+#elif UINTMAX_MAX / COEFF_MAX >= COEFF_MAX
         ctassert(UINTMAX_MAX / COEFF_MAX >= COEFF_MAX);
         assert(a <= COEFF_MAX);
         assert(b <= COEFF_MAX);
@@ -108,7 +117,6 @@ coeff_mul(coeff_t *highp, coeff_t a, coeff_t b, coeff_t carry_in)
         *highp = prod / BASE;
         return prod % BASE;
 #else
-        /* revisit: use mulq on x86 */
         ctassert(COEFF_BITS / 2 * 2 == COEFF_BITS);
         const unsigned int hbits = COEFF_BITS / 2;
         const unsigned int hmask = ((coeff_t)1 << hbits) - 1;
