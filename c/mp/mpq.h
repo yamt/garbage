@@ -51,6 +51,10 @@ int mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale);
  */
 bool mpq_is_normal(const struct mpq *a);
 
+/*
+ * note: our default string representation of mpq is fractional.
+ * eg. "-987/123"
+ */
 int mpq_from_str(struct mpq *a, const char *p, size_t sz);
 int mpq_from_strz(struct mpq *a, const char *p);
 
@@ -58,6 +62,10 @@ size_t mpq_estimate_str_size(const struct mpq *a);
 int mpq_to_str_into_buf(char *p, size_t sz, const struct mpq *a, size_t *szp);
 char *mpq_to_strz(const struct mpq *a);
 void mpq_str_free(char *p);
+
+/*
+ * "decimal_fraction" functions below produce a string like "-8.02439"
+ */
 int mpq_estimate_decimal_fraction_str_size(const struct mpq *a,
                                            mp_size_t frac_digits);
 int mpq_to_decimal_fraction_str_into_buf(char *p, size_t sz,
