@@ -5,6 +5,11 @@
 
 /*
  * rational number
+ *
+ * normalization:
+ * - always reduced
+ * - denom.sign is false
+ * - 0 is 0/1
  */
 struct mpq {
         struct mpz numer;

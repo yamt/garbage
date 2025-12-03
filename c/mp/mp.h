@@ -58,7 +58,11 @@ typedef size_t mp_size_t;
  */
 
 /*
- * a structure to represent an unsigned integer
+ * a structure to represent an unsigned integer (0, 1, 2, ...)
+ *
+ * normalization:
+ * - n=0 represents 0
+ * - othewise, d[n-1]!=0
  */
 struct mpn {
         mp_size_t n;

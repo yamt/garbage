@@ -5,6 +5,9 @@
 
 /*
  * signed integer
+ *
+ * normalization:
+ * - sign=false for 0
  */
 struct mpz {
         bool sign;
