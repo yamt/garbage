@@ -1140,9 +1140,14 @@ mpn_to_dec_str_into_buf(char *p, size_t sz, const struct mpn *a, size_t *szp)
 {
 #if MP_BASE == 10
         (void)sz;
+        if (a->n == 0) {
+                *p = mp_digit_chr(0);
+                *szp = 1;
+                return 0;
+        }
         mp_size_t i;
         for (i = 0; i < a->n; i++) {
-                *p++ = a->d[a->n - i - 1] + '0';
+                *p++ = mp_digit_chr(a->d[a->n - i - 1]);
         }
         *szp = a->n;
         return 0;
