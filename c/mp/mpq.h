@@ -76,6 +76,7 @@ char *mpq_to_decimal_fraction_strz(const struct mpq *a, mp_size_t frac_digits);
 #define MPQ_DIV(a, b, c) MP_HANDLE_ERROR(mpq_div(a, b, c))
 
 #define MPQ_REDUCE(a) MP_HANDLE_ERROR(mpq_reduce(a))
+#define MPQ_SQRT(a, b, c) MP_HANDLE_ERROR(mpq_sqrt(a, b, c))
 
 #define MPQ_FROM_STRZ(a, b) MP_HANDLE_ERROR(mpq_from_strz(a, b))
 
