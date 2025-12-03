@@ -1085,19 +1085,25 @@ mpn_from_hex_strz(struct mpn *a, const char *p)
 }
 
 size_t
-mpn_estimate_str_size(const struct mpn *a)
+mpn_estimate_str_size_from_words(mp_size_t words)
 {
-        assert(mpn_is_normal(a));
-        if (a->n == 0) {
+        if (words == 0) {
                 return 1;
         }
 #if MP_BASE == 10
-        return a->n;
+        return words;
 #else
         /* l(10) = 2.30258509299404568401 */
         /* XXX check overflow */
-        return a->n * MP_LOG_BASE / 2.30258509299404568401 + 1;
+        return words * MP_LOG_BASE / 2.30258509299404568401 + 1;
 #endif
+}
+
+size_t
+mpn_estimate_str_size(const struct mpn *a)
+{
+        assert(mpn_is_normal(a));
+        return mpn_estimate_str_size_from_words(a->n);
 }
 
 int

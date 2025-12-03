@@ -155,6 +155,7 @@ void mpn_str_free(char *p);
  * NOT including a terminating NUL. can return a bit larger value
  * than the exact size.
  */
+size_t mpn_estimate_str_size_from_words(mp_size_t words);
 size_t mpn_estimate_str_size(const struct mpn *a);
 size_t mpn_estimate_hex_str_size(const struct mpn *a);
 
