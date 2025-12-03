@@ -573,20 +573,31 @@ fail:
 }
 
 static int
-mpq_sqrt_inplace(struct mpq *a, const struct mpn *scale)
+mpq_sqrt_sub(struct mpn *s, const struct mpn *a, const struct mpn *scale)
+{
+        int ret;
+        MPN_MUL(s, a, scale);
+        MPN_MUL(s, s, scale);
+        MPN_ROOTINT(s, s, 2);
+fail:
+        return ret;
+}
+
+static int
+mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale)
 {
         assert(mpq_is_normal(a));
         assert(!a->numer.sign);
+        assert(&s->numer.uint != scale);
+        assert(&s->denom.uint != scale);
+        assert(&a->numer.uint != scale);
+        assert(&a->denom.uint != scale);
         int ret;
-        struct mpn *n = &a->numer.uint;
-        MPN_MUL(n, n, scale);
-        MPN_MUL(n, n, scale);
-        MPN_ROOTINT(n, n, 2);
-        n = &a->denom.uint;
-        MPN_MUL(n, n, scale);
-        MPN_MUL(n, n, scale);
-        MPN_ROOTINT(n, n, 2);
-        MPQ_REDUCE(a);
+        s->numer.sign = false;
+        MP_HANDLE_ERROR(mpq_sqrt_sub(&s->numer.uint, &a->numer.uint, scale));
+        s->denom.sign = false;
+        MP_HANDLE_ERROR(mpq_sqrt_sub(&s->denom.uint, &a->denom.uint, scale));
+        MPQ_REDUCE(s);
         ret = 0;
 fail:
         return ret;
@@ -611,7 +622,7 @@ gla(struct mpq *pi, unsigned int iterations)
         MPQ_FROM_STRZ(&a, "1");
         /* b = 1/sqrt(2) = sqrt(1/2) */
         MPQ_FROM_STRZ(&b, "1/2");
-        MP_HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+        MP_HANDLE_ERROR(mpq_sqrt(&b, &b, &scale));
         MPQ_FROM_STRZ(&t, "1/4");
         MPQ_FROM_STRZ(&p, "1");
         MPQ_FROM_STRZ(&two, "2");
@@ -625,7 +636,7 @@ gla(struct mpq *pi, unsigned int iterations)
 
                 /* b = sqrt(oa * b) */
                 MPQ_MUL(&b, &oa, &b);
-                MP_HANDLE_ERROR(mpq_sqrt_inplace(&b, &scale));
+                MP_HANDLE_ERROR(mpq_sqrt(&b, &b, &scale));
 
                 /* t = t - ((oa - a) ** 2) * p */
                 MPQ_SUB(&tmp, &oa, &a);
