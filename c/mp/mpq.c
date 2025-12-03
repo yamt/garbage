@@ -171,11 +171,13 @@ int
 mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale)
 {
         assert(mpq_is_normal(a));
+        assert(mpn_is_normal(scale));
         assert(!a->numer.sign);
         assert(&s->numer.uint != scale);
         assert(&s->denom.uint != scale);
         assert(&a->numer.uint != scale);
         assert(&a->denom.uint != scale);
+        assert(!mpn_is_zero(scale));
         int ret;
         s->numer.sign = false;
         MP_HANDLE_ERROR(mpq_sqrt_sub(&s->numer.uint, &a->numer.uint, scale));
