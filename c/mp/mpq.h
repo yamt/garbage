@@ -43,6 +43,11 @@ int mpq_set_zero(struct mpq *a);
 bool mpq_is_zero(const struct mpq *a);
 
 int mpq_reduce(struct mpq *a);
+
+/*
+ * when a = p/q,
+ * mpq_sqrt(a,scale) = mpn_sqrt(p*scale^2)/mpn_sqrt(q*scale^2).
+ */
 int mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale);
 
 /*
