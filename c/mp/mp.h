@@ -183,6 +183,7 @@ int mpn_gcd(struct mpn *c, const struct mpn *a, const struct mpn *b);
 
 char *mp_to_strz(bool sign, const struct mpn *a);
 char *mp_to_hex_strz(bool sign, const struct mpn *a);
+char mp_digit_chr(unsigned int x);
 
 /*
  * debug

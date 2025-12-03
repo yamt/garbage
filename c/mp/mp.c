@@ -999,8 +999,8 @@ digit_from_chr(char ch, unsigned int *p)
         return 0;
 }
 
-static char
-digit_chr(unsigned int x)
+char
+mp_digit_chr(unsigned int x)
 {
         assert(x < 16);
         return "0123456789abcdef"[x];
@@ -1121,7 +1121,7 @@ mpn_to_str_into_buf(char *p, size_t sz, const struct mpn *a,
                 MPN_DIVREM(&q, &r, &q, base);
                 uintmax_t u;
                 MPN_TO_UINT(&r, &u);
-                char ch = digit_chr(u);
+                char ch = mp_digit_chr(u);
                 p[--n] = ch;
         } while (q.n != 0);
         if (n > 0) {
