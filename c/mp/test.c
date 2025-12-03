@@ -442,10 +442,34 @@ fail:
 #define P1(X)                                                                 \
         do {                                                                  \
                 char *p = mpq_to_strz(&X);                                    \
-                assert(p != NULL);                                            \
-                printf("mpq " #X " = %s\n", p);                               \
+                char *p2 = mpq_to_decimal_fraction_strz(&X, 64);              \
+                assert(p != NULL && p2 != NULL);                              \
+                printf("mpq " #X " = %s = %s\n", p, p2);                      \
                 mpq_str_free(p);                                              \
+                mpq_str_free(p2);                                             \
         } while (0)
+
+void
+mpq_str_test(const char *a_str, const char *frac_str, const char *dec_str)
+{
+        MPQ_DEFINE(a);
+        MPQ_DEFINE(b);
+        int ret;
+        MPQ_FROM_STRZ(&a, a_str);
+        char *p = mpq_to_strz(&a);
+        assert(p != NULL);
+        char *p2 = mpq_to_decimal_fraction_strz(&a, 5);
+        assert(p2 != NULL);
+        printf("%s = %s = %s\n", a_str, p, p2);
+        assert(!strcmp(p, frac_str));
+        assert(!strcmp(p2, dec_str));
+        MPQ_FROM_STRZ(&b, p);
+        assert(mpq_eq(&a, &b));
+fail:
+        assert(ret == 0);
+        mpq_clear(&a);
+        mpq_clear(&b);
+}
 
 void
 mpq_add_test(const char *a_str, const char *b_str, const char *expected_str)
@@ -660,6 +684,12 @@ mpq_test(void)
         P1(a);
         MPQ_FROM_STRZ(&a, "-800/5");
         P1(a);
+        MPQ_FROM_STRZ(&a, "10/4");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "11/4");
+        P1(a);
+        MPQ_FROM_STRZ(&a, "12/4");
+        P1(a);
         MPQ_FROM_STRZ(&b, "-4/292972481912222218180035883199999999997729728");
         P1(b);
         MPQ_FROM_STRZ(&c, "-32143124097890790785901745980719047509732143124097"
@@ -669,6 +699,16 @@ mpq_test(void)
                           "45972152516430145904");
         P1(c);
         assert(mpq_eq(&b, &c));
+
+        mpq_str_test("0/5", "0", "0");
+        mpq_str_test("10/4", "5/2", "2.5");
+        mpq_str_test("11/4", "11/4", "2.75");
+        mpq_str_test("12/4", "3", "3");
+        mpq_str_test("1/3", "1/3", "0.33333");
+        mpq_str_test("-10/4", "-5/2", "-2.5");
+        mpq_str_test("-11/4", "-11/4", "-2.75");
+        mpq_str_test("-12/4", "-3", "-3");
+        mpq_str_test("-1/3", "-1/3", "-0.33333");
 
         MPQ_FROM_STRZ(&a, "7/3");
         MPQ_FROM_STRZ(&b, "5/2");

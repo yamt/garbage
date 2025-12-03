@@ -54,6 +54,12 @@ size_t mpq_estimate_str_size(const struct mpq *a);
 int mpq_to_str_into_buf(char *p, size_t sz, const struct mpq *a, size_t *szp);
 char *mpq_to_strz(const struct mpq *a);
 void mpq_str_free(char *p);
+int mpq_estimate_decimal_fraction_str_size(const struct mpq *a,
+                                           mp_size_t frac_digits);
+int mpq_to_decimal_fraction_str_into_buf(char *p, size_t sz,
+                                         const struct mpq *a,
+                                         mp_size_t frac_digits, size_t *szp);
+char *mpq_to_decimal_fraction_strz(const struct mpq *a, mp_size_t frac_digits);
 
 #define MPQ_DEFINE(a) struct mpq a = MPQ_INITIALIZER0
 #define MPQ_ALLOC(a, b) MP_HANDLE_ERROR(mpq_alloc(a, b))

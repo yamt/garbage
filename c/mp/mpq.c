@@ -303,3 +303,91 @@ mpq_str_free(char *p)
 {
         free(p);
 }
+
+int
+mpq_estimate_decimal_fraction_str_size(const struct mpq *a,
+                                       mp_size_t frac_digits)
+{
+        size_t sz;
+        if (a->numer.uint.n < a->denom.uint.n) {
+                sz = 1;
+        } else {
+                sz = mpn_estimate_str_size_from_words(a->numer.uint.n -
+                                                      a->denom.uint.n + 1);
+        }
+        /* XXX check overflow */
+        sz = a->numer.sign + sz + 1 + frac_digits;
+        return sz;
+}
+
+int
+mpq_to_decimal_fraction_str_into_buf(char *p, size_t sz, const struct mpq *a,
+                                     mp_size_t frac_digits, size_t *szp)
+{
+        MPN_DEFINE(scale);
+        MPN_DEFINE(w);
+        MPN_DEFINE(f);
+        MPN_DEFINE(r);
+        int ret;
+        MPN_POWINT(&scale, &g_ten, frac_digits);
+        MPN_DIVREM(&w, &f, &a->numer.uint, &a->denom.uint);
+        MPN_MUL(&f, &f, &scale);
+        MPN_DIVREM(&f, &r, &f, &a->denom.uint);
+        bool exact = mpn_is_zero(&r);
+
+        char *p0 = p;
+        if (a->numer.sign) {
+                *p++ = '-';
+                sz--;
+        }
+        size_t asz;
+        MP_HANDLE_ERROR(mpn_to_dec_str_into_buf(p, sz, &w, &asz));
+        assert(asz + 1 + frac_digits + 1 <= sz);
+        p += asz;
+        char *ep;
+        if (exact && mpn_is_zero(&f)) {
+                ep = p;
+        } else {
+                *p++ = '.';
+                ep = p + frac_digits;
+                mp_size_t i;
+                for (i = 0; i < frac_digits; i++) {
+                        MPN_DIVREM(&f, &r, &f, &g_ten);
+                        uintmax_t u;
+                        MPN_TO_UINT(&r, &u);
+                        if (exact && u == 0) {
+                                ep--;
+                        } else {
+                                p[frac_digits - i - 1] = mp_digit_chr(u);
+                                exact = false;
+                        }
+                }
+        }
+        *szp = ep - p0;
+        ret = 0;
+fail:
+        mpn_clear(&scale);
+        mpn_clear(&w);
+        mpn_clear(&f);
+        mpn_clear(&r);
+        return ret;
+}
+
+char *
+mpq_to_decimal_fraction_strz(const struct mpq *a, mp_size_t frac_digits)
+{
+        size_t sz = mpq_estimate_decimal_fraction_str_size(a, frac_digits);
+        sz++; /* NUL */ /* XXX check overflow */
+        char *p = malloc(sz);
+        if (p == NULL) {
+                return NULL;
+        }
+        int ret = mpq_to_decimal_fraction_str_into_buf(p, sz - 1, a,
+                                                       frac_digits, &sz);
+        if (ret != 0) {
+                free(p);
+                return NULL;
+        }
+        p[sz] = 0; /* NUL terminate */
+        return p;
+}
