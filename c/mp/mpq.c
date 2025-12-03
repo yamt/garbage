@@ -156,25 +156,23 @@ fail:
         return ret;
 }
 
-#include <stdio.h>
-
 bool
 mpq_is_normal(const struct mpq *a)
 {
         if (!mpz_is_normal(&a->numer)) {
-                fprintf(stderr, "abnormal numer\n");
+                // fprintf(stderr, "abnormal numer\n");
                 return false;
         }
         if (!mpz_is_normal(&a->denom)) {
-                fprintf(stderr, "abnormal denom\n");
+                // fprintf(stderr, "abnormal denom\n");
                 return false;
         }
         if (a->denom.sign) {
-                fprintf(stderr, "neg denom\n");
+                // fprintf(stderr, "neg denom\n");
                 return false;
         }
         if (mpz_cmp_zero(&a->denom) == 0) {
-                fprintf(stderr, "zero denom\n");
+                // fprintf(stderr, "zero denom\n");
                 return false;
         }
         if (mpn_is_zero(&a->numer.uint) &&
