@@ -40,6 +40,7 @@ int mpq_div(struct mpq *c, const struct mpq *a, const struct mpq *b);
 int mpq_set(struct mpq *d, const struct mpq *s);
 
 int mpq_reduce(struct mpq *a);
+int mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale);
 
 /*
  * note: mpq_is_normal can return false positive.

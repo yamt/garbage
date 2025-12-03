@@ -156,6 +156,37 @@ fail:
         return ret;
 }
 
+static int
+mpq_sqrt_sub(struct mpn *s, const struct mpn *a, const struct mpn *scale)
+{
+        int ret;
+        MPN_MUL(s, a, scale);
+        MPN_MUL(s, s, scale);
+        MPN_ROOTINT(s, s, 2);
+fail:
+        return ret;
+}
+
+int
+mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale)
+{
+        assert(mpq_is_normal(a));
+        assert(!a->numer.sign);
+        assert(&s->numer.uint != scale);
+        assert(&s->denom.uint != scale);
+        assert(&a->numer.uint != scale);
+        assert(&a->denom.uint != scale);
+        int ret;
+        s->numer.sign = false;
+        MP_HANDLE_ERROR(mpq_sqrt_sub(&s->numer.uint, &a->numer.uint, scale));
+        s->denom.sign = false;
+        MP_HANDLE_ERROR(mpq_sqrt_sub(&s->denom.uint, &a->denom.uint, scale));
+        MPQ_REDUCE(s);
+        ret = 0;
+fail:
+        return ret;
+}
+
 bool
 mpq_is_normal(const struct mpq *a)
 {
