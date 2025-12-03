@@ -718,6 +718,10 @@ mpq_test(void)
         MPQ_CMP(&cmp, &a, &b);
         assert(cmp < 0);
 
+        MPQ_SET_ZERO(&a);
+        MPQ_SQRT(&a, &a, &g_one);
+        assert(mpq_is_zero(&a));
+
         mpq_add_test("-11/2", "3/5", "-49/10");
         mpq_sub_test("-11/2", "3/5", "-61/10");
         mpq_mul_test("-11/2", "3/5", "-33/10");
