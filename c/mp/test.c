@@ -652,32 +652,49 @@ mpq_test(void)
         assert(mpq_from_strz(&a, "-0") == EINVAL);
         assert(mpq_from_strz(&a, "-0/1") == EINVAL);
 
+        MPQ_FROM_STRZ(&a, "0/100");
+        P1(a);
+        assert(mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "1000");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "-800");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "800/3");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "-800/3");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "800/5");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "-800/5");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "10/4");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "11/4");
         P1(a);
+        assert(!mpq_is_zero(&a));
         MPQ_FROM_STRZ(&a, "12/4");
         P1(a);
+        assert(!mpq_is_zero(&a));
+        ret = mpq_set_zero(&a);
+        assert(ret == 0);
+        assert(mpq_is_zero(&a));
         MPQ_FROM_STRZ(&b, "-4/292972481912222218180035883199999999997729728");
         P1(b);
+        assert(!mpq_is_zero(&b));
         MPQ_FROM_STRZ(&c, "-32143124097890790785901745980719047509732143124097"
                           "8907907859017459807190475097/"
                           "235426271084290595185291909261581578442512042052952"
                           "982662498025368983106742743735655781868692067312733"
                           "45972152516430145904");
         P1(c);
+        assert(!mpq_is_zero(&c));
         assert(mpq_eq(&b, &c));
 
         mpq_str_test("0/5", "0", "0");

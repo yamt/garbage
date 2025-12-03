@@ -132,6 +132,26 @@ fail:
 }
 
 int
+mpq_set_zero(struct mpq *a)
+{
+        assert(mpq_is_normal(d));
+        int ret;
+        a->numer.sign = false;
+        mpn_set_zero(&a->numer.uint);
+        a->denom.sign = false;
+        MPN_SET(&a->denom.uint, &g_one);
+fail:
+        return ret;
+}
+
+bool
+mpq_is_zero(const struct mpq *a)
+{
+        assert(mpq_is_normal(d));
+        return mpn_is_zero(&a->numer.uint);
+}
+
+int
 mpq_reduce(struct mpq *a)
 {
         assert(mpz_is_normal(&a->numer));

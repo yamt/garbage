@@ -39,6 +39,9 @@ int mpq_div(struct mpq *c, const struct mpq *a, const struct mpq *b);
 
 int mpq_set(struct mpq *d, const struct mpq *s);
 
+int mpq_set_zero(struct mpq *a);
+bool mpq_is_zero(const struct mpq *a);
+
 int mpq_reduce(struct mpq *a);
 int mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale);
 
@@ -65,6 +68,7 @@ char *mpq_to_decimal_fraction_strz(const struct mpq *a, mp_size_t frac_digits);
 #define MPQ_DEFINE(a) struct mpq a = MPQ_INITIALIZER0
 #define MPQ_ALLOC(a, b) MP_HANDLE_ERROR(mpq_alloc(a, b))
 #define MPQ_SET(a, b) MP_HANDLE_ERROR(mpq_set(a, b))
+#define MPQ_SET_ZERO(a) MP_HANDLE_ERROR(mpq_set_zero(a))
 #define MPQ_CMP(a, b, c) MP_HANDLE_ERROR(mpq_cmp(a, b, c))
 #define MPQ_ADD(a, b, c) MP_HANDLE_ERROR(mpq_add(a, b, c))
 #define MPQ_SUB(a, b, c) MP_HANDLE_ERROR(mpq_sub(a, b, c))
