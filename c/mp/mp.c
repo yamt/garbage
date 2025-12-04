@@ -11,6 +11,42 @@
 
 #include "mp.h"
 
+#if !defined(MP_USE_BUILTIN)
+#define MP_USE_BUILTIN 1
+#endif
+
+#if MP_USE_BUILTIN
+#if !defined(__has_builtin)
+#define __has_builtin(a) 0
+#endif
+#define USE_BUILTIN(a) __has_builtin(a)
+#else
+#define USE_BUILTIN(a) 0
+#endif
+
+#if COEFF_MAX == COEFF_TYPE_MAX
+#if USE_BUILTIN(__builtin_add_overflow)
+#define coeff_add_overflow(a, b, c) __builtin_add_overflow(a, b, c)
+#else
+static bool
+coeff_add_overflow(coeff_t a, coeff_t b, coeff_t *c)
+{
+        *c = a + b;
+        return COEFF_TYPE_MAX - a < b;
+}
+#endif
+#if USE_BUILTIN(__builtin_sub_overflow)
+#define coeff_sub_overflow(a, b, c) __builtin_sub_overflow(a, b, c)
+#else
+static bool
+coeff_sub_overflow(coeff_t a, coeff_t b, coeff_t *c)
+{
+        *c = a - b;
+        return a < b;
+}
+#endif
+#endif /* COEFF_MAX == COEFF_TYPE_MAX */
+
 #define ctassert(a) _Static_assert(a, #a)
 
 #if defined(MP_BASE)
@@ -57,10 +93,10 @@ coeff_addc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 #elif COEFF_MAX == COEFF_TYPE_MAX
         coeff_t t;
         coeff_t carry = 0;
-        if (__builtin_add_overflow(a, b, &t)) {
+        if (coeff_add_overflow(a, b, &t)) {
                 carry = 1;
         }
-        if (__builtin_add_overflow(t, carry_in, &t)) {
+        if (coeff_add_overflow(t, carry_in, &t)) {
                 carry++;
         }
         *carry_out = carry;
@@ -95,10 +131,10 @@ coeff_subc(coeff_t a, coeff_t b, coeff_t carry_in, coeff_t *carry_out)
 #elif COEFF_MAX == COEFF_TYPE_MAX
         coeff_t t;
         coeff_t carry = 0;
-        if (__builtin_sub_overflow(a, b, &t)) {
+        if (coeff_sub_overflow(a, b, &t)) {
                 carry = 1;
         }
-        if (__builtin_sub_overflow(t, carry_in, &t)) {
+        if (coeff_sub_overflow(t, carry_in, &t)) {
                 carry = 1;
         }
         *carry_out = carry;
