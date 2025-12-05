@@ -51,8 +51,12 @@ int mpq_reduce(struct mpq *a);
 int mpq_sqrt(struct mpq *s, const struct mpq *a, const struct mpn *scale);
 
 /*
+ * debug
+ *
  * note: mpq_is_normal can return false positive.
- * (returns true while the mpq is not normal.
+ * that is, returns true while the mpq is not normal on exceptional events
+ * like memory allocation failrue. it isn't a problem as far as it's used
+ * only for assertions like "assert(mpq_is_normal(a))".
  */
 bool mpq_is_normal(const struct mpq *a);
 
