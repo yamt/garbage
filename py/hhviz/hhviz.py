@@ -96,7 +96,7 @@ for name, e in objs.items():
         print(f'color = "{vpccolor}"')
         for k, v in e["spec"]["subnets"].items():
             label = f"{k}\\n{v['subnet']}\\nvlan {v['vlan']}"
-            subnetnode = f"subnet_{name}_{k}"
+            subnetnode = f"subnet_{replace(name)}_{k}"
             print(f'{subnetnode} [label="{label}"]')
     if kind == "Switch":
         print(f'color = "{swcolor}"')
@@ -119,7 +119,7 @@ for name, e in connections.items():
             for a in attachments:
                 vpc, subnet = a['subnet'].split("/", 1)
                 vpc_conn = f"{vpc}/{name}"
-                subnetnode = f"subnet_{vpc}_{subnet}"
+                subnetnode = f"subnet_{replace(vpc)}_{subnet}"
                 if a.get('nativeVLAN', False):
                     style = "solid" # untagged vlan
                 else:
