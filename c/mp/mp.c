@@ -273,7 +273,6 @@ static int mpn_mul_uint1(struct mpn *d, const struct mpn *a, coeff_t b);
 
 #define MPN_SET_UINT1(a, b) MP_HANDLE_ERROR(mpn_set_uint1(a, b))
 #define MPN_MUL_UINT1(a, b, c) MP_HANDLE_ERROR(mpn_mul_uint1(a, b, c))
-#define SHIFT_LEFT_WORDS(a, b, c) MP_HANDLE_ERROR(shift_left_words(a, b, c))
 
 void
 mpn_poison(struct mpn *a __mp_unused)
@@ -450,8 +449,8 @@ mul1(struct mpn *c, const struct mpn *a, coeff_t n)
         assert(mpn_is_normal(c));
 }
 
-static int
-shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
+int
+mpm_shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
 {
         assert(d != s);
         assert(mpn_is_normal(s));
@@ -625,9 +624,9 @@ mpn_mul_karatsuba(struct mpn *c, const struct mpn *a, const struct mpn *b)
                 MPN_SUB(&c2, &t, &c2);
         }
         /* c = c + c2 * (base ** k) + c1 * (base ** (2 * k)) */
-        SHIFT_LEFT_WORDS(&t, &c2, k);
+        MPN_SHIFT_LEFT_WORDS(&t, &c2, k);
         MPN_ADD(c, c, &t);
-        SHIFT_LEFT_WORDS(&t, &c1, 2 * k);
+        MPN_SHIFT_LEFT_WORDS(&t, &c1, 2 * k);
         MPN_ADD(c, c, &t);
 #if 0
         {
@@ -711,14 +710,14 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
         mp_size_t m = r->n - n;
 #if !defined(NDEBUG)
         /* assert(r < 2 * (MP_BASE ** m) * b) */
-        SHIFT_LEFT_WORDS(&tmp, &b, m);
+        MPN_SHIFT_LEFT_WORDS(&tmp, &b, m);
         MPN_ADD(&tmp, &tmp, &tmp);
         assert(mpn_cmp(r, &tmp) < 0);
 #endif
         assert(n > 0);
         assert(m < MP_SIZE_MAX);
         MPN_ALLOC(q, m + 1);
-        SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (MP_BASE ** m) * b */
+        MPN_SHIFT_LEFT_WORDS(&tmp, &b, m); /* tmp = (MP_BASE ** m) * b */
         if (mpn_cmp(r, &tmp) >= 0) {
                 q->d[m] = 1;
                 q->n = m + 1;
@@ -730,7 +729,7 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
                 mp_size_t j = m - 1;
 #if !defined(NDEBUG) && 0
                 /* assert(r < (MP_BASE ** (j + 1)) * b) */
-                SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
+                MPN_SHIFT_LEFT_WORDS(&tmp, &b, j + 1);
                 assert(mpn_cmp(r, &b) < 0);
 #endif
                 coeff_t q_j;
@@ -744,7 +743,8 @@ mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
                         q_j = coeff_div(high, low, divisor);
                         assert(q_j <= COEFF_MAX);
                 }
-                SHIFT_LEFT_WORDS(&tmp, &b, j);   /* tmp = (MP_BASE ** j) * b */
+                MPN_SHIFT_LEFT_WORDS(&tmp, &b,
+                                     j);         /* tmp = (MP_BASE ** j) * b */
                 MPN_MUL_UINT1(&tmp2, &tmp, q_j); /* tmp2 = q_j * tmp */
                 while (mpn_cmp(r, &tmp2) < 0) {
                         q_j--;
