@@ -452,7 +452,6 @@ mul1(struct mpn *c, const struct mpn *a, coeff_t n)
 int
 mpm_shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
 {
-        assert(d != s);
         assert(mpn_is_normal(s));
         if (s->n == 0) {
                 d->n = 0;
@@ -463,13 +462,8 @@ mpm_shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n)
                 return EOVERFLOW;
         }
         MPN_ALLOC(d, s->n + n);
-        mp_size_t i;
-        for (i = 0; i < n; i++) {
-                d->d[i] = 0;
-        }
-        for (; i < s->n + n; i++) {
-                d->d[i] = s->d[i - n];
-        }
+        memmove(&d->d[n], &s->d[0], s->n * sizeof(d->d[0]));
+        memset(&d->d[0], 0, n * sizeof(d->d[0]));
         d->n = s->n + n;
         assert(mpn_is_normal(d));
         return 0;

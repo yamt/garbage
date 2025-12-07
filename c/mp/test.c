@@ -1315,6 +1315,20 @@ main(void)
         assert(mpn_cmp(&q, &g_one) == 0);
         assert(mpn_cmp(&r, &g_zero) == 0);
 
+        /* shift words */
+        {
+                struct mpn a0 = MPN_INITIALIZER(3, 1, 2, 3);
+                struct mpn b0 = MPN_INITIALIZER(5, 0, 0, 1, 2, 3);
+                MPN_SET(&a, &a0);
+                MPN_SHIFT_LEFT_WORDS(&a, &a, 2);
+                assert(mpn_cmp(&a, &b0) == 0);
+                MPN_SET(&a, &a0);
+                MPN_SHIFT_LEFT_WORDS(&b, &a, 2);
+                assert(mpn_cmp(&b, &b0) == 0);
+        fail:
+                assert(ret == 0);
+        }
+
         gcd_test();
         mpz_test();
         mpq_test();
