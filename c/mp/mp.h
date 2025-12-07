@@ -123,6 +123,7 @@ int mpn_divrem(struct mpn *q, struct mpn *r, const struct mpn *a,
 int mpn_rootint(struct mpn *s, const struct mpn *m, unsigned int k);
 int mpn_powint(struct mpn *s, const struct mpn *m, unsigned int k);
 int mpm_shift_left_words(struct mpn *d, const struct mpn *s, mp_size_t n);
+int mpm_shift_right_words(struct mpn *d, const struct mpn *s, mp_size_t n);
 
 /*
  * copy
@@ -245,6 +246,8 @@ void print_mpn(const char *heading, const struct mpn *a);
 #define MPN_POWINT(a, b, c) MP_HANDLE_ERROR(mpn_powint(a, b, c))
 #define MPN_SHIFT_LEFT_WORDS(a, b, c)                                         \
         MP_HANDLE_ERROR(mpm_shift_left_words(a, b, c))
+#define MPN_SHIFT_RIGHT_WORDS(a, b, c)                                        \
+        MP_HANDLE_ERROR(mpm_shift_right_words(a, b, c))
 #define MPN_GCD(a, b, c) MP_HANDLE_ERROR(mpn_gcd(a, b, c))
 
 #endif /* !defined(_MP_H_) */

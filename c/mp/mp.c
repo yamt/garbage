@@ -472,6 +472,24 @@ fail:
 }
 
 int
+mpm_shift_right_words(struct mpn *d, const struct mpn *s, mp_size_t n)
+{
+        assert(mpn_is_normal(s));
+        if (s->n <= n) {
+                d->n = 0;
+                return 0;
+        }
+        int ret;
+        d->n = s->n - n;
+        MPN_ALLOC(d, d->n);
+        memmove(&d->d[0], &s->d[n], d->n * sizeof(d->d[0]));
+        assert(mpn_is_normal(d));
+        return 0;
+fail:
+        return ret;
+}
+
+int
 mpn_mul_basecase(struct mpn *c, const struct mpn *a, const struct mpn *b)
 {
         assert(mpn_is_normal(a));

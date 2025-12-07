@@ -1319,6 +1319,15 @@ main(void)
         {
                 struct mpn a0 = MPN_INITIALIZER(3, 1, 2, 3);
                 struct mpn b0 = MPN_INITIALIZER(5, 0, 0, 1, 2, 3);
+                struct mpn c0 = MPN_INITIALIZER(2, 2, 3);
+                /* right */
+                MPN_SET(&a, &a0);
+                MPN_SHIFT_RIGHT_WORDS(&a, &a, 1);
+                assert(mpn_cmp(&a, &c0) == 0);
+                MPN_SET(&a, &a0);
+                MPN_SHIFT_RIGHT_WORDS(&b, &a, 1);
+                assert(mpn_cmp(&b, &c0) == 0);
+                /* left */
                 MPN_SET(&a, &a0);
                 MPN_SHIFT_LEFT_WORDS(&a, &a, 2);
                 assert(mpn_cmp(&a, &b0) == 0);
