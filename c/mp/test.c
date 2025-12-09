@@ -130,19 +130,14 @@ sha2table(void)
 
         /*
          * calculate tables for sha-512, using fixed point arithmetic
-         * with S=2^128.
-         * maybe 128 is a bit excessive.
+         * with S=2^64.
          */
         MPN_DEFINE(scale);
-        MPN_DEFINE(scale2);
         MPN_DEFINE(unused);
         MPN_DEFINE(t);
-        MPN_DEFINE(q);
         MPN_DEFINE(r);
         int ret;
-        MPN_FROM_STRZ(&scale,
-                      "340282366920938463463374607431768211456"); /* 2^128 */
-        MPN_FROM_STRZ(&scale2, "18446744073709551616"); /* 2^(128-64) */
+        MPN_FROM_STRZ(&scale, "18446744073709551616"); /* 2^64 */
         unsigned int i;
         for (i = 0; i < 8; i++) {
                 /* sqrt of prime */
@@ -150,11 +145,9 @@ sha2table(void)
                 MPN_MUL(&t, &t, &scale);
                 MPN_MUL(&t, &t, &scale);
                 MPN_ROOTINT(&t, &t, 2);
-                /* take the first 64 bits of the fraction part */
-                /* q = (t % scale) / scale2 */
+                /* "t % scale" yields the 64-bit fraction part */
                 MPN_DIVREM(&unused, &r, &t, &scale);
-                MPN_DIVREM(&q, &unused, &r, &scale2);
-                char *p = mpn_to_hex_strz(&q);
+                char *p = mpn_to_hex_strz(&r);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
@@ -163,7 +156,7 @@ sha2table(void)
                 mpn_str_free(p);
                 /* verify with the pre-computed value */
                 uintmax_t x;
-                MPN_TO_UINT(&q, &x);
+                MPN_TO_UINT(&r, &x);
                 assert(H[i] == x);
         }
         for (i = 0; i < 80; i++) {
@@ -173,10 +166,9 @@ sha2table(void)
                 MPN_MUL(&t, &t, &scale);
                 MPN_MUL(&t, &t, &scale);
                 MPN_ROOTINT(&t, &t, 3);
-                /* take the first 64 bits of the fraction part */
+                /* "t % scale" yields the 64-bit fraction part */
                 MPN_DIVREM(&unused, &r, &t, &scale);
-                MPN_DIVREM(&q, &unused, &r, &scale2);
-                char *p = mpn_to_hex_strz(&q);
+                char *p = mpn_to_hex_strz(&r);
                 if (p == NULL) {
                         ret = ENOMEM;
                         goto fail;
@@ -185,15 +177,13 @@ sha2table(void)
                 /* verify with the pre-computed value */
                 mpn_str_free(p);
                 uintmax_t x;
-                MPN_TO_UINT(&q, &x);
+                MPN_TO_UINT(&r, &x);
                 assert(K[i] == x);
         }
 fail:
         mpn_clear(&scale);
-        mpn_clear(&scale2);
         mpn_clear(&unused);
         mpn_clear(&t);
-        mpn_clear(&q);
         mpn_clear(&r);
         return ret;
 }
