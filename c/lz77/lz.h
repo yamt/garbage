@@ -4,6 +4,18 @@ typedef unsigned int woff_t;
 typedef void (*output_literal_t)(void *ctx, uint8_t ch);
 typedef void (*output_match_t)(void *ctx, woff_t dist, woff_t len);
 
+#define MATCH_LEN_BITS 2
+#define MATCH_DISTANCE_BITS 6
+
+#define MATCH_LEN_MIN 3
+#define MATCH_LEN_MAX (MATCH_LEN_MIN + (1 << MATCH_LEN_BITS) - 1)
+#define MATCH_DISTANCE_MIN 1
+#define MATCH_DISTANCE_MAX                                                    \
+        (MATCH_DISTANCE_MIN + (1 << MATCH_DISTANCE_BITS) - 1)
+#define WINDOW_SIZE_MAX MATCH_DISTANCE_MAX
+#define LOOKAHEAD_SIZE_MAX MATCH_LEN_MAX
+#define BUFSIZE (2 * (WINDOW_SIZE_MAX + LOOKAHEAD_SIZE_MAX))
+
 struct lz_encode_state {
         woff_t bufstart;
         woff_t curoff;     /* relative to bufstart */
@@ -12,6 +24,8 @@ struct lz_encode_state {
         output_literal_t out_literal;
         output_match_t out_match;
         void *out_ctx;
+
+        uint8_t buf[BUFSIZE];
 };
 
 void lz_encode(struct lz_encode_state *state, const void *p, size_t len);
