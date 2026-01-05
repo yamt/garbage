@@ -50,7 +50,7 @@ main(void)
 {
         struct lz_encode_state s0;
         struct lz_encode_state *s = &s0;
-        memset(s, 0, sizeof(*s));
+        lz_encode_init(s);
 
         s->out_literal = out_literal;
         s->out_match = out_match;

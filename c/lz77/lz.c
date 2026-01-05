@@ -147,6 +147,12 @@ lz_encode_impl(struct lz_encode_state *s, const void *p, size_t len,
 }
 
 void
+lz_encode_init(struct lz_encode_state *s)
+{
+        memset(s, 0, sizeof(*s));
+}
+
+void
 lz_encode(struct lz_encode_state *s, const void *p, size_t len)
 {
         lz_encode_impl(s, p, len, false);
