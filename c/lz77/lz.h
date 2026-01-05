@@ -14,7 +14,7 @@ typedef void (*output_match_t)(void *ctx, woff_t dist, woff_t len);
         (MATCH_DISTANCE_MIN + (1 << MATCH_DISTANCE_BITS) - 1)
 #define WINDOW_SIZE_MAX MATCH_DISTANCE_MAX
 #define LOOKAHEAD_SIZE_MAX MATCH_LEN_MAX
-#define BUFSIZE (2 * (WINDOW_SIZE_MAX + LOOKAHEAD_SIZE_MAX))
+#define BUFSIZE (WINDOW_SIZE_MAX + LOOKAHEAD_SIZE_MAX)
 
 struct lz_encode_state {
         woff_t bufstart;
