@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -47,8 +48,9 @@ readall(int fd, void *buf, size_t sz)
 typedef unsigned int woff_t;
 
 struct state {
-        woff_t curoff;
-        woff_t valid_size;
+        woff_t bufstart;
+        woff_t curoff;     /* relative to bufstart */
+        woff_t valid_size; /* relative to bufstart */
 };
 
 woff_t
@@ -64,6 +66,11 @@ win_start(const struct state *s)
 woff_t
 lookahead_size(const struct state *s)
 {
+#if 0
+        printf("lookahead_size curoff %u valid_size %u\n", s->curoff,
+               s->valid_size);
+#endif
+        assert(s->valid_size >= s->curoff);
         woff_t sz = s->valid_size - s->curoff;
         if (sz > LOOKAHEAD_SIZE_MAX) {
                 return LOOKAHEAD_SIZE_MAX;
@@ -71,10 +78,16 @@ lookahead_size(const struct state *s)
         return sz;
 }
 
-uint8_t
-data_at(struct state *s, woff_t off)
+woff_t
+bufidx(const struct state *s, woff_t off)
 {
-        return buf[off];
+        return (s->bufstart + off) % BUFSIZE;
+}
+
+uint8_t
+data_at(const struct state *s, woff_t off)
+{
+        return buf[bufidx(s, off)];
 }
 
 woff_t
@@ -104,24 +117,46 @@ find_match(struct state *s, woff_t *posp)
         return matchlen;
 }
 
+static bool
+fill_part(struct state *s, woff_t off, woff_t len)
+{
+        int fd = STDIN_FILENO;
+        ssize_t rsz = readall(fd, &buf[off], BUFSIZE - off);
+        if (rsz == -1) {
+                fprintf(stderr, "read error: %s\n", strerror(errno));
+                exit(1);
+        }
+#if 0
+        printf("filled %zu bytes (%u -> %zu) (first half)\n", rsz,
+               s->valid_size, s->valid_size + rsz);
+#endif
+        s->valid_size += rsz;
+        return rsz != 0;
+}
+
 void
 fill_buffer(struct state *s)
 {
         /* forget the out of window data */
         woff_t off = win_start(s);
         if (off > 0) {
-                memmove(buf, &buf[off], s->valid_size - off);
+                s->bufstart = bufidx(s, off);
                 s->valid_size -= off;
                 s->curoff -= off;
+                // printf("forgot %u bytes\n", off);
         }
 
-        int fd = STDIN_FILENO;
-        ssize_t rsz =
-                readall(fd, &buf[s->valid_size], BUFSIZE - s->valid_size);
-        if (rsz == -1) {
-                exit(1);
+        assert(s->valid_size < BUFSIZE);
+
+        /* read as much as possible */
+        off = bufidx(s, s->valid_size);
+        if (s->bufstart <= off) {
+                if (fill_part(s, off, BUFSIZE - off)) {
+                        fill_part(s, 0, s->bufstart);
+                }
+        } else {
+                fill_part(s, off, s->bufstart - off);
         }
-        s->valid_size += rsz;
 }
 
 int
@@ -139,9 +174,8 @@ main(void)
                                (char)data_at(s, s->curoff));
                         s->curoff++;
                 } else {
-                        printf("match dist %u, len %u: \"%.*s\"\n",
-                               (int)s->curoff - mpos, (int)mlen, (int)mlen,
-                               (const char *)&buf[s->curoff]);
+                        printf("match dist %u, len %u\n",
+                               (int)s->curoff - mpos, (int)mlen);
                         s->curoff += mlen;
                 }
                 if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
