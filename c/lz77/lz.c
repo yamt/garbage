@@ -6,7 +6,7 @@
 
 #include "lz.h"
 
-woff_t
+static woff_t
 win_start(const struct lz_encode_state *s)
 {
         if (s->curoff > WINDOW_SIZE_MAX) {
@@ -16,7 +16,7 @@ win_start(const struct lz_encode_state *s)
 }
 
 /* include the curoff */
-woff_t
+static woff_t
 lookahead_size(const struct lz_encode_state *s)
 {
 #if 0
@@ -31,19 +31,19 @@ lookahead_size(const struct lz_encode_state *s)
         return sz;
 }
 
-woff_t
+static woff_t
 bufidx(const struct lz_encode_state *s, woff_t off)
 {
         return (s->bufstart + off) % BUFSIZE;
 }
 
-uint8_t
+static uint8_t
 data_at(const struct lz_encode_state *s, woff_t off)
 {
         return s->buf[bufidx(s, off)];
 }
 
-woff_t
+static woff_t
 find_match(struct lz_encode_state *s, woff_t *posp)
 {
 #if 0
