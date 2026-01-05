@@ -1,11 +1,10 @@
 #include <assert.h>
-#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#include "lz.h"
 
 #define MATCH_LEN_BITS 2
 #define MATCH_DISTANCE_BITS 6
@@ -21,40 +20,8 @@
 
 uint8_t buf[BUFSIZE];
 
-ssize_t
-readall(int fd, void *buf, size_t sz)
-{
-        ssize_t rsz;
-        size_t offset = 0;
-        while (offset < sz) {
-                rsz = read(fd, (uint8_t *)buf + offset, sz - offset);
-                if (rsz == -1) {
-                        if (errno == EINTR) {
-                                continue;
-                        }
-                        break;
-                }
-                if (rsz == 0) {
-                        break;
-                }
-                offset += rsz;
-        }
-        if (offset > 0) {
-                return offset;
-        }
-        return rsz;
-}
-
-typedef unsigned int woff_t;
-
-struct state {
-        woff_t bufstart;
-        woff_t curoff;     /* relative to bufstart */
-        woff_t valid_size; /* relative to bufstart */
-};
-
 woff_t
-win_start(const struct state *s)
+win_start(const struct lz_encode_state *s)
 {
         if (s->curoff > WINDOW_SIZE_MAX) {
                 return s->curoff - WINDOW_SIZE_MAX;
@@ -64,7 +31,7 @@ win_start(const struct state *s)
 
 /* include the curoff */
 woff_t
-lookahead_size(const struct state *s)
+lookahead_size(const struct lz_encode_state *s)
 {
 #if 0
         printf("lookahead_size curoff %u valid_size %u\n", s->curoff,
@@ -79,19 +46,19 @@ lookahead_size(const struct state *s)
 }
 
 woff_t
-bufidx(const struct state *s, woff_t off)
+bufidx(const struct lz_encode_state *s, woff_t off)
 {
         return (s->bufstart + off) % BUFSIZE;
 }
 
 uint8_t
-data_at(const struct state *s, woff_t off)
+data_at(const struct lz_encode_state *s, woff_t off)
 {
         return buf[bufidx(s, off)];
 }
 
 woff_t
-find_match(struct state *s, woff_t *posp)
+find_match(struct lz_encode_state *s, woff_t *posp)
 {
 #if 0
         printf("find_match curoff %u win_start %u lookahead_size %u\n", s->curoff,
@@ -118,24 +85,26 @@ find_match(struct state *s, woff_t *posp)
 }
 
 static bool
-fill_part(struct state *s, woff_t off, woff_t len)
+fill_part(struct lz_encode_state *s, woff_t off, woff_t len, const void **pp,
+          size_t *lenp)
 {
-        int fd = STDIN_FILENO;
-        ssize_t rsz = readall(fd, &buf[off], BUFSIZE - off);
-        if (rsz == -1) {
-                fprintf(stderr, "read error: %s\n", strerror(errno));
-                exit(1);
+        size_t sz = len;
+        if (sz > *lenp) {
+                sz = *lenp;
         }
+        memcpy(&buf[off], *pp, sz);
 #if 0
         printf("filled %zu bytes (%u -> %zu) (first half)\n", rsz,
                s->valid_size, s->valid_size + rsz);
 #endif
-        s->valid_size += rsz;
-        return rsz != 0;
+        *pp = (const uint8_t *)*pp + sz;
+        *lenp -= sz;
+        s->valid_size += sz;
+        return sz != 0;
 }
 
-void
-fill_buffer(struct state *s)
+static void
+fill_buffer(struct lz_encode_state *s, const void **pp, size_t *lenp)
 {
         /* forget the out of window data */
         woff_t off = win_start(s);
@@ -146,40 +115,59 @@ fill_buffer(struct state *s)
                 // printf("forgot %u bytes\n", off);
         }
 
-        assert(s->valid_size < BUFSIZE);
+        if (s->valid_size == BUFSIZE) {
+                return;
+        }
 
         /* read as much as possible */
         off = bufidx(s, s->valid_size);
         if (s->bufstart <= off) {
-                if (fill_part(s, off, BUFSIZE - off)) {
-                        fill_part(s, 0, s->bufstart);
+                if (fill_part(s, off, BUFSIZE - off, pp, lenp)) {
+                        fill_part(s, 0, s->bufstart, pp, lenp);
                 }
         } else {
-                fill_part(s, off, s->bufstart - off);
+                fill_part(s, off, s->bufstart - off, pp, lenp);
         }
 }
 
-int
-main(void)
+static void
+lz_encode_impl(struct lz_encode_state *s, const void *p, size_t len,
+               bool flushing)
 {
-        struct state s0;
-        struct state *s = &s0;
-        memset(s, 0, sizeof(*s));
-        fill_buffer(s);
-        while (lookahead_size(s)) {
+        while (true) {
+                if (flushing) {
+                        if (lookahead_size(s) == 0) {
+                                break;
+                        }
+                } else {
+                        if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
+                                fill_buffer(s, &p, &len);
+                        }
+                        if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
+                                break;
+                        }
+                }
                 woff_t mpos;
                 woff_t mlen = find_match(s, &mpos);
                 if (mlen == 0) {
-                        printf("literal \"%c\"\n",
-                               (char)data_at(s, s->curoff));
+                        s->out_literal(s->out_ctx, data_at(s, s->curoff));
                         s->curoff++;
                 } else {
-                        printf("match dist %u, len %u\n",
-                               (int)s->curoff - mpos, (int)mlen);
+                        s->out_match(s->out_ctx, s->curoff - mpos, mlen);
                         s->curoff += mlen;
                 }
-                if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
-                        fill_buffer(s);
-                }
         }
+        assert(len == 0);
+}
+
+void
+lz_encode(struct lz_encode_state *s, const void *p, size_t len)
+{
+        lz_encode_impl(s, p, len, false);
+}
+
+void
+lz_encode_flush(struct lz_encode_state *s)
+{
+        lz_encode_impl(s, NULL, 0, true);
 }
