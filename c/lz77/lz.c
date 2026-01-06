@@ -19,10 +19,6 @@ win_start(const struct lz_encode_state *s)
 static woff_t
 lookahead_size(const struct lz_encode_state *s)
 {
-#if 0
-        printf("lookahead_size curoff %u valid_size %u\n", s->curoff,
-               s->valid_size);
-#endif
         assert(s->valid_size >= s->curoff);
         woff_t sz = s->valid_size - s->curoff;
         if (sz > MATCH_LEN_MAX) {
@@ -46,10 +42,6 @@ data_at(const struct lz_encode_state *s, woff_t off)
 static woff_t
 find_match(struct lz_encode_state *s, woff_t *posp)
 {
-#if 0
-        printf("find_match curoff %u win_start %u lookahead_size %u\n", s->curoff,
-               win_start(s), lookahead_size(s));
-#endif
         woff_t matchlen = 0;
         woff_t matchpos = 0;
         woff_t i;
@@ -60,7 +52,6 @@ find_match(struct lz_encode_state *s, woff_t *posp)
                        data_at(s, s->curoff + mlen) == data_at(s, i + mlen)) {
                         mlen++;
                 }
-                // printf("mlen %u pos %u\n", mlen, i);
                 if (mlen >= MATCH_LEN_MIN && mlen > matchlen) {
                         matchlen = mlen;
                         matchpos = i;
@@ -79,10 +70,6 @@ fill_part(struct lz_encode_state *s, woff_t off, woff_t len, const void **pp,
                 sz = *lenp;
         }
         memcpy(&s->buf[off], *pp, sz);
-#if 0
-        printf("filled %zu bytes (%u -> %zu) (first half)\n", rsz,
-               s->valid_size, s->valid_size + rsz);
-#endif
         *pp = (const uint8_t *)*pp + sz;
         *lenp -= sz;
         s->valid_size += sz;
@@ -98,7 +85,6 @@ fill_buffer(struct lz_encode_state *s, const void **pp, size_t *lenp)
                 s->bufstart = bufidx(s, off);
                 s->valid_size -= off;
                 s->curoff -= off;
-                // printf("forgot %u bytes\n", off);
         }
 
         if (s->valid_size == LZ_ENCODE_BUF_SIZE) {
