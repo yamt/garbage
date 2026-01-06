@@ -8,7 +8,7 @@ typedef void (*output_match_t)(void *ctx, woff_t dist, woff_t len);
 #define MATCH_LEN_MAX 6
 #define MATCH_DISTANCE_MIN 1
 #define MATCH_DISTANCE_MAX 64
-#define BUFSIZE (MATCH_DISTANCE_MAX + MATCH_LEN_MAX)
+#define LZ_ENCODE_BUF_SIZE (MATCH_DISTANCE_MAX + MATCH_LEN_MAX)
 
 struct lz_encode_state {
         /* output callbacks */
@@ -20,7 +20,7 @@ struct lz_encode_state {
         woff_t bufstart;
         woff_t curoff;     /* relative to bufstart */
         woff_t valid_size; /* relative to bufstart */
-        uint8_t buf[BUFSIZE];
+        uint8_t buf[LZ_ENCODE_BUF_SIZE];
 };
 
 void lz_encode_init(struct lz_encode_state *state);

@@ -34,7 +34,7 @@ lookahead_size(const struct lz_encode_state *s)
 static woff_t
 bufidx(const struct lz_encode_state *s, woff_t off)
 {
-        return (s->bufstart + off) % BUFSIZE;
+        return (s->bufstart + off) % LZ_ENCODE_BUF_SIZE;
 }
 
 static uint8_t
@@ -101,14 +101,14 @@ fill_buffer(struct lz_encode_state *s, const void **pp, size_t *lenp)
                 // printf("forgot %u bytes\n", off);
         }
 
-        if (s->valid_size == BUFSIZE) {
+        if (s->valid_size == LZ_ENCODE_BUF_SIZE) {
                 return;
         }
 
         /* read as much as possible */
         off = bufidx(s, s->valid_size);
         if (s->bufstart <= off) {
-                if (fill_part(s, off, BUFSIZE - off, pp, lenp)) {
+                if (fill_part(s, off, LZ_ENCODE_BUF_SIZE - off, pp, lenp)) {
                         fill_part(s, 0, s->bufstart, pp, lenp);
                 }
         } else {
