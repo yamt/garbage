@@ -8,9 +8,7 @@ typedef void (*output_match_t)(void *ctx, woff_t dist, woff_t len);
 #define MATCH_LEN_MAX 6
 #define MATCH_DISTANCE_MIN 1
 #define MATCH_DISTANCE_MAX 64
-#define WINDOW_SIZE_MAX MATCH_DISTANCE_MAX
-#define LOOKAHEAD_SIZE_MAX MATCH_LEN_MAX
-#define BUFSIZE (WINDOW_SIZE_MAX + LOOKAHEAD_SIZE_MAX)
+#define BUFSIZE (MATCH_DISTANCE_MAX + MATCH_LEN_MAX)
 
 struct lz_encode_state {
         /* output callbacks */

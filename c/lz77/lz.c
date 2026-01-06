@@ -9,8 +9,8 @@
 static woff_t
 win_start(const struct lz_encode_state *s)
 {
-        if (s->curoff > WINDOW_SIZE_MAX) {
-                return s->curoff - WINDOW_SIZE_MAX;
+        if (s->curoff > MATCH_DISTANCE_MAX) {
+                return s->curoff - MATCH_DISTANCE_MAX;
         }
         return 0;
 }
@@ -25,8 +25,8 @@ lookahead_size(const struct lz_encode_state *s)
 #endif
         assert(s->valid_size >= s->curoff);
         woff_t sz = s->valid_size - s->curoff;
-        if (sz > LOOKAHEAD_SIZE_MAX) {
-                return LOOKAHEAD_SIZE_MAX;
+        if (sz > MATCH_LEN_MAX) {
+                return MATCH_LEN_MAX;
         }
         return sz;
 }
@@ -126,10 +126,10 @@ lz_encode_impl(struct lz_encode_state *s, const void *p, size_t len,
                                 break;
                         }
                 } else {
-                        if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
+                        if (lookahead_size(s) < MATCH_LEN_MAX) {
                                 fill_buffer(s, &p, &len);
                         }
-                        if (lookahead_size(s) < LOOKAHEAD_SIZE_MAX) {
+                        if (lookahead_size(s) < MATCH_LEN_MAX) {
                                 break;
                         }
                 }
