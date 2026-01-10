@@ -33,7 +33,7 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
         while (1) {
                 i--;
                 uint8_t sym = ((const uint8_t *)input)[i];
-                prob_t c_sym = rans_probs_c(ps, sym);
+                prob_t c_sym = rans_probs_c(ps->ps, sym);
                 rans_encode_sym(st, sym, c_sym, ps->ps[sym], bo);
                 if (i == 0) {
                         break;
@@ -50,14 +50,14 @@ test_decode(I x, const void *input, size_t inputsize,
         struct rans_decode_state st0;
         struct rans_decode_state *st = &st0;
 
-        struct bytein bi;
-        bytein_init(&bi, input, inputsize);
+        const uint8_t *cp = input;
+        const uint8_t *ep = cp + inputsize;
 
         rans_decode_init(st, x);
         while (1) {
-                sym_t sym = rans_decode_sym(st, ps, &bi);
+                sym_t sym = rans_decode_sym(st, ps->ps, &cp);
                 byteout_write(bo, sym);
-                if (rans_decode_needs_more(st) && bi.size == 0) {
+                if (rans_decode_needs_more(st) && cp == ep) {
                         break;
                 }
         }

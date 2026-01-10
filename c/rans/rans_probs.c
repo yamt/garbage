@@ -4,12 +4,12 @@
 #include "rans_probs.h"
 
 prob_t
-rans_probs_c(const struct rans_probs *ps, sym_t sym)
+rans_probs_c(const prob_t ps[NSYMS], sym_t sym)
 {
         prob_t c_sym = 0;
         sym_t i;
         for (i = 0; i < sym; i++) {
-                c_sym += ps->ps[i];
+                c_sym += ps[i];
         }
         return c_sym;
 }
@@ -55,7 +55,7 @@ rans_probs_init(struct rans_probs *ps, size_t ops[NSYMS])
                 if (p == 0) {
                         continue;
                 }
-                prob_t c = rans_probs_c(ps, i);
+                prob_t c = rans_probs_c(ps->ps, i);
 #if defined(RANS_DEBUG)
                 printf("[%02x] p=%u, %u-%u Is={%08x-%08x}\n", i, p, c,
                        c + p - 1, (I)L / M * p, (I)B * L / M * p - 1);
