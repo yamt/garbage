@@ -151,8 +151,10 @@ rans_probs_init(struct rans_probs *ps, size_t ops[NSYMS])
                         continue;
                 }
                 prob_t c = calc_c(ps, i);
+#if defined(RANS_DEBUG)
                 printf("[%02x] p=%u, %u-%u Is={%08x-%08x}\n", i, p, c,
                        c + p - 1, (I)L / M * p, (I)B * L / M * p - 1);
+#endif
         }
 }
 
@@ -177,8 +179,10 @@ encode_normalize(struct rans_encode_state *st, sym_t sym, prob_t p_sym,
                 uint8_t out = (uint8_t)(st->x % B);
                 rev_byteout_write(bo, out);
                 I newx = st->x / B;
+#if defined(RANS_DEBUG)
                 printf("enc normalize %08x -> %08x, out: %02x\n", st->x, newx,
                        out);
+#endif
                 st->x = newx;
         }
 }
@@ -191,8 +195,10 @@ rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
         I q = st->x / p_sym;
         I r = st->x - q * p_sym;
         I newx = q * M + c_sym + r;
+#if defined(RANS_DEBUG)
         printf("enc (%08x, %02x) -> %08x (c=%u, p=%u, q=%u, r=%u)\n", st->x,
                sym, newx, c_sym, p_sym, q, r);
+#endif
         st->x = newx;
 }
 
@@ -237,8 +243,10 @@ decode_normalize(struct rans_decode_state *st, struct bytein *bi)
         while (st->x < L) {
                 uint8_t in = bytein_read(bi);
                 I newx = st->x * B + in;
+#if defined(RANS_DEBUG)
                 printf("dec normalize in=%02x, %08x -> %08x\n", in, st->x,
                        newx);
+#endif
                 st->x = newx;
         }
 }
@@ -253,8 +261,10 @@ rans_decode_sym(struct rans_decode_state *st, const struct rans_probs *ps,
         prob_t c_sym = calc_c(ps, sym);
         prob_t p_sym = ps->ps[sym];
         I newx = p_sym * q_x_m + mod_x_m - c_sym;
+#if defined(RANS_DEBUG)
         printf("dec %08x -> (%08x, %02x) (c=%u, p=%u, x/m=%u, mod(x,m)=%u)\n",
                st->x, newx, sym, c_sym, p_sym, q_x_m, mod_x_m);
+#endif
         st->x = newx;
         decode_normalize(st, bi);
         return sym;
