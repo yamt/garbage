@@ -1,7 +1,7 @@
 #include <assert.h>
 
+#include "rans_common.h"
 #include "rans_decode.h"
-#include "rans_probs.h"
 
 void
 rans_decode_init(struct rans_decode_state *st, I x)

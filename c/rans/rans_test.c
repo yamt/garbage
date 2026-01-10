@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "rans_common.h"
 #include "rans_decode.h"
 #include "rans_encode.h"
 #include "rans_probs.h"
