@@ -71,11 +71,7 @@ test(const char *p)
 
         size_t counts[NSYMS];
         memset(counts, 0, sizeof(counts));
-        size_t i;
-        for (i = 0; i < inputsize; i++) {
-                sym_t sym = input[i];
-                counts[sym]++;
-        }
+        count_syms(counts, input, inputsize);
 
         struct rans_probs ps;
         rans_probs_init(&ps, counts);

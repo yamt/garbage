@@ -62,3 +62,14 @@ rans_probs_init(struct rans_probs *ps, size_t ops[NSYMS])
 #endif
         }
 }
+
+void
+count_syms(size_t counts[NSYMS], const void *input, size_t inputsize)
+{
+        const uint8_t *cp = input;
+        size_t i;
+        for (i = 0; i < inputsize; i++) {
+                sym_t sym = cp[i];
+                counts[sym]++;
+        }
+}
