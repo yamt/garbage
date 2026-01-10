@@ -10,6 +10,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "rans_common.h"
 #include "rans_decode.h"
@@ -18,6 +19,8 @@
 
 #include "bytein.h"
 #include "byteout.h"
+
+#include "test_util.h"
 
 /* --- test */
 
@@ -44,8 +47,8 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
 }
 
 static void
-test_decode(I x, const void *input, size_t inputsize,
-            const struct rans_probs *ps, struct byteout *bo)
+test_decode(I x, const void *input, size_t inputsize, const prob_t *ps,
+            struct byteout *bo)
 {
         printf("decoding...\n");
         struct rans_decode_state st0;
@@ -56,7 +59,7 @@ test_decode(I x, const void *input, size_t inputsize,
 
         rans_decode_init(st, x);
         while (1) {
-                sym_t sym = rans_decode_sym(st, ps->ps, &cp);
+                sym_t sym = rans_decode_sym(st, ps, &cp);
                 byteout_write(bo, sym);
                 if (rans_decode_needs_more(st) && cp == ep) {
                         break;
@@ -65,10 +68,10 @@ test_decode(I x, const void *input, size_t inputsize,
 }
 
 void
-test(const char *p)
+test(void)
 {
-        const uint8_t *input = (const void *)p;
-        size_t inputsize = strlen(p);
+        size_t inputsize;
+        const uint8_t *input = read_fd(STDIN_FILENO, &inputsize);
 
         size_t counts[NSYMS];
         memset(counts, 0, sizeof(counts));
@@ -82,19 +85,24 @@ test(const char *p)
         byteout_init(&bo, encoded, sizeof(encoded));
         I x = test_encode(input, inputsize, &ps, &bo);
 
+        prob_t table[RANS_TABLE_MAX_NELEMS];
+        size_t tablesize;
+        rans_probs_table(&ps, table, &tablesize);
+
         uint8_t decoded[100];
         struct byteout bo_dec;
         byteout_init(&bo_dec, decoded, sizeof(decoded));
-        test_decode(x, rev_byteout_ptr(&bo), bo.actual, &ps, &bo_dec);
+        test_decode(x, rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
 
         printf("decoded correctly\n");
-        printf("compression %zu -> %zu\n", inputsize, bo.actual);
+        printf("compression %zu -> %zu + %zu + %zu\n", inputsize, bo.actual,
+               sizeof(I), tablesize * sizeof(prob_t));
 }
 
 int
 main(void)
 {
-        test("this is a pen. i am a pen. you your yours.");
+        test();
 }

@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <stdbool.h>
 #include <stddef.h>
 
 #include "rans_common.h"
@@ -62,4 +63,25 @@ count_syms(size_t counts[NSYMS], const void *input, size_t inputsize)
                 sym_t sym = cp[i];
                 counts[sym]++;
         }
+}
+
+void
+rans_probs_table(const struct rans_probs *ps, prob_t *out, size_t *nelemp)
+{
+        unsigned int n = NSYMS;
+        while (true) {
+                n--;
+                if (ps->ps[n] > 0) {
+                        n++;
+                        break;
+                }
+                if (n == 0) {
+                        break;
+                }
+        }
+        unsigned int i;
+        for (i = 0; i < n; i++) {
+                out[i] = ps->ps[i];
+        }
+        *nelemp = n;
 }
