@@ -1,6 +1,9 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#if defined(RANS_DEBUG)
+#include <stdio.h>
+#endif
 
 #include "rans_common.h"
 #include "rans_probs.h"

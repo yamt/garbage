@@ -1,4 +1,7 @@
 #include <assert.h>
+#if defined(RANS_DEBUG)
+#include <stdio.h>
+#endif
 
 #include "rans_common.h"
 #include "rans_decode.h"

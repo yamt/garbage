@@ -1,5 +1,9 @@
-#include "rans_encode.h"
+#if defined(RANS_DEBUG)
+#include <stdio.h>
+#endif
+
 #include "byteout.h"
+#include "rans_encode.h"
 
 void
 rans_encode_init(struct rans_encode_state *st)
