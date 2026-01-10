@@ -11,12 +11,12 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "rans_probs.h"
-#include "rans_encode.h"
 #include "rans_decode.h"
+#include "rans_encode.h"
+#include "rans_probs.h"
 
-#include "byteout.h"
 #include "bytein.h"
+#include "byteout.h"
 
 /* --- test */
 

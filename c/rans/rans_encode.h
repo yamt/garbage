@@ -8,4 +8,4 @@ void rans_encode_init(struct rans_encode_state *st);
 
 struct byteout;
 void rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
-                prob_t p_sym, struct byteout *bo);
+                     prob_t p_sym, struct byteout *bo);

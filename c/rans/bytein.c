@@ -16,4 +16,3 @@ bytein_read(struct bytein *bi)
         bi->size--;
         return *bi->p++;
 }
-

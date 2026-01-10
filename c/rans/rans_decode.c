@@ -1,8 +1,8 @@
 #include <assert.h>
 
+#include "bytein.h"
 #include "rans_decode.h"
 #include "rans_probs.h"
-#include "bytein.h"
 
 void
 rans_decode_init(struct rans_decode_state *st, I x)
