@@ -1,6 +1,5 @@
 #include <assert.h>
 
-#include "bytein.h"
 #include "rans_decode.h"
 #include "rans_probs.h"
 
