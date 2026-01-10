@@ -9,6 +9,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -80,21 +81,30 @@ test(void)
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
 
-        uint8_t encoded[100];
+        uint8_t *encoded = malloc(2 * inputsize);
+        if (encoded == NULL) {
+                exit(1);
+        }
         struct byteout bo;
-        byteout_init(&bo, encoded, sizeof(encoded));
+        byteout_init(&bo, encoded, 2 * inputsize);
         I x = test_encode(input, inputsize, &ps, &bo);
 
         prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
         rans_probs_table(&ps, table, &tablesize);
 
-        uint8_t decoded[100];
+        uint8_t *decoded = malloc(inputsize);
+        if (decoded == NULL) {
+                exit(1);
+        }
         struct byteout bo_dec;
-        byteout_init(&bo_dec, decoded, sizeof(decoded));
+        byteout_init(&bo_dec, decoded, inputsize);
         test_decode(x, rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
+
+        free(encoded);
+        free(decoded);
 
         printf("decoded correctly\n");
         printf("compression %zu -> %zu + %zu + %zu\n", inputsize, bo.actual,
