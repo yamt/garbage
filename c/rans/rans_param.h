@@ -4,7 +4,7 @@
 #include <stdint.h>
 
 typedef uint8_t sym_t;
-typedef uint32_t prob_t;
+typedef uint16_t prob_t;
 typedef uint32_t I;
 
 #define B 256       /* b in the paper */
