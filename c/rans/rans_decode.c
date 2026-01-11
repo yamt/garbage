@@ -14,18 +14,20 @@ rans_decode_init(struct rans_decode_state *st, I x)
 
 /* s(x) in the paper */
 static sym_t
-find_sym(const prob_t ps[NSYMS], I r)
+find_sym_and_c(const prob_t ps[NSYMS], I r, prob_t *cp)
 {
         assert(r < M);
+        prob_t c = 0;
         unsigned int i;
         for (i = 0; i < NSYMS - 1; i++) {
                 prob_t p = ps[i];
-                if (r < p) {
+                if (r < (I)c + p) {
                         break;
                 }
-                r -= p;
+                c += p;
         }
         assert(i < NSYMS);
+        *cp = c;
         return i;
 }
 
@@ -55,8 +57,9 @@ rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
 {
         I q_x_m = st->x / M;
         I mod_x_m = st->x % M;
-        sym_t sym = find_sym(ps, mod_x_m);
-        prob_t c_sym = rans_probs_c(ps, sym);
+        prob_t c_sym;
+        sym_t sym = find_sym_and_c(ps, mod_x_m, &c_sym);
+        assert(c_sym == rans_probs_c(ps, sym));
         prob_t p_sym = ps[sym];
         I newx = p_sym * q_x_m + mod_x_m - c_sym;
 #if defined(RANS_DEBUG)
