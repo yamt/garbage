@@ -33,17 +33,18 @@ encode_normalize(struct rans_encode_state *st, sym_t sym, prob_t p_sym,
 }
 
 void
-rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
-                prob_t p_sym, struct byteout *bo)
+rans_encode_sym(struct rans_encode_state *st, sym_t s, prob_t b_s, prob_t l_s,
+                struct byteout *bo)
 {
-        assert(p_sym > 0);
-        encode_normalize(st, sym, p_sym, bo);
-        I q = st->x / p_sym;
-        I r = st->x - q * p_sym;
-        I newx = q * M + c_sym + r;
+        assert(l_s > 0);
+        encode_normalize(st, s, l_s, bo);
+        I q = st->x / l_s;
+        I r = st->x - q * l_s;
+        I newx = q * M + b_s + r;
 #if defined(RANS_DEBUG)
-        printf("enc (%08x, %02x) -> %08x (c=%u, p=%u, q=%u, r=%u)\n", st->x,
-               sym, newx, c_sym, p_sym, q, r);
+        printf("C(%02x, %08x) -> %08x (b_s=%u, l_s=%u, x/l_s=%u, "
+               "mod(x,l_s)=%u)\n",
+               s, st->x, newx, b_s, l_s, q, r);
 #endif
         st->x = newx;
         assert(st->x >= I_MIN);
