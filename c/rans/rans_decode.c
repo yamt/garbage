@@ -34,13 +34,13 @@ find_sym_and_c(const prob_t ps[NSYMS], I r, prob_t *cp)
 bool
 rans_decode_needs_more(const struct rans_decode_state *st)
 {
-        return st->x <= L;
+        return st->x <= I_MIN;
 }
 
 static void
 decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
 {
-        while (st->x < L) {
+        while (st->x < I_MIN) {
                 uint8_t in = *(*inpp)++;
                 I newx = st->x * B + in;
 #if defined(RANS_DEBUG)
@@ -49,6 +49,8 @@ decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
 #endif
                 st->x = newx;
         }
+        assert(st->x >= I_MIN);
+        assert(st->x <= I_MAX);
 }
 
 sym_t
