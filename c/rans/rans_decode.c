@@ -56,6 +56,8 @@ rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
                 const uint8_t **inpp)
 {
         decode_normalize(st, inpp);
+        assert(st->x >= I_MIN);
+        assert(st->x <= I_MAX);
         I q_x_m = st->x / M;
         I mod_x_m = st->x % M;
         prob_t c_sym;

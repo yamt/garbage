@@ -9,14 +9,14 @@
 void
 rans_encode_init(struct rans_encode_state *st)
 {
-        st->x = L;
+        st->x = I_MIN;
 }
 
 static void
 encode_normalize(struct rans_encode_state *st, sym_t sym, prob_t p_sym,
                  struct byteout *bo)
 {
-        I i_sym_max = (I)B * L / M * p_sym - 1;
+        I i_sym_max = I_SYM_MAX(p_sym);
         while (st->x > i_sym_max) {
                 uint8_t out = (uint8_t)(st->x % B);
                 rev_byteout_write(bo, out);
@@ -34,7 +34,10 @@ rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
                 prob_t p_sym, struct byteout *bo)
 {
         assert(p_sym > 0);
+        assert(st->x >= I_SYM_MIN(p_sym));
         encode_normalize(st, sym, p_sym, bo);
+        assert(st->x >= I_SYM_MIN(p_sym));
+        assert(st->x <= I_SYM_MAX(p_sym));
         I q = st->x / p_sym;
         I r = st->x - q * p_sym;
         I newx = q * M + c_sym + r;
@@ -43,6 +46,8 @@ rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
                sym, newx, c_sym, p_sym, q, r);
 #endif
         st->x = newx;
+        assert(st->x >= I_MIN);
+        assert(st->x <= I_MAX);
 }
 
 void
