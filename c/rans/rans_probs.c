@@ -35,14 +35,25 @@ rans_probs_init(struct rans_probs *ps, size_t ops[NSYMS])
         size_t psum = calc_psum(ops);
         assert(psum > 0);
         for (i = 0; i < NSYMS; i++) {
-                ops[i] = ops[i] * M / psum;
+                size_t n = ops[i] * M / psum;
+                assert((ops[i] > 0) == (n > 0));
+                ops[i] = n;
         }
         psum = calc_psum(ops);
         assert(psum > 0);
         assert(M >= psum);
         ops[pmax_sym] += M - psum;
+        if (ops[pmax_sym] == M) { /* avoid prob_t overflow */
+                if (pmax_sym == 0) {
+                        ops[0]++;
+                } else {
+                        ops[1]++;
+                }
+                ops[pmax_sym]--;
+        }
         assert(calc_psum(ops) == M);
         for (i = 0; i < NSYMS; i++) {
+                assert(ops[i] < M);
                 ps->ps[i] = ops[i];
         }
 
