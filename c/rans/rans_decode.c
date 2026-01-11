@@ -31,12 +31,6 @@ find_sym_and_c(const prob_t ps[NSYMS], I r, prob_t *cp)
         return i;
 }
 
-bool
-rans_decode_needs_more(const struct rans_decode_state *st)
-{
-        return st->x <= I_MIN;
-}
-
 static void
 decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
 {

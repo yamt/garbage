@@ -48,8 +48,8 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
 }
 
 static void
-test_decode(const void *input, size_t inputsize, const prob_t *ps,
-            struct byteout *bo)
+test_decode(const void *input, size_t inputsize, size_t origsize,
+            const prob_t *ps, struct byteout *bo)
 {
         printf("decoding...\n");
         struct rans_decode_state st0;
@@ -59,12 +59,9 @@ test_decode(const void *input, size_t inputsize, const prob_t *ps,
         const uint8_t *ep = cp + inputsize;
 
         rans_decode_init(st);
-        while (1) {
+        while (bo->actual < origsize) {
                 sym_t sym = rans_decode_sym(st, ps, &cp);
                 byteout_write(bo, sym);
-                if (rans_decode_needs_more(st) && cp == ep) {
-                        break;
-                }
         }
 }
 
@@ -96,7 +93,8 @@ test(void)
 
         struct byteout bo_dec;
         byteout_init(&bo_dec);
-        test_decode(rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
+        test_decode(rev_byteout_ptr(&bo), bo.actual, inputsize, table,
+                    &bo_dec);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
 
