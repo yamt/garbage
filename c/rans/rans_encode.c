@@ -42,3 +42,18 @@ rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
 #endif
         st->x = newx;
 }
+
+void
+rans_encode_flush(struct rans_encode_state *st, struct byteout *bo)
+{
+        while (st->x > 0) {
+                uint8_t out = (uint8_t)(st->x % B);
+                rev_byteout_write(bo, out);
+                I newx = st->x / B;
+#if defined(RANS_DEBUG)
+                printf("enc flush %08x -> %08x, out: %02x\n", st->x, newx,
+                       out);
+#endif
+                st->x = newx;
+        }
+}

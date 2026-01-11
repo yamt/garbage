@@ -7,9 +7,9 @@
 #include "rans_decode.h"
 
 void
-rans_decode_init(struct rans_decode_state *st, I x)
+rans_decode_init(struct rans_decode_state *st)
 {
-        st->x = x;
+        st->x = 0;
 }
 
 /* s(x) in the paper */
@@ -55,6 +55,7 @@ sym_t
 rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
                 const uint8_t **inpp)
 {
+        decode_normalize(st, inpp);
         I q_x_m = st->x / M;
         I mod_x_m = st->x % M;
         prob_t c_sym;
@@ -67,6 +68,5 @@ rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
                st->x, newx, sym, c_sym, p_sym, q_x_m, mod_x_m);
 #endif
         st->x = newx;
-        decode_normalize(st, inpp);
         return sym;
 }

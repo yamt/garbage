@@ -25,7 +25,7 @@
 
 /* --- test */
 
-static I
+static void
 test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
             struct byteout *bo)
 {
@@ -44,11 +44,11 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
                         break;
                 }
         }
-        return st->x;
+        rans_encode_flush(st, bo);
 }
 
 static void
-test_decode(I x, const void *input, size_t inputsize, const prob_t *ps,
+test_decode(const void *input, size_t inputsize, const prob_t *ps,
             struct byteout *bo)
 {
         printf("decoding...\n");
@@ -58,7 +58,7 @@ test_decode(I x, const void *input, size_t inputsize, const prob_t *ps,
         const uint8_t *cp = input;
         const uint8_t *ep = cp + inputsize;
 
-        rans_decode_init(st, x);
+        rans_decode_init(st);
         while (1) {
                 sym_t sym = rans_decode_sym(st, ps, &cp);
                 byteout_write(bo, sym);
@@ -87,7 +87,7 @@ test(void)
         }
         struct byteout bo;
         byteout_init(&bo, encoded, 2 * inputsize);
-        I x = test_encode(input, inputsize, &ps, &bo);
+        test_encode(input, inputsize, &ps, &bo);
 
         prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
@@ -99,7 +99,7 @@ test(void)
         }
         struct byteout bo_dec;
         byteout_init(&bo_dec, decoded, inputsize);
-        test_decode(x, rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
+        test_decode(rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
 
@@ -107,8 +107,8 @@ test(void)
         free(decoded);
 
         printf("decoded correctly\n");
-        printf("compression %zu -> %zu + %zu + %zu\n", inputsize, bo.actual,
-               sizeof(I), tablesize * sizeof(prob_t));
+        printf("compression %zu -> %zu + %zu\n", inputsize, bo.actual,
+               tablesize * sizeof(prob_t));
 }
 
 int
