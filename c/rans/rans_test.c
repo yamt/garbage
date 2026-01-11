@@ -1,10 +1,3 @@
-/*
- * reference:
- *   Asymmetric numeral systems: entropy coding combining speed of
- *   Huﬀman coding with compression rate of arithmetic coding
- *   Jarek Duda
- */
-
 #include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>

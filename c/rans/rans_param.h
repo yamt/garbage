@@ -1,3 +1,10 @@
+/*
+ * reference:
+ *   Asymmetric numeral systems: entropy coding combining speed of
+ *   Huﬀman coding with compression rate of arithmetic coding
+ *   Jarek Duda
+ */
+
 #if !defined(_RANS_PARAM_H_)
 #define _RANS_PARAM_H_
 
