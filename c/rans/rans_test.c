@@ -18,7 +18,6 @@
 #include "rans_encode.h"
 #include "rans_probs.h"
 
-#include "bytein.h"
 #include "byteout.h"
 
 #include "test_util.h"
