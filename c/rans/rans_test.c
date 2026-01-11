@@ -74,6 +74,11 @@ test(void)
         size_t inputsize;
         const uint8_t *input = read_fd(STDIN_FILENO, &inputsize);
 
+        if (inputsize == 0) {
+                printf("zero byte input\n");
+                exit(0);
+        }
+
         size_t counts[NSYMS];
         memset(counts, 0, sizeof(counts));
         count_syms(counts, input, inputsize);
