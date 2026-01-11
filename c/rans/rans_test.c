@@ -81,33 +81,22 @@ test(void)
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
 
-        size_t encode_buf_siz = 2 * inputsize + 4; /* XXX */
-        uint8_t *encoded = malloc(encode_buf_siz);
-        if (encoded == NULL) {
-                exit(1);
-        }
         struct byteout bo;
-        byteout_init(&bo, encoded, encode_buf_siz);
+        byteout_init(&bo);
         test_encode(input, inputsize, &ps, &bo);
-        assert(bo.actual <= encode_buf_siz);
-        assert(encoded <= (uint8_t *)rev_byteout_ptr(&bo));
 
         prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
         rans_probs_table(&ps, table, &tablesize);
 
-        uint8_t *decoded = malloc(inputsize);
-        if (decoded == NULL) {
-                exit(1);
-        }
         struct byteout bo_dec;
-        byteout_init(&bo_dec, decoded, inputsize);
+        byteout_init(&bo_dec);
         test_decode(rev_byteout_ptr(&bo), bo.actual, table, &bo_dec);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
 
-        free(encoded);
-        free(decoded);
+        byteout_clear(&bo);
+        byteout_clear(&bo_dec);
 
         printf("decoded correctly\n");
         printf("compression %zu -> %zu + %zu\n", inputsize, bo.actual,
