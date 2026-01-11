@@ -16,6 +16,12 @@ typedef uint32_t I;
  * I_s = {L / M * l_s, ..., B * L / M * l_s - 1}
  */
 
+#define I_SYM_MIN(p_sym) ((I)L / M * p_sym)
+#define I_SYM_MAX(p_sym) ((I)B * L / M * p_sym - 1)
+
+#define I_MIN ((I)L)
+#define I_MAX ((I)L * B - 1)
+
 #define NSYMS 256
 
 #endif /* !defined(_RANS_PARAM_H_) */
