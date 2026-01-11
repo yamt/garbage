@@ -81,13 +81,16 @@ test(void)
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
 
-        uint8_t *encoded = malloc(2 * inputsize);
+        size_t encode_buf_siz = 2 * inputsize + 4; /* XXX */
+        uint8_t *encoded = malloc(encode_buf_siz);
         if (encoded == NULL) {
                 exit(1);
         }
         struct byteout bo;
-        byteout_init(&bo, encoded, 2 * inputsize);
+        byteout_init(&bo, encoded, encode_buf_siz);
         test_encode(input, inputsize, &ps, &bo);
+        assert(bo.actual <= encode_buf_siz);
+        assert(encoded <= (uint8_t *)rev_byteout_ptr(&bo));
 
         prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
