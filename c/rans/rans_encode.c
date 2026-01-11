@@ -1,3 +1,4 @@
+#include <assert.h>
 #if defined(RANS_DEBUG)
 #include <stdio.h>
 #endif
@@ -32,6 +33,7 @@ void
 rans_encode_sym(struct rans_encode_state *st, sym_t sym, prob_t c_sym,
                 prob_t p_sym, struct byteout *bo)
 {
+        assert(p_sym > 0);
         encode_normalize(st, sym, p_sym, bo);
         I q = st->x / p_sym;
         I r = st->x - q * p_sym;
