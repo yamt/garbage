@@ -26,4 +26,7 @@ typedef uint32_t rans_I;
 
 #define RANS_NSYMS 256
 
+#include <assert.h>
+#define RANS_ASSERT(a) assert(a)
+
 #endif /* !defined(_RANS_PARAM_H_) */
