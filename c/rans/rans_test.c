@@ -58,7 +58,7 @@ test_decode(const void *input, size_t inputsize, size_t origsize,
         }
 }
 
-void
+static void
 test(void)
 {
         size_t inputsize;
