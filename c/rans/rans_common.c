@@ -1,12 +1,12 @@
 #include "rans_common.h"
 
 prob_t
-rans_probs_c(const prob_t ps[NSYMS], sym_t sym)
+rans_b(const prob_t ls[NSYMS], sym_t sym)
 {
-        prob_t c_sym = 0;
+        prob_t b = 0;
         sym_t i;
         for (i = 0; i < sym; i++) {
-                c_sym += ps[i];
+                b += ls[i];
         }
-        return c_sym;
+        return b;
 }

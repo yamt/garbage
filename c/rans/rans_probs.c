@@ -66,23 +66,23 @@ rans_probs_init(struct rans_probs *ps, size_t ops[NSYMS])
         }
         assert(calc_psum(ops) == M);
 
-        for (i = 0; i < NSYMS; i++) {
-                assert(ops[i] < M);
-                ps->ps[i] = ops[i];
-        }
-
         /*
-         * copy to ps->ps
+         * copy to ps->ls
          */
         for (i = 0; i < NSYMS; i++) {
-                prob_t p = ps->ps[i];
-                if (p == 0) {
+                assert(ops[i] < M);
+                ps->ls[i] = ops[i];
+        }
+
+        for (i = 0; i < NSYMS; i++) {
+                prob_t l_s = ps->ls[i];
+                if (l_s == 0) {
                         continue;
                 }
-                prob_t c = rans_probs_c(ps->ps, i);
+                prob_t b_s = rans_b(ps->ls, i);
 #if defined(RANS_DEBUG)
-                printf("[%02x] p=%u, %u-%u Is={%08x,...,%08x}\n", i, p, c,
-                       c + p - 1, I_SYM_MIN(p), I_SYM_MAX(p));
+                printf("[%02x] l_s=%u, %u-%u Is={%08x,...,%08x}\n", i, l_s, b_s,
+                       b_s + l_s - 1, I_SYM_MIN(l_s), I_SYM_MAX(l_s));
 #endif
         }
 #if defined(RANS_DEBUG)
@@ -107,7 +107,7 @@ rans_probs_table(const struct rans_probs *ps, prob_t *out, size_t *nelemp)
         unsigned int n = NSYMS;
         while (true) {
                 n--;
-                if (ps->ps[n] > 0) {
+                if (ps->ls[n] > 0) {
                         n++;
                         break;
                 }
@@ -117,7 +117,7 @@ rans_probs_table(const struct rans_probs *ps, prob_t *out, size_t *nelemp)
         }
         unsigned int i;
         for (i = 0; i < n; i++) {
-                out[i] = ps->ps[i];
+                out[i] = ps->ls[i];
         }
         *nelemp = n;
 }

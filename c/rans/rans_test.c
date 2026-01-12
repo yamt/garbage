@@ -30,8 +30,9 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
         while (1) {
                 i--;
                 uint8_t sym = ((const uint8_t *)input)[i];
-                prob_t c_sym = rans_probs_c(ps->ps, sym);
-                rans_encode_sym(st, sym, c_sym, ps->ps[sym], bo);
+                prob_t b_s = rans_b(ps->ls, sym);
+                prob_t l_s = ps->ls[sym];
+                rans_encode_sym(st, sym, b_s, l_s, bo);
                 if (i == 0) {
                         break;
                 }

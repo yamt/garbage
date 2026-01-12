@@ -3,7 +3,7 @@
 #include "rans_param.h"
 
 struct rans_probs {
-        prob_t ps[NSYMS]; /* l_s in the paper */
+        prob_t ls[NSYMS]; /* l_s in the paper */
 };
 
 void count_syms(size_t counts[NSYMS], const void *input, size_t inputsize);

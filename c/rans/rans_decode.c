@@ -14,24 +14,24 @@ rans_decode_init(struct rans_decode_state *st)
 
 /*
  * s(x) in the paper.
- * also calculate b_s and return it via *cp.
+ * also calculate b_s and return it via *bp.
  */
 static sym_t
-find_sym_and_c(const prob_t ps[NSYMS], I r, prob_t *cp)
+find_sym_and_b(const prob_t ls[NSYMS], I r, prob_t *bp)
 {
         assert(r < M);
-        prob_t c = 0;
+        prob_t b = 0;
         unsigned int i;
         for (i = 0; i < NSYMS - 1; i++) {
-                prob_t p = ps[i];
-                if (r < (I)c + p) {
+                prob_t p = ls[i];
+                if (r < (I)b + p) {
                         break;
                 }
-                c += p;
+                b += p;
         }
         assert(i < NSYMS);
-        assert(c == rans_probs_c(ps, s));
-        *cp = c;
+        assert(b == rans_b(ls, i));
+        *bp = b;
         return i;
 }
 
@@ -52,7 +52,7 @@ decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
 }
 
 sym_t
-rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
+rans_decode_sym(struct rans_decode_state *st, const prob_t ls[NSYMS],
                 const uint8_t **inpp)
 {
         decode_normalize(st, inpp);
@@ -61,8 +61,8 @@ rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
         I q_x_m = st->x / M;
         I mod_x_m = st->x % M;
         prob_t b_s;
-        sym_t s = find_sym_and_c(ps, mod_x_m, &b_s);
-        prob_t l_s = ps[s];
+        sym_t s = find_sym_and_b(ls, mod_x_m, &b_s);
+        prob_t l_s = ls[s];
         I newx = l_s * q_x_m + mod_x_m - b_s;
 #if defined(RANS_DEBUG)
         printf("D(%08x) -> (%02x, %08x) (b_s=%u, l_s=%u, x/m=%u, "
