@@ -7,5 +7,6 @@ struct rans_decode_state {
 };
 
 void rans_decode_init(struct rans_decode_state *st);
-rans_sym_t rans_decode_sym(struct rans_decode_state *st, const rans_prob_t ls[RANS_NSYMS],
-                      const uint8_t **inpp);
+rans_sym_t rans_decode_sym(struct rans_decode_state *st,
+                           const rans_prob_t ls[RANS_NSYMS],
+                           const uint8_t **inpp);

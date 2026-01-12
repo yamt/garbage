@@ -33,8 +33,8 @@ encode_normalize(struct rans_encode_state *st, rans_sym_t sym, rans_prob_t l_s,
 }
 
 void
-rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s, rans_prob_t l_s,
-                struct byteout *bo)
+rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s,
+                rans_prob_t l_s, struct byteout *bo)
 {
         assert(l_s > 0);
         encode_normalize(st, s, l_s, bo);
