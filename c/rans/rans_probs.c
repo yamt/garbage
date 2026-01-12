@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 #if defined(RANS_DEBUG)
 #include <stdio.h>
 #endif
@@ -30,7 +31,10 @@ rans_probs_init(struct rans_probs *ps, size_t ops[RANS_NSYMS])
          * - the distinction between zero and non-zero is preserved
          */
         size_t psum = calc_psum(ops);
-        assert(psum > 0);
+        if (psum == 0) {
+                memset(ps->ls, 0, sizeof(ps->ls));
+                return;
+        }
 
         unsigned int i;
         for (i = 0; i < RANS_NSYMS; i++) {
