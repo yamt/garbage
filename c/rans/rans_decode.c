@@ -36,7 +36,7 @@ find_sym_and_b(const prob_t ls[NSYMS], I r, prob_t *bp)
         assert(b == rans_b(ls, i));
 #endif
         *bp = b;
-        return i;
+        return (sym_t)i;
 }
 
 static void
