@@ -30,6 +30,7 @@ find_sym_and_c(const prob_t ps[NSYMS], I r, prob_t *cp)
                 c += p;
         }
         assert(i < NSYMS);
+        assert(c == rans_probs_c(ps, s));
         *cp = c;
         return i;
 }
@@ -61,7 +62,6 @@ rans_decode_sym(struct rans_decode_state *st, const prob_t ps[NSYMS],
         I mod_x_m = st->x % M;
         prob_t b_s;
         sym_t s = find_sym_and_c(ps, mod_x_m, &b_s);
-        assert(b_s == rans_probs_c(ps, s));
         prob_t l_s = ps[s];
         I newx = l_s * q_x_m + mod_x_m - b_s;
 #if defined(RANS_DEBUG)
