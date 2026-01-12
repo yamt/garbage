@@ -1,4 +1,6 @@
 /*
+ * a straightforward rANS implementation
+ *
  * reference:
  *   Asymmetric numeral systems: entropy coding combining speed of
  *   Huﬀman coding with compression rate of arithmetic coding
