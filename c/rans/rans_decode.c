@@ -3,7 +3,9 @@
 #include <stdio.h>
 #endif
 
+#if defined(RANS_DEBUG)
 #include "rans_common.h"
+#endif
 #include "rans_decode.h"
 
 void
@@ -30,7 +32,9 @@ find_sym_and_b(const prob_t ls[NSYMS], I r, prob_t *bp)
                 b += p;
         }
         assert(i < NSYMS);
+#if defined(RANS_DEBUG)
         assert(b == rans_b(ls, i));
+#endif
         *bp = b;
         return i;
 }
