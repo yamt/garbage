@@ -79,8 +79,8 @@ rans_probs_init(struct rans_probs *ps, size_t ops[RANS_NSYMS])
                 if (l_s == 0) {
                         continue;
                 }
-                rans_prob_t b_s = rans_b(ps->ls, i);
 #if defined(RANS_DEBUG)
+                rans_prob_t b_s = rans_b(ps->ls, i);
                 printf("[%02x] l_s=%u, %u-%u Is={%08x,...,%08x}\n", i, l_s,
                        b_s, b_s + l_s - 1, RANS_I_SYM_MIN(l_s),
                        RANS_I_SYM_MAX(l_s));
