@@ -1,4 +1,4 @@
-#if defined(_RANS_PROBS_H_)
+#if !defined(_RANS_PROBS_H_)
 #define _RANS_PROBS_H_
 
 #include <stddef.h>
