@@ -75,3 +75,12 @@ rans_decode_sym(struct rans_decode_state *st, const rans_prob_t ls[RANS_NSYMS],
         st->x = newx;
         return s;
 }
+
+rans_I
+rans_decode_get_extra(struct rans_decode_state *st, const uint8_t **inpp)
+{
+        decode_normalize(st, inpp);
+        assert(st->x >= RANS_I_MIN);
+        assert(st->x <= RANS_I_MAX);
+        return st->x - RANS_I_MIN;
+}

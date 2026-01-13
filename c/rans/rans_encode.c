@@ -12,6 +12,21 @@ rans_encode_init(struct rans_encode_state *st)
         st->x = RANS_I_MIN;
 }
 
+void
+rans_encode_set_extra(struct rans_encode_state *st, rans_I extra)
+{
+        assert(st->x >= RANS_I_MIN);
+        assert(st->x <= RANS_I_MAX);
+#if defined(RANS_DEBUG)
+        printf("enc set extra %08x + %08x -> %08x\n", st->x, extra,
+               st->x + extra);
+#endif
+        assert(extra <= RANS_EXTRA_MAX);
+        st->x += extra;
+        assert(st->x >= RANS_I_MIN);
+        assert(st->x <= RANS_I_MAX);
+}
+
 static void
 encode_normalize(struct rans_encode_state *st, rans_sym_t sym, rans_prob_t l_s,
                  struct byteout *bo)

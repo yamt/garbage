@@ -26,6 +26,8 @@ typedef uint32_t rans_I;
 #define RANS_I_MIN ((rans_I)RANS_L)
 #define RANS_I_MAX ((rans_I)RANS_L * RANS_B - 1)
 
+#define RANS_EXTRA_MAX (RANS_I_MAX - RANS_I_MIN)
+
 #define RANS_NSYMS 256
 
 #include <assert.h>

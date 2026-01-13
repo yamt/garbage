@@ -13,5 +13,7 @@ void rans_decode_init(struct rans_decode_state *st);
 rans_sym_t rans_decode_sym(struct rans_decode_state *st,
                            const rans_prob_t ls[RANS_NSYMS],
                            const uint8_t **inpp);
+rans_I rans_decode_get_extra(struct rans_decode_state *st,
+                             const uint8_t **inpp);
 
 #endif /* defined(_RANS_DECODE_H_) */
