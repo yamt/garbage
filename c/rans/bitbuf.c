@@ -42,15 +42,15 @@ bitbuf_flush1(struct bitbuf *s, unsigned int thresh)
         }
 }
 
-static void
-bitbuf_write1(struct bitbuf *s, uint16_t bits, uint8_t nbits)
+void
+bitbuf_write(struct bitbuf *s, uint16_t bits, uint8_t nbits)
 {
         /*
          * input: the least significant "nbits" of "bits".
          * output: s->buf is filled from MSBs.
          */
         assert(nbits > 0);
-        assert(nbits <= 8);
+        assert(nbits <= 16);
 
         /* assert that unused bits are zero */
         assert((bits & (0xffff << nbits)) == 0);
@@ -63,15 +63,15 @@ bitbuf_write1(struct bitbuf *s, uint16_t bits, uint8_t nbits)
 }
 
 void
-bitbuf_write(struct bitbuf *s, const uint8_t *bits, uint16_t nbits)
+bitbuf_write_multi(struct bitbuf *s, const uint8_t *bits, size_t nbits)
 {
         assert(bits != NULL);
         assert(nbits != 0);
         while (nbits > 8) {
-                bitbuf_write1(s, *bits++, 8);
+                bitbuf_write(s, *bits++, 8);
                 nbits -= 8;
         }
-        bitbuf_write1(s, *bits, nbits);
+        bitbuf_write(s, *bits, nbits);
 }
 
 void
