@@ -23,11 +23,11 @@ bitin_get_bit(struct bitin *in)
         return bit;
 }
 
-uint8_t
+uint16_t
 bitin_get_bits(struct bitin *in, unsigned int nbits)
 {
-        assert(nbits <= 8);
-        uint8_t bits = 0;
+        assert(nbits <= 16);
+        uint16_t bits = 0;
         unsigned int i;
         for (i = 0; i < nbits; i++) {
                 bits <<= 1;
