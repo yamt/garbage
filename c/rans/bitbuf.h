@@ -36,5 +36,5 @@ void bitbuf_write_multi(struct bitbuf *s, const uint8_t *bits, size_t nbits);
 void bitbuf_flush(struct bitbuf *s);
 void bitbuf_clear(struct bitbuf *s);
 
-void bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint16_t nbits);
+void bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint8_t nbits);
 void bitbuf_rev_flush(struct bitbuf *s);

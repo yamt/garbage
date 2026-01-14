@@ -125,7 +125,7 @@ bitbuf_rev_flush1(struct bitbuf *s, unsigned int thresh)
 }
 
 void
-bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint16_t nbits)
+bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint8_t nbits)
 {
         /*
          * input: the least significant "nbits" of "bits".
