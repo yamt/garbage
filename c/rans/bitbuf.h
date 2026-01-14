@@ -17,6 +17,7 @@ struct bitbuf {
         uint8_t *p;
         size_t datalen;
         size_t allocated;
+        size_t datalen_bits;
 };
 
 void bitbuf_init(struct bitbuf *s);
@@ -24,3 +25,6 @@ void bitbuf_init(struct bitbuf *s);
 void bitbuf_write(struct bitbuf *s, const uint8_t *bits, uint16_t nbits);
 void bitbuf_flush(struct bitbuf *s);
 void bitbuf_clear(struct bitbuf *s);
+
+void bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint16_t nbits);
+void bitbuf_rev_flush(struct bitbuf *s);
