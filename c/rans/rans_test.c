@@ -95,7 +95,7 @@ test(void)
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
 
-        rans_I extra = RANS_EXTRA_MAX;
+        rans_I extra = 0;
 
         struct bitbuf bo;
         bitbuf_init(&bo);
