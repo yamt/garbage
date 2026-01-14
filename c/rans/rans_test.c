@@ -51,11 +51,11 @@ test_decode(const void *input, size_t inputsize, size_t origsize,
         struct rans_decode_state st0;
         struct rans_decode_state *st = &st0;
 
-        const uint8_t *cp = input;
-
 #if defined(RANS_DECODE_BITS)
         struct bitin in;
         bitin_init(&in, input);
+#else
+        const uint8_t *cp = input;
 #endif
 
         rans_decode_init(st);
