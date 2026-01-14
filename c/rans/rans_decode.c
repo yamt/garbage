@@ -11,7 +11,7 @@
 #include "bitin.h"
 #endif
 
-#if !defined(RANS_DECODE_BITS) && RANS_B_BITS !=8
+#if !defined(RANS_DECODE_BITS) && RANS_B_BITS != 8
 #error RANS_B_BITS != 8 requires RANS_DECODE_BITS
 #endif
 
