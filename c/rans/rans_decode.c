@@ -7,6 +7,14 @@
 #endif
 #include "rans_decode.h"
 
+#if defined(RANS_DECODE_BITS)
+#include "bitin.h"
+#endif
+
+#if !defined(RANS_DECODE_BITS) && RANS_B_BITS !=8
+#error RANS_B_BITS != 8 requires RANS_DECODE_BITS
+#endif
+
 void
 rans_decode_init(struct rans_decode_state *st)
 {
@@ -39,10 +47,14 @@ find_sym_and_b(const rans_prob_t ls[RANS_NSYMS], rans_I r, rans_prob_t *bp)
 }
 
 static void
-decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
+decode_normalize(struct rans_decode_state *st, rans_decode_input_type inpp)
 {
         while (st->x < RANS_I_MIN) {
+#if defined(RANS_DECODE_BITS)
+                uint16_t in = bitin_get_bits(inpp, RANS_B_BITS);
+#else
                 uint8_t in = *(*inpp)++;
+#endif
                 rans_I newx = st->x * RANS_B + in;
 #if defined(RANS_DEBUG)
                 printf("dec normalize in=%02x, %08x -> %08x\n", in, st->x,
@@ -56,7 +68,7 @@ decode_normalize(struct rans_decode_state *st, const uint8_t **inpp)
 
 rans_sym_t
 rans_decode_sym(struct rans_decode_state *st, const rans_prob_t ls[RANS_NSYMS],
-                const uint8_t **inpp)
+                rans_decode_input_type inpp)
 {
         decode_normalize(st, inpp);
         RANS_ASSERT(st->x >= RANS_I_MIN);
@@ -77,7 +89,8 @@ rans_decode_sym(struct rans_decode_state *st, const rans_prob_t ls[RANS_NSYMS],
 }
 
 rans_I
-rans_decode_get_extra(struct rans_decode_state *st, const uint8_t **inpp)
+rans_decode_get_extra(struct rans_decode_state *st,
+                      rans_decode_input_type inpp)
 {
         decode_normalize(st, inpp);
         assert(st->x >= RANS_I_MIN);

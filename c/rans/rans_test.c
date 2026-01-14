@@ -11,6 +11,8 @@
 #include "rans_encode.h"
 #include "rans_probs.h"
 
+#include "bitbuf.h"
+#include "bitin.h"
 #include "byteout.h"
 
 #include "test_util.h"
@@ -19,7 +21,7 @@
 
 static void
 test_encode(rans_I extra, const void *input, size_t inputsize,
-            const struct rans_probs *ps, struct byteout *bo)
+            const struct rans_probs *ps, struct bitbuf *bo)
 {
         printf("encoding...\n");
         struct rans_encode_state st0;
@@ -52,15 +54,28 @@ test_decode(const void *input, size_t inputsize, size_t origsize,
         const uint8_t *cp = input;
         const uint8_t *ep = cp + inputsize;
 
+#if defined(RANS_DECODE_BITS)
+        struct bitin in;
+        bitin_init(&in, input);
+#endif
+
         rans_decode_init(st);
         while (bo->actual < origsize) {
+#if defined(RANS_DECODE_BITS)
+                rans_sym_t sym = rans_decode_sym(st, ps, &in);
+#else
                 rans_sym_t sym = rans_decode_sym(st, ps, &cp);
+#endif
                 if (trans != NULL) {
                         sym = trans[sym];
                 }
                 byteout_write(bo, sym);
         }
+#if defined(RANS_DECODE_BITS)
+        return rans_decode_get_extra(st, &in);
+#else
         return rans_decode_get_extra(st, &cp);
+#endif
 }
 
 static void
@@ -83,9 +98,10 @@ test(void)
 
         rans_I extra = RANS_EXTRA_MAX;
 
-        struct byteout bo;
-        byteout_init(&bo);
+        struct bitbuf bo;
+        bitbuf_init(&bo);
         test_encode(extra, input, inputsize, &ps, &bo);
+        bitbuf_rev_flush(&bo);
 
         rans_prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
@@ -100,29 +116,30 @@ test(void)
 
         struct byteout bo_dec;
         byteout_init(&bo_dec);
-        dextra = test_decode(rev_byteout_ptr(&bo), bo.actual, inputsize, table,
-                             NULL, &bo_dec);
+        dextra =
+                test_decode(bo.p, bo.datalen, inputsize, table, NULL, &bo_dec);
         assert(extra == dextra);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
         byteout_init(&bo_dec);
-        dextra = test_decode(rev_byteout_ptr(&bo), bo.actual, inputsize,
-                             ctable, ctrans, &bo_dec);
+        dextra = test_decode(bo.p, bo.datalen, inputsize, ctable, ctrans,
+                             &bo_dec);
         assert(extra == dextra);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
-        byteout_clear(&bo);
-
         printf("decoded correctly\n");
-        printf("compression %zu -> %zu + %zu\n", inputsize, bo.actual,
-               tablesize * sizeof(rans_prob_t));
-        printf("compression %zu -> %zu + %zu + %zu (w/ trans)\n", inputsize,
-               bo.actual, ctablesize * sizeof(rans_prob_t),
+        printf("compression %zu -> %zu (%zu bits) + %zu\n", inputsize,
+               bo.datalen, bo.datalen_bits, tablesize * sizeof(rans_prob_t));
+        printf("compression %zu -> %zu (%zu bits) + %zu + %zu (w/ trans)\n",
+               inputsize, bo.datalen, bo.datalen_bits,
+               ctablesize * sizeof(rans_prob_t),
                ctablesize * sizeof(rans_sym_t));
+
+        bitbuf_clear(&bo);
 }
 
 int

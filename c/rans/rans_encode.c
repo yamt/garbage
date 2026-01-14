@@ -3,7 +3,7 @@
 #include <stdio.h>
 #endif
 
-#include "byteout.h"
+#include "bitbuf.h"
 #include "rans_encode.h"
 
 void
@@ -29,13 +29,13 @@ rans_encode_set_extra(struct rans_encode_state *st, rans_I extra)
 
 static void
 encode_normalize(struct rans_encode_state *st, rans_sym_t sym, rans_prob_t l_s,
-                 struct byteout *bo)
+                 struct bitbuf *bo)
 {
         assert(st->x >= RANS_I_SYM_MIN(l_s));
         rans_I i_sym_max = RANS_I_SYM_MAX(l_s);
         while (st->x > i_sym_max) {
-                uint8_t out = (uint8_t)(st->x % RANS_B);
-                rev_byteout_write(bo, out);
+                uint16_t out = (uint16_t)(st->x % RANS_B);
+                bitbuf_rev_write(bo, out, RANS_B_BITS);
                 rans_I newx = st->x / RANS_B;
 #if defined(RANS_DEBUG)
                 printf("enc normalize %08x -> %08x, out: %02x\n", st->x, newx,
@@ -49,7 +49,7 @@ encode_normalize(struct rans_encode_state *st, rans_sym_t sym, rans_prob_t l_s,
 
 void
 rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s,
-                rans_prob_t l_s, struct byteout *bo)
+                rans_prob_t l_s, struct bitbuf *bo)
 {
         assert(l_s > 0);
         encode_normalize(st, s, l_s, bo);
@@ -67,11 +67,11 @@ rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s,
 }
 
 void
-rans_encode_flush(struct rans_encode_state *st, struct byteout *bo)
+rans_encode_flush(struct rans_encode_state *st, struct bitbuf *bo)
 {
         while (st->x > 0) {
-                uint8_t out = (uint8_t)(st->x % RANS_B);
-                rev_byteout_write(bo, out);
+                uint16_t out = (uint16_t)(st->x % RANS_B);
+                bitbuf_rev_write(bo, out, RANS_B_BITS);
                 rans_I newx = st->x / RANS_B;
 #if defined(RANS_DEBUG)
                 printf("enc flush %08x -> %08x, out: %02x\n", st->x, newx,
