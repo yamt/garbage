@@ -36,7 +36,13 @@ typedef uint32_t rans_I;
 #define RANS_ASSERT(a) assert(a)
 
 #if RANS_B_BITS > 16
-#error RANS_B_BITS > 16 is not implemented
+#error B > 65536 is not implemented
+#endif
+#if (1 << RANS_B_BITS) != RANS_B
+#error inconsistent B and B_BITS
+#endif
+#if (RANS_L % RANS_M) != 0
+#error L should be a multiple of M
 #endif
 
 #endif /* !defined(_RANS_PARAM_H_) */
