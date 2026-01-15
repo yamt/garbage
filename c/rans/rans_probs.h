@@ -11,7 +11,7 @@ struct rans_probs {
 
 void count_syms(size_t counts[RANS_NSYMS], const void *input,
                 size_t inputsize);
-void rans_probs_init(struct rans_probs *ps, size_t ops[RANS_NSYMS]);
+void rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS]);
 
 #define RANS_TABLE_MAX_NELEMS RANS_NSYMS
 void rans_probs_table(const struct rans_probs *ps, rans_prob_t *out,
