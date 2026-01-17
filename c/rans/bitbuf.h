@@ -29,7 +29,7 @@ void bitbuf_init(struct bitbuf *s);
  * bitbuf_write: append the least significant "nbits" of "bits".
  *
  * bitbuf_write_multi: append multiple bytes.
- * if the last byte for bitbuf_write_bytes is partial, it's written as
+ * if the last byte for bitbuf_write_multi is partial, it's written as
  * it would be with bitbuf_write(s, last_byte, nbits % 8). that is,
  * the LSBs of the last byte was written. note that it's different
  * from the output bit stream, where the last partial byte is filled
