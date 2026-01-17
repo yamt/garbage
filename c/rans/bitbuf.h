@@ -40,5 +40,13 @@ void bitbuf_write_multi(struct bitbuf *s, const uint8_t *bits, size_t nbits);
 void bitbuf_flush(struct bitbuf *s);
 void bitbuf_clear(struct bitbuf *s);
 
+/*
+ * the following "rev" variants are used to produce reversed stream.
+ * (eg. for rANS)
+ * "rev" api and the corresponding non-rev api should not be used
+ * intermixed on a bitbuf instance.
+ *
+ * bits within a single bitbuf_rev_write call are NOT reversed.
+ */
 void bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint8_t nbits);
 void bitbuf_rev_flush(struct bitbuf *s);
