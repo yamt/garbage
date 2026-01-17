@@ -78,7 +78,8 @@ adjust(size_t ls[RANS_NSYMS], size_t ls_sum, int inc,
 }
 
 static void
-scale(size_t ls[RANS_NSYMS], const size_t ops[RANS_NSYMS], size_t psum)
+scale(size_t ls[RANS_NSYMS], const size_t ops[RANS_NSYMS], size_t psum,
+      bool quick)
 {
         /*
          * scale probabilities in ops[] so that:
@@ -89,30 +90,33 @@ scale(size_t ls[RANS_NSYMS], const size_t ops[RANS_NSYMS], size_t psum)
          */
         unsigned int i;
         for (i = 0; i < RANS_NSYMS; i++) {
-                size_t n = ops[i] * RANS_M / psum;
-                if (n == 0 && ops[i] != 0) {
-                        n = 1;
+                if (quick) {
+                        size_t n = ops[i] * RANS_M / psum;
+                        if (n == 0 && ops[i] != 0) {
+                                n = 1;
+                        }
+                        if (n > RANS_M - 1) {
+                                n = RANS_M - 1;
+                        }
+                        ls[i] = n;
+                } else {
+                        ls[i] = ops[i] != 0;
                 }
-                if (n > RANS_M - 1) {
-                        n = RANS_M - 1;
-                }
-                ls[i] = n;
         }
 
-        while (1) {
-                size_t psum = calc_sum(ls);
-                assert(psum > 0);
-                if (psum == RANS_M) {
+        psum = calc_sum(ls);
+        assert(psum > 0);
+        while (psum != RANS_M) {
+                int inc;
+                if (psum > RANS_M) {
+                        inc = -1;
+                } else {
+                        inc = 1;
+                }
+                if (adjust(ls, psum, inc, ops)) {
                         break;
                 }
-                if (psum < RANS_M) {
-                        if (adjust(ls, psum, 1, ops)) {
-                                break;
-                        }
-                }
-                if (psum > RANS_M) {
-                        adjust(ls, psum, -1, ops);
-                }
+                psum += inc;
         }
         assert(calc_sum(ls) == RANS_M || calc_sum(ls) == RANS_M - 1);
 }
@@ -128,7 +132,7 @@ rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
         }
 
         size_t ls[RANS_NSYMS];
-        scale(ls, ops, psum);
+        scale(ls, ops, psum, false);
 
         /*
          * copy to ps->ls
