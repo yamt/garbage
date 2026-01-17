@@ -43,55 +43,38 @@ calc_sum(const size_t ps[RANS_NSYMS])
 }
 
 static bool
-give(size_t ls[RANS_NSYMS], size_t ls_sum, const size_t counts[RANS_NSYMS])
+adjust(size_t ls[RANS_NSYMS], size_t ls_sum, int inc,
+       const size_t counts[RANS_NSYMS])
 {
+        assert(inc == 1 || inc == -1);
         double cand_d = 0;
         unsigned int cand_i = RANS_NSYMS;
         unsigned int i;
         for (i = 0; i < RANS_NSYMS; i++) {
-                if (ls[i] == RANS_M - 1) {
+                if (inc > 0 && ls[i] == RANS_M - 1) {
+                        /*
+                         * note: this implies all other ls[] are 0.
+                         */
+                        assert(ls_sum == RANS_M - 1);
                         return true;
                 }
-                if (ls[i] == 0) {
+                if (ls[i] == 0 || (inc < 0 && ls[i] == 1)) {
                         continue;
                 }
                 double cur = calc_bits1(ls[i], ls_sum, counts[i]);
-                double next = calc_bits1(ls[i] + 1, ls_sum, counts[i]);
-                assert(cur >= next);
-                double d = cur - next;
-                if (cand_d == 0 || d > cand_d) {
+                double next = calc_bits1(ls[i] + inc, ls_sum, counts[i]);
+                assert((inc > 0 && cur >= next) || (inc < 0 && cur >= next));
+                double d = next - cur;
+                if (cand_d == 0 || d < cand_d) {
                         cand_i = i;
                         cand_d = d;
                 }
         }
         assert(cand_i != RANS_NSYMS);
-        ls[cand_i]++;
+        ls[cand_i] += inc;
+        assert(1 <= ls[cand_i]);
+        assert(RANS_M - 1 >= ls[cand_i]);
         return false;
-}
-
-static void
-steal(size_t ls[RANS_NSYMS], size_t ls_sum, const size_t counts[RANS_NSYMS])
-{
-        double cand_d = 0;
-        unsigned int cand_i = RANS_NSYMS;
-        unsigned int i;
-        for (i = 0; i < RANS_NSYMS; i++) {
-                printf("[%u] ls %zu\n", i, ls[i]);
-                if (ls[i] <= 1) {
-                        continue;
-                }
-                double cur = calc_bits1(ls[i], ls_sum, counts[i]);
-                double next = calc_bits1(ls[i] - 1, ls_sum, counts[i]);
-                assert(cur <= next);
-                double d = cur - next;
-                if (cand_d == 0 || d > cand_d) {
-                        cand_i = i;
-                        cand_d = d;
-                }
-        }
-        /* this assertion can fail if RANS_M < RANS_NSYMS */
-        assert(cand_i != RANS_NSYMS);
-        ls[cand_i]--;
 }
 
 void
@@ -131,12 +114,12 @@ rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
                         break;
                 }
                 if (psum < RANS_M) {
-                        if (give(ls, psum, ops)) {
+                        if (adjust(ls, psum, 1, ops)) {
                                 break;
                         }
                 }
                 if (psum > RANS_M) {
-                        steal(ls, psum, ops);
+                        adjust(ls, psum, -1, ops);
                 }
         }
         assert(calc_sum(ls) == RANS_M || calc_sum(ls) == RANS_M - 1);
