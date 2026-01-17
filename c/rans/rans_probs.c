@@ -77,8 +77,8 @@ adjust(size_t ls[RANS_NSYMS], size_t ls_sum, int inc,
         return false;
 }
 
-void
-rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
+static void
+scale(size_t ls[RANS_NSYMS], const size_t ops[RANS_NSYMS], size_t psum)
 {
         /*
          * scale probabilities in ops[] so that:
@@ -87,14 +87,6 @@ rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
          * - each p fits prob_t
          * - the distinction between zero and non-zero is preserved
          */
-        size_t opsum;
-        size_t psum = opsum = calc_sum(ops);
-        if (psum == 0) {
-                memset(ps->ls, 0, sizeof(ps->ls));
-                return;
-        }
-
-        size_t ls[RANS_NSYMS];
         unsigned int i;
         for (i = 0; i < RANS_NSYMS; i++) {
                 size_t n = ops[i] * RANS_M / psum;
@@ -108,7 +100,7 @@ rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
         }
 
         while (1) {
-                psum = calc_sum(ls);
+                size_t psum = calc_sum(ls);
                 assert(psum > 0);
                 if (psum == RANS_M) {
                         break;
@@ -123,10 +115,25 @@ rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
                 }
         }
         assert(calc_sum(ls) == RANS_M || calc_sum(ls) == RANS_M - 1);
+}
+
+void
+rans_probs_init(struct rans_probs *ps, const size_t ops[RANS_NSYMS])
+{
+        size_t opsum;
+        size_t psum = opsum = calc_sum(ops);
+        if (psum == 0) {
+                memset(ps->ls, 0, sizeof(ps->ls));
+                return;
+        }
+
+        size_t ls[RANS_NSYMS];
+        scale(ls, ops, psum);
 
         /*
          * copy to ps->ls
          */
+        unsigned int i;
         for (i = 0; i < RANS_NSYMS; i++) {
                 assert(ls[i] < RANS_M);
                 ps->ls[i] = ls[i];
