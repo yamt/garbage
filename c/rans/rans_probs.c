@@ -63,7 +63,7 @@ adjust(size_t ls[RANS_NSYMS], size_t ls_sum, int inc,
                 }
                 double cur = calc_bits1(ls[i], ls_sum, counts[i]);
                 double next = calc_bits1(ls[i] + inc, ls_sum, counts[i]);
-                assert((inc > 0 && cur >= next) || (inc < 0 && cur >= next));
+                assert((inc > 0 && cur >= next) || (inc < 0 && cur <= next));
                 double d = next - cur;
                 if (cand_d == 0 || d < cand_d) {
                         cand_i = i;
