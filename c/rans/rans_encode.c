@@ -1,5 +1,6 @@
 #include <assert.h>
 #if defined(RANS_DEBUG)
+#include <math.h>
 #include <stdio.h>
 #endif
 
@@ -17,7 +18,8 @@ rans_encode_init_with_prob(struct rans_encode_state *st, rans_prob_t l_s)
 {
         st->x = RANS_I_SYM_MIN(l_s);
 #if defined(RANS_DEBUG)
-        printf("enc init with prob %u (x=%08x)\n", l_s, st->x);
+        printf("enc init with prob %u (x=%08x) %.3f bits (%+.3f)\n", l_s,
+               st->x, log2(st->x), log2(st->x) - log2(RANS_I_MIN));
 #endif
         assert(st->x <= RANS_I_MAX);
 }
@@ -45,9 +47,15 @@ encode_normalize(struct rans_encode_state *st, rans_sym_t sym, rans_prob_t l_s,
                 bitbuf_rev_write(bo, out, RANS_B_BITS);
                 rans_I newx = st->x / RANS_B;
 #if defined(RANS_DEBUG)
-                printf("enc normalize %08x -> %08x, out: %02x\n", st->x, newx,
-                       out);
+                double oldbits = log2(st->x);
+                double newbits = log2(newx);
+                double increase = newbits - oldbits;
+                printf("enc normalize %08x -> %08x, %.3f bits (%+.3f), out: "
+                       "%02x\n",
+                       st->x, newx, newbits, increase, out);
+                assert(increase < 0);
 #endif
+                assert(st->x > newx);
                 st->x = newx;
         }
         assert(st->x >= RANS_I_SYM_MIN(l_s));
@@ -64,10 +72,19 @@ rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s,
         rans_I r = st->x - q * l_s;
         rans_I newx = q * RANS_M + b_s + r;
 #if defined(RANS_DEBUG)
-        printf("C(%02x, %08x) -> %08x (b_s=%u, l_s=%u, x/l_s=%u, "
+        double oldbits = log2(st->x);
+        double newbits = log2(newx);
+        double increase = newbits - oldbits;
+        double symbits = log2((double)RANS_M / l_s);
+        double error = increase - symbits;
+        printf("C(%02x, %08x) -> %08x, %.3f bits (%+.3f err %+.3f), (b_s=%u, "
+               "l_s=%u, "
+               "x/l_s=%u, "
                "mod(x,l_s)=%u)\n",
-               s, st->x, newx, b_s, l_s, q, r);
+               s, st->x, newx, newbits, increase, error, b_s, l_s, q, r);
+        assert(increase > 0);
 #endif
+        assert(st->x < newx);
         st->x = newx;
         assert(st->x >= RANS_I_MIN);
         assert(st->x <= RANS_I_MAX);
@@ -81,9 +98,15 @@ rans_encode_flush(struct rans_encode_state *st, struct bitbuf *bo)
                 bitbuf_rev_write(bo, out, RANS_B_BITS);
                 rans_I newx = st->x / RANS_B;
 #if defined(RANS_DEBUG)
-                printf("enc flush %08x -> %08x, out: %02x\n", st->x, newx,
-                       out);
+                double oldbits = log2(st->x);
+                double newbits = log2(newx);
+                double increase = newbits - oldbits;
+                printf("enc flush %08x -> %08x, %.3f bits (%+.3f), out: "
+                       "%02x\n",
+                       st->x, newx, newbits, increase, out);
+                assert(increase < 0);
 #endif
+                assert(st->x > newx);
                 st->x = newx;
         }
 }

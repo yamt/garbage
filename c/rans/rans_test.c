@@ -95,7 +95,7 @@ test(void)
         memset(counts, 0, sizeof(counts));
         count_syms(counts, input, inputsize);
         double bits = calc_bits(counts, calc_sum(counts), counts);
-        printf("input entropy %.6f bits\n", bits);
+        printf("input entropy %.3f bits\n", bits);
 
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
