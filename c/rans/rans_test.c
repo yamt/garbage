@@ -92,7 +92,12 @@ test_decode(const void *input, size_t inputsize_bits, size_t origsize,
         while (bo->actual < origsize) {
                 while (rans_decode_need_more(st) &&
                        inputsize_bits >= RANS_B_BITS) {
-                        rans_decode_feed(st, &in);
+#if defined(RANS_DECODE_BITS)
+                        uint16_t d = bitin_get_bits(&in, RANS_B_BITS);
+#else
+                        uint8_t d = *in++;
+#endif
+                        rans_decode_feed(st, d);
                         inputsize_bits -= RANS_B_BITS;
                 }
                 rans_sym_t sym = rans_decode_sym(st, ps);
@@ -102,7 +107,12 @@ test_decode(const void *input, size_t inputsize_bits, size_t origsize,
                 byteout_write(bo, sym);
         }
         while (rans_decode_need_more(st) && inputsize_bits >= RANS_B_BITS) {
-                rans_decode_feed(st, &in);
+#if defined(RANS_DECODE_BITS)
+                uint16_t d = bitin_get_bits(&in, RANS_B_BITS);
+#else
+                uint8_t d = *in++;
+#endif
+                rans_decode_feed(st, d);
                 inputsize_bits -= RANS_B_BITS;
         }
         return rans_decode_get_extra(st);

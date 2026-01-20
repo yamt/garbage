@@ -53,14 +53,9 @@ rans_decode_need_more(const struct rans_decode_state *st)
 }
 
 void
-rans_decode_feed(struct rans_decode_state *st, rans_decode_input_type inpp)
+rans_decode_feed(struct rans_decode_state *st, uint16_t input)
 {
-#if defined(RANS_DECODE_BITS)
-        uint16_t in = bitin_get_bits(inpp, RANS_B_BITS);
-#else
-        uint8_t in = *(*inpp)++;
-#endif
-        rans_I newx = st->x * RANS_B + in;
+        rans_I newx = st->x * RANS_B + input;
 #if defined(RANS_DEBUG)
         printf("dec normalize in=%02x, %08x -> %08x\n", in, st->x, newx);
 #endif
