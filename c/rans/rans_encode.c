@@ -14,6 +14,12 @@ rans_encode_init(struct rans_encode_state *st)
 }
 
 void
+rans_encode_init_zero(struct rans_encode_state *st)
+{
+        st->x = 0;
+}
+
+void
 rans_encode_init_with_prob(struct rans_encode_state *st, rans_prob_t l_s)
 {
         st->x = RANS_I_SYM_MIN(l_s);
@@ -40,7 +46,6 @@ static void
 encode_normalize(struct rans_encode_state *st, rans_prob_t l_s,
                  struct bitbuf *bo)
 {
-        assert(st->x >= RANS_I_SYM_MIN(l_s));
         rans_I i_sym_max = RANS_I_SYM_MAX(l_s);
         while (st->x > i_sym_max) {
                 uint16_t out = (uint16_t)(st->x % RANS_B);
@@ -58,7 +63,6 @@ encode_normalize(struct rans_encode_state *st, rans_prob_t l_s,
                 assert(st->x > newx);
                 st->x = newx;
         }
-        assert(st->x >= RANS_I_SYM_MIN(l_s));
         assert(st->x <= RANS_I_SYM_MAX(l_s));
 }
 
@@ -82,11 +86,10 @@ rans_encode_sym(struct rans_encode_state *st, rans_sym_t s, rans_prob_t b_s,
                "x/l_s=%u, "
                "mod(x,l_s)=%u)\n",
                s, st->x, newx, newbits, increase, error, b_s, l_s, q, r);
-        assert(increase > 0);
+        assert(st->x == 0 || increase >= 0);
 #endif
-        assert(st->x < newx);
+        assert(st->x <= newx);
         st->x = newx;
-        assert(st->x >= RANS_I_MIN);
         assert(st->x <= RANS_I_MAX);
 }
 

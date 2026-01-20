@@ -19,14 +19,32 @@
 
 /* --- test */
 
+enum mode {
+        test_mode_normal,
+        test_mode_prob,
+        test_mode_zero,
+};
+
 static void
 test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
-            struct bitbuf *bo)
+            struct bitbuf *bo, enum mode mode)
 {
-        printf("encoding...\n");
+        printf("encoding...(mode=%u)\n", mode);
         struct rans_encode_state st0;
         struct rans_encode_state *st = &st0;
-        bool need_init = true;
+        bool need_init = false;
+
+        switch (mode) {
+        case test_mode_normal:
+                rans_encode_init(st);
+                break;
+        case test_mode_prob:
+                need_init = true;
+                break;
+        case test_mode_zero:
+                rans_encode_init_zero(st);
+                break;
+        }
 
         size_t i = inputsize;
         while (1) {
@@ -47,50 +65,52 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
 }
 
 static rans_I
-test_decode(const void *input, size_t inputsize, size_t origsize,
-            const rans_prob_t *ps, const rans_sym_t *trans, struct byteout *bo)
+test_decode(const void *input, size_t inputsize_bits, size_t origsize,
+            const rans_prob_t *ps, const rans_sym_t *trans, struct byteout *bo,
+            enum mode mode)
 {
-        printf("decoding...\n");
+        if (trans == NULL) {
+                printf("decoding w/o trans...\n");
+        } else {
+                printf("decoding w/ trans...\n");
+        }
         struct rans_decode_state st0;
         struct rans_decode_state *st = &st0;
+
+        if (mode != test_mode_zero) {
+                inputsize_bits = SIZE_MAX;
+        }
 
 #if defined(RANS_DECODE_BITS)
         struct bitin in;
         bitin_init(&in, input);
 #else
-        const uint8_t *cp = input;
+        const uint8_t *in = input;
 #endif
 
         rans_decode_init(st);
         while (bo->actual < origsize) {
-#if defined(RANS_DECODE_BITS)
-                rans_sym_t sym = rans_decode_sym(st, ps, &in);
-#else
-                rans_sym_t sym = rans_decode_sym(st, ps, &cp);
-#endif
+                while (rans_decode_need_more(st) &&
+                       inputsize_bits >= RANS_B_BITS) {
+                        rans_decode_feed(st, &in);
+                        inputsize_bits -= RANS_B_BITS;
+                }
+                rans_sym_t sym = rans_decode_sym(st, ps);
                 if (trans != NULL) {
                         sym = trans[sym];
                 }
                 byteout_write(bo, sym);
         }
-#if defined(RANS_DECODE_BITS)
-        return rans_decode_get_extra(st, &in);
-#else
-        return rans_decode_get_extra(st, &cp);
-#endif
+        while (rans_decode_need_more(st) && inputsize_bits >= RANS_B_BITS) {
+                rans_decode_feed(st, &in);
+                inputsize_bits -= RANS_B_BITS;
+        }
+        return rans_decode_get_extra(st);
 }
 
 static void
-test(void)
+test(const void *input, size_t inputsize, enum mode mode)
 {
-        size_t inputsize;
-        const uint8_t *input = read_fd(STDIN_FILENO, &inputsize);
-
-        if (inputsize == 0) {
-                printf("zero byte input\n");
-                exit(0);
-        }
-
         size_t counts[RANS_NSYMS];
         memset(counts, 0, sizeof(counts));
         count_syms(counts, input, inputsize);
@@ -102,7 +122,7 @@ test(void)
 
         struct bitbuf bo;
         bitbuf_init(&bo);
-        test_encode(input, inputsize, &ps, &bo);
+        test_encode(input, inputsize, &ps, &bo, mode);
         bitbuf_rev_flush(&bo);
 
         rans_prob_t table[RANS_TABLE_MAX_NELEMS];
@@ -116,18 +136,19 @@ test(void)
 
         struct byteout bo_dec;
         byteout_init(&bo_dec);
-        test_decode(bo.p, bo.datalen, inputsize, table, NULL, &bo_dec);
+        test_decode(bo.p, bo.datalen_bits, inputsize, table, NULL, &bo_dec,
+                    mode);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
         byteout_init(&bo_dec);
-        test_decode(bo.p, bo.datalen, inputsize, ctable, ctrans, &bo_dec);
+        test_decode(bo.p, bo.datalen_bits, inputsize, ctable, ctrans, &bo_dec,
+                    mode);
         assert(bo_dec.actual == inputsize);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
-        printf("decoded correctly\n");
         printf("compression %zu -> %zu (%zu bits, %+.3f) + %zu\n", inputsize,
                bo.datalen, bo.datalen_bits, bo.datalen_bits - bits,
                tablesize * sizeof(rans_prob_t));
@@ -143,5 +164,17 @@ test(void)
 int
 main(void)
 {
-        test();
+        printf("B=%u L=%u M=%u\n", RANS_B, RANS_L, RANS_M);
+        size_t inputsize;
+        const uint8_t *input = read_fd(STDIN_FILENO, &inputsize);
+        if (inputsize == 0) {
+                printf("zero byte input\n");
+                exit(0);
+        }
+
+        test(input, inputsize, test_mode_normal);
+        test(input, inputsize, test_mode_prob);
+        test(input, inputsize, test_mode_zero);
+
+        free((void *)input);
 }
