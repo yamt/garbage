@@ -47,6 +47,9 @@ void bitbuf_clear(struct bitbuf *s);
  * intermixed on a bitbuf instance.
  *
  * bits within a single bitbuf_rev_write call are NOT reversed.
+ *
+ * bitbuf_rev_flush arranges the data so that the first bit is
+ * byte-aligned. ie. the first bit will be the MSB of *s->p.
  */
 void bitbuf_rev_write(struct bitbuf *s, uint16_t bits, uint8_t nbits);
 void bitbuf_rev_flush(struct bitbuf *s);
