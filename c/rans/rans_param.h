@@ -31,7 +31,6 @@ typedef RANS_I_TYPE rans_I;
 #if !defined(RANS_B_BITS)
 #define RANS_B_BITS 8
 #endif
-/* #define RANS_DECODE_BITS */
 #if !defined(RANS_B)
 #define RANS_B (1 << RANS_B_BITS) /* b in the paper */
 #endif
@@ -65,6 +64,15 @@ typedef RANS_I_TYPE rans_I;
 #endif
 #if (RANS_L % RANS_M) != 0
 #error L should be a multiple of M
+#endif
+
+/*
+ * note: RANS_DECODE_BITS is just a hint for the user application.
+ */
+#if RANS_B_BITS == 8
+#undef RANS_DECODE_BITS
+#else
+#define RANS_DECODE_BITS
 #endif
 
 #if !defined(ctassert)

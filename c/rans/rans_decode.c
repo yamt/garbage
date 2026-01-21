@@ -7,14 +7,6 @@
 #endif
 #include "rans_decode.h"
 
-#if defined(RANS_DECODE_BITS)
-#include "bitin.h"
-#endif
-
-#if !defined(RANS_DECODE_BITS) && RANS_B_BITS != 8
-#error RANS_B_BITS != 8 requires RANS_DECODE_BITS
-#endif
-
 void
 rans_decode_init(struct rans_decode_state *st)
 {
