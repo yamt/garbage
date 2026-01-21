@@ -1,3 +1,13 @@
+/*
+ * a note for embedder
+ *
+ * the minimum set of files necessary for decoding is:
+ *   rans_decode.h
+ *   rans_decode.c
+ *   rans_param.c
+ *   rans_override.c
+ */
+
 #if !defined(_RANS_DECODE_H_)
 #define _RANS_DECODE_H_
 
