@@ -47,6 +47,7 @@ rans_decode_need_more(const struct rans_decode_state *st)
 void
 rans_decode_feed(struct rans_decode_state *st, uint16_t input)
 {
+        RANS_ASSERT((input & (0xffff << RANS_B_BITS)) == 0);
         rans_I newx = st->x * RANS_B + input;
 #if defined(RANS_DEBUG)
         printf("dec normalize in=%02x, %08x -> %08x\n", in, st->x, newx);
