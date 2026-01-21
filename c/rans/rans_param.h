@@ -1,5 +1,13 @@
 /*
- * a straightforward rANS implementation
+ * a straightforward streaming rANS implementation
+ *
+ * optimized for size and simplicity.
+ * ie. do not have extra tables for performance.
+ *
+ * an expected usage:
+ * - the encoder runs on an x86-sized machine
+ * - the decoder runs on a restricted environment, say, 64KB memory
+ * - the decoder can trust input streams
  *
  * reference:
  *   Asymmetric numeral systems: entropy coding combining speed of
