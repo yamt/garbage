@@ -69,7 +69,7 @@ typedef RANS_I_TYPE rans_I;
 #define RANS_B (1 << RANS_B_BITS) /* b in the paper */
 #endif
 #if !defined(RANS_L)
-#define RANS_L (128 * RANS_M) /* l in the paper */
+#define RANS_L (256 * RANS_M) /* l in the paper */
 #endif
 #if !defined(RANS_M)
 #define RANS_M 65536 /* m in the paper */
