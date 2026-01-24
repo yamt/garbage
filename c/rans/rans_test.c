@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "rans_common.h"
@@ -144,6 +145,14 @@ test_decode(const void *input, size_t inputsize_bits, size_t origsize,
         return rans_decode_get_extra(st);
 }
 
+uint64_t
+timestamp_ns(void)
+{
+        struct timespec tv;
+        clock_gettime(CLOCK_REALTIME, &tv);
+        return (uint64_t)tv.tv_sec * 1000000000 + tv.tv_nsec;
+}
+
 static void
 test(const void *input, size_t inputsize, enum mode mode)
 {
@@ -156,10 +165,14 @@ test(const void *input, size_t inputsize, enum mode mode)
         struct rans_probs ps;
         rans_probs_init(&ps, counts);
 
+        uint64_t start_time = timestamp_ns();
         struct bitbuf bo;
         bitbuf_init(&bo);
         test_encode(input, inputsize, &ps, &bo, mode);
         bitbuf_rev_flush(&bo);
+        uint64_t end_time = timestamp_ns();
+        printf("encoding speed %.3f bytes/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000);
 
         rans_prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
@@ -170,18 +183,26 @@ test(const void *input, size_t inputsize, enum mode mode)
         rans_sym_t ctrans[RANS_NSYMS];
         rans_probs_table_with_trans(&ps, ctable, ctrans, &ctablesize);
 
+        start_time = timestamp_ns();
         struct byteout bo_dec;
         byteout_init(&bo_dec);
         test_decode(bo.p, bo.datalen_bits, inputsize, table, NULL, &bo_dec,
                     mode);
         assert(bo_dec.actual == inputsize);
+        end_time = timestamp_ns();
+        printf("decoding speed %.3f bytes/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
+        start_time = timestamp_ns();
         byteout_init(&bo_dec);
         test_decode(bo.p, bo.datalen_bits, inputsize, ctable, ctrans, &bo_dec,
                     mode);
         assert(bo_dec.actual == inputsize);
+        end_time = timestamp_ns();
+        printf("decoding speed %.3f bytes/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
