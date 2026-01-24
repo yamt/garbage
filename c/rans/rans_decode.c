@@ -43,7 +43,9 @@ rans_decode_init(struct rans_decode_state *st)
  * s(x) in the paper.
  * also calculate b_s and return it via *bp.
  *
- * a dumb implementation. probably a plenty of rooms for optimization.
+ * this is a simple and dumb implementation.
+ * in case you want to optimize for speed, it's trivial to use a table,
+ * especially for a small RANS_M.
  */
 static rans_sym_t
 find_sym_and_b(const rans_prob_t ls[RANS_NSYMS], rans_I r, rans_prob_t *bp)
