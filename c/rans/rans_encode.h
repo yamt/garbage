@@ -60,6 +60,8 @@ void rans_encode_init_with_prob(struct rans_encode_state *st, rans_prob_t l_s);
  * decoder later can extract it with rans_decode_get_extra.
  * this mechanism can be used to compensate the cost to store the final
  * state of the encoding.
+ * rans_encode_set_extra should be called before encoding any symbols.
+ * otoh, rans_decode_get_extra should be called after decodinf all symbols.
  *
  * note: the current implementation is incompatible with
  * rans_encode_init_zero/rans_encode_init_with_prob.
