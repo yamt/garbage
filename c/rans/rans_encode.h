@@ -47,9 +47,10 @@ struct rans_encode_state {
  * rans_encode_zero allows even better compression. a downside is
  * that it requires the decoder know the exact size of the encoded bits.
  *
- * note: "better compression" here means up to a few bytes differences.
- * if your data is large enough, maybe the difference is negligible.
- * in that case, just use rans_encode_init as it's simplest to use.
+ * note: "better compression" here usually means up to a few bytes
+ * differences. if your data is large enough, maybe the difference is
+ * negligible. in that case, just use rans_encode_init as it's simplest
+ * to use.
  */
 void rans_encode_init(struct rans_encode_state *st);
 void rans_encode_init_zero(struct rans_encode_state *st);
