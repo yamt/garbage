@@ -145,7 +145,10 @@ test_decode(const void *input, size_t inputsize_bits, size_t origsize,
                 rans_decode_feed(st, d);
                 inputsize_bits -= RANS_B_BITS;
         }
-        assert(mode != test_mode_normal || rans_decode_get_extra(st) == EXTRA);
+        if (mode == test_mode_normal) {
+                rans_I extra = rans_decode_get_extra(st);
+                assert(extra == EXTRA);
+        }
 }
 
 uint64_t
