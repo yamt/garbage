@@ -119,5 +119,7 @@ typedef RANS_I_TYPE rans_I;
 
 ctassert((rans_prob_t)(RANS_M - 1) == RANS_M - 1);
 ctassert((rans_I)RANS_I_MAX == RANS_I_MAX);
+ctassert(RANS_I_MAX / RANS_L == RANS_B - 1);
+ctassert(RANS_I_MAX / RANS_B == RANS_L - 1);
 
 #endif /* !defined(_RANS_PARAM_H_) */
