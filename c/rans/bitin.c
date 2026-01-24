@@ -55,7 +55,7 @@ bitin_get_bits(struct bitin *in, unsigned int nbits)
         RANS_ASSERT(nbits <= 16);
         unsigned int bitoff = in->bitoff;
         uint32_t u = 0;
-        while (1) {
+        while (nbits > 0) {
                 uint8_t mask = 0xff >> bitoff;
                 u += *in->p & mask;
                 if (bitoff + nbits < 8) {
