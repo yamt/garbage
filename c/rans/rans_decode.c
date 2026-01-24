@@ -93,7 +93,7 @@ rans_decode_sym(struct rans_decode_state *st, const rans_prob_t ls[RANS_NSYMS])
 {
         RANS_ASSERT(st->x <= RANS_I_MAX);
         rans_I q_x_m = st->x / RANS_M;
-        rans_prob_t mod_x_m = st->x % RANS_M;
+        rans_prob_t mod_x_m = (rans_prob_t)(st->x % RANS_M);
         rans_prob_t b_s;
         rans_sym_t s = find_sym_and_b(ls, mod_x_m, &b_s);
         rans_prob_t l_s = ls[s];
