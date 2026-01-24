@@ -171,8 +171,9 @@ test(const void *input, size_t inputsize, enum mode mode)
         test_encode(input, inputsize, &ps, &bo, mode);
         bitbuf_rev_flush(&bo);
         uint64_t end_time = timestamp_ns();
-        printf("encoding speed %.3f bytes/s\n",
-               ((double)inputsize / (end_time - start_time)) * 1000000000);
+        printf("encoding speed %.3f MB/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000 /
+                       1000000);
 
         rans_prob_t table[RANS_TABLE_MAX_NELEMS];
         size_t tablesize;
@@ -190,8 +191,9 @@ test(const void *input, size_t inputsize, enum mode mode)
                     mode);
         assert(bo_dec.actual == inputsize);
         end_time = timestamp_ns();
-        printf("decoding speed %.3f bytes/s\n",
-               ((double)inputsize / (end_time - start_time)) * 1000000000);
+        printf("decoding speed %.3f MB/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000 /
+                       1000000);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
@@ -201,8 +203,9 @@ test(const void *input, size_t inputsize, enum mode mode)
                     mode);
         assert(bo_dec.actual == inputsize);
         end_time = timestamp_ns();
-        printf("decoding speed %.3f bytes/s\n",
-               ((double)inputsize / (end_time - start_time)) * 1000000000);
+        printf("decoding speed %.3f MB/s\n",
+               ((double)inputsize / (end_time - start_time)) * 1000000000 /
+                       1000000);
         assert(!memcmp(bo_dec.p, input, inputsize));
         byteout_clear(&bo_dec);
 
