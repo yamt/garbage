@@ -52,6 +52,8 @@ enum mode {
         test_mode_zero,
 };
 
+#define EXTRA 0
+
 static void
 test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
             struct bitbuf *bo, enum mode mode)
@@ -64,6 +66,7 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
         switch (mode) {
         case test_mode_normal:
                 rans_encode_init(st);
+                rans_encode_set_extra(st, EXTRA);
                 break;
         case test_mode_prob:
                 need_init = true;
@@ -91,7 +94,7 @@ test_encode(const void *input, size_t inputsize, const struct rans_probs *ps,
         rans_encode_flush(st, bo);
 }
 
-static rans_I
+static void
 test_decode(const void *input, size_t inputsize_bits, size_t origsize,
             const rans_prob_t *ps, const rans_sym_t *trans, struct byteout *bo,
             enum mode mode)
@@ -142,7 +145,7 @@ test_decode(const void *input, size_t inputsize_bits, size_t origsize,
                 rans_decode_feed(st, d);
                 inputsize_bits -= RANS_B_BITS;
         }
-        return rans_decode_get_extra(st);
+        assert(mode != test_mode_normal || rans_decode_get_extra(st) == EXTRA);
 }
 
 uint64_t
