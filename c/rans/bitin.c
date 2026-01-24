@@ -72,5 +72,5 @@ bitin_get_bits(struct bitin *in, unsigned int nbits)
         RANS_ASSERT(u <= 0xffffff);
         u >>= 8 - bitoff;
         RANS_ASSERT(u <= 0xffff);
-        return u;
+        return (uint16_t)u;
 }
