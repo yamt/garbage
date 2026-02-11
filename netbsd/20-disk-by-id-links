@@ -1,0 +1,71 @@
+#! /bin/sh
+#
+# $NetBSD$
+
+set -e
+
+event="$1"
+shift
+
+by_id_dir=/dev/disk/by-id
+
+remove_links() {
+	local t l
+	# remove all symlinks to the device
+	find "${by_id_dir}" -type l | while read l; do
+		t=$(readlink "${l}")
+		if [ x"${t}" = x"/dev/$1" ]; then
+			rm -f "${l}"
+		fi
+	done
+}
+
+get_wd_ID_WWN_VENDOR_EXTENSION()
+{
+	local device wwn
+	device="$1"
+	# this is intended to be compatible with systemd's
+	# ID_WWN_VENDOR_EXTENSION.
+	case "${device}" in
+	wd*)
+		# note: ID_WWN and ID_WWN_VENDOR_EXTENSION are same for
+		# ata devices.
+		# cf. https://github.com/systemd/systemd/commit/7f4954d04026f28b0ebe65a514f06fefad8efaca
+		wwn=$(atactl "/dev/r${device}" identify | sed -ne "/^World Wide Name: /s///p")
+		if [ x"${wwn}" != x ]; then
+			echo "0x$(echo "${wwn}" | tr '[:upper:]' '[:lower:]')"
+		fi
+		;;
+	esac
+}
+
+add_wwn_links() {
+	local ID_WWN_VENDOR_EXTENSION
+	ID_WWN_VENDOR_EXTENSION=$(get_wd_ID_WWN_VENDOR_EXTENSION "$1")
+	if [ x"${ID_WWN_VENDOR_EXTENSION}" != x ]; then
+		# mimic the default udev rules
+		# XXX partitions
+		rm -f "${by_id_dir}/wwn-${ID_WWN_VENDOR_EXTENSION}"
+		ln -s "/dev/$1" "${by_id_dir}/wwn-${ID_WWN_VENDOR_EXTENSION}"
+	fi
+}
+
+for device do
+	case "${device}" in
+	wd*)
+		mkdir -p "${by_id_dir}"
+		case ${event} in
+		device-attach)
+			remove_links "${device}"
+			add_wwn_links "${device}"
+			;;
+		device-detach)
+			remove_links "${device}"
+			# remove the directory if it's now empty
+			rmdir /dev/disk/by-id 2> /dev/null &&
+				rmdir /dev/disk 2> /dev/null || :
+			;;
+		esac
+		;;
+	esac
+done
