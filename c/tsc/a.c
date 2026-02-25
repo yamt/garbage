@@ -31,38 +31,99 @@ getnp(void)
         return np;
 }
 
-void
-print_tsc(void)
+uint64_t
+rdtsc(void)
 {
         uint32_t hi, lo;
         __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
-        uint32_t cpu = pthread_curcpu_np();
         uint64_t tsc = ((uint64_t)hi << 32) | lo;
-        printf("cpu %u tsc %" PRIu64 "\n", cpu, tsc);
+        return tsc;
+}
+
+void
+set_affinity(pthread_t self, cpuset_t *cset)
+{
+        int error = pthread_setaffinity_np(self, cpuset_size(cset), cset);
+        if (error != 0) {
+                fprintf(stderr, "pthread_setaffinity_np failed with %d\n",
+                        error);
+                exit(1);
+        }
+}
+
+void
+measure(pthread_t self, unsigned int np, cpuset_t **csets, int64_t *skews)
+{
+        unsigned int i;
+
+        /*
+         * measure how much tsc of the cpu advances from the next cpu.
+         * + the OS overhead (context switches etc)
+         */
+        for (i = 0; i < np; i++) {
+                uint64_t tsc;
+                set_affinity(self, csets[(i + 1) % np]);
+                tsc = rdtsc();
+                set_affinity(self, csets[i]);
+                skews[i] = rdtsc() - tsc;
+        }
 }
 
 int
 main(void)
 {
-        cpuset_t *cset = cpuset_create();
         pthread_t self = pthread_self();
         unsigned int i;
         unsigned int np = getnp();
         int error;
-
+        int64_t *skews = malloc(np * sizeof(*skews));
+        cpuset_t **csets = malloc(np * sizeof(*csets));
+        if (skews == NULL || csets == NULL) {
+                exit(1);
+        }
         for (i = 0; i < np; i++) {
-                /* set affinity */
-                cpuset_zero(cset);
-                cpuset_set(i, cset);
-                error = pthread_setaffinity_np(self, cpuset_size(cset), cset);
-                if (error != 0) {
-                        fprintf(stderr,
-                                "pthread_setaffinity_np failed with %d\n",
-                                error);
+                cpuset_t *cset = cpuset_create();
+                if (cset == NULL) {
                         exit(1);
                 }
-
-                print_tsc();
+                cpuset_zero(cset);
+                cpuset_set(i, cset);
+                csets[i] = cset;
         }
-        cpuset_destroy(cset);
+
+        /* ignore the first run, which hopefully makes the cache hot */
+        measure(self, np, csets, skews);
+        measure(self, np, csets, skews);
+
+        for (i = 0; i < np; i++) {
+                cpuset_destroy(csets[i]);
+        }
+
+        int64_t sum = 0;
+        for (i = 0; i < np; i++) {
+                sum += skews[i];
+        }
+        int64_t avg = sum / np;
+        // printf("avg %" PRId64 "\n", avg);
+
+        /*
+         * assuming the OS overhead in the above measurement was a constant,
+         * subtract the average, which hopefully represents the OS overhead.
+         */
+        for (i = 0; i < np; i++) {
+                skews[i] -= avg;
+        }
+
+        /*
+         * calculate skew from the cpu 0
+         */
+        for (i = 0; i < np; i++) {
+                // printf("cpu %u skew raw %" PRId64 "\n", i, skews[i]);
+                int64_t s = 0;
+                unsigned int j;
+                for (j = 0; j < i; j++) {
+                        s -= skews[j];
+                }
+                printf("cpu %u skew %" PRId64 "\n", i, s);
+        }
 }
