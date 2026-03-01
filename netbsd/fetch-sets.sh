@@ -16,7 +16,7 @@ cat SHA512 | sed -e 's/.*(\(.*\)) = \(.*\)/\1 \2/' | while read x expected; do
     echo "checking $x..."
     actual=$(openssl sha512 -r $x | cut -d ' ' -f1)
     if [ "${actual}" != "${expected}" ]; then
-    	echo "ERROR: digest mismatch"
+        echo "ERROR: digest mismatch"
         exit 1
     fi
 done
