@@ -7,7 +7,7 @@ URL=$1
 
 dl() {
     echo "downloading $1..."
-    curl --silent -LO "${URL}/$1"
+    curl --fail --silent -LO "${URL}/$1"
 }
 
 dl SHA512
