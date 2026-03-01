@@ -2,6 +2,7 @@
 #include <sys/fcntl.h>
 #include <sys/ioctl.h>
 
+#include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
 #include <paths.h>
@@ -125,5 +126,10 @@ main(void)
                         s -= skews[j];
                 }
                 printf("cpu %u skew %" PRId64 "\n", i, s);
+                if (i == np-1) {
+                        /* up to np errors because of integer division */
+                        assert(s <= skews[i]);
+                        assert(skews[i] < s + np);
+                }
         }
 }
