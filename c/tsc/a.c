@@ -10,6 +10,7 @@
 #include <sched.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 unsigned int
@@ -24,8 +25,8 @@ getnp(void)
         unsigned int np;
         int ret = ioctl(fd, IOC_CPU_GETCOUNT, &np);
         if (ret == -1) {
-                fprintf(stderr, "IOC_CPU_GETCOUNT failed, errno=%d\n",
-                        _PATH_CPUCTL, errno);
+                fprintf(stderr, "IOC_CPU_GETCOUNT failed, errno=%d (%s)\n",
+                        errno, strerror(errno));
                 exit(1);
         }
         close(fd);
@@ -76,7 +77,6 @@ main(void)
         pthread_t self = pthread_self();
         unsigned int i;
         unsigned int np = getnp();
-        int error;
         int64_t *skews = malloc(np * sizeof(*skews));
         cpuset_t **csets = malloc(np * sizeof(*csets));
         if (skews == NULL || csets == NULL) {
@@ -126,7 +126,7 @@ main(void)
                         s -= skews[j];
                 }
                 printf("cpu %u skew %" PRId64 "\n", i, s);
-                if (i == np-1) {
+                if (i == np - 1) {
                         /* up to np errors because of integer division */
                         assert(s <= skews[i]);
                         assert(skews[i] < s + np);
