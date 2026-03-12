@@ -1,5 +1,3 @@
-#include <sys/time.h>
-
 #include <assert.h>
 #include <errno.h>
 #include <inttypes.h>
