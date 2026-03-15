@@ -20,17 +20,20 @@ main(int argc, char **argv)
                 exit(1);
         }
         size_t i;
+        printf("filling...\n");
         for (i = 0; i < sz; i += 1024) {
                 *(size_t *)&p[i] = i;
         }
+        printf("checking...\n");
         for (i = 0; i < sz; i += 1024) {
                 size_t actual = *(size_t *)&p[i];
                 size_t expected = i;
 
                 if (i != actual) {
                         fprintf(stderr,
-                                "offset %zu, expected %zx != actual %zx\n", i,
-                                expected, actual);
+                                "offset %08zx, expected %08zx != actual "
+                                "%08zx\n",
+                                i, expected, actual);
                 }
         }
 }
