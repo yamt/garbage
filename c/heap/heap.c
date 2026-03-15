@@ -1,3 +1,7 @@
+/*
+ * motivation: test swap in/out
+ */
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
