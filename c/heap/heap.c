@@ -22,11 +22,11 @@ main(int argc, char **argv)
         size_t i;
         printf("filling...\n");
         for (i = 0; i < sz; i += 1024) {
-                *(size_t *)&p[i] = i;
+                *(volatile size_t *)&p[i] = i;
         }
         printf("checking...\n");
         for (i = 0; i < sz; i += 1024) {
-                size_t actual = *(size_t *)&p[i];
+                size_t actual = *(volatile size_t *)&p[i];
                 size_t expected = i;
 
                 if (i != actual) {
