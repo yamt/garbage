@@ -1,7 +1,9 @@
 #include <stdio.h>
 
-int
-main(int argc, char **argv)
+#include "hello.h"
+
+void
+say_hello(void)
 {
         printf("hello\n");
 }
