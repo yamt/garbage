@@ -79,6 +79,9 @@ main(void)
         unsigned int np = getnp();
         int64_t *skews = malloc(np * sizeof(*skews));
         cpuset_t **csets = malloc(np * sizeof(*csets));
+        struct sched_param param;
+        int ret;
+
         if (skews == NULL || csets == NULL) {
                 exit(1);
         }
@@ -90,6 +93,16 @@ main(void)
                 cpuset_zero(cset);
                 cpuset_set(i, cset);
                 csets[i] = cset;
+        }
+
+        memset(&param, 0, sizeof(param));
+        param.sched_priority = sched_get_priority_max(SCHED_FIFO);
+        ret = sched_setscheduler(0, SCHED_FIFO, &param);
+        if (ret != 0) {
+                fprintf(stderr,
+                        "igoring sched_setscheduler failure. "
+                        "errno %d (%s)\n",
+                        errno, strerror(errno));
         }
 
         /* ignore the first run, which hopefully makes the cache hot */
