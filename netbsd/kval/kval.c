@@ -1,3 +1,12 @@
+/*
+ * usage example:
+ *
+ *   uma% sudo ./kval _kernel_lock_cacheline+8,8
+ *   _kernel_lock_cacheline+8, addr=0xffffffff81ab5200+8
+ *   00 20 2d 50 92 9c ff ff
+ *   uint64_t: 18446634750957133824 0xffff9c92502d2000
+ *   uma%
+ */
 
 #include <errno.h>
 #include <fcntl.h>
