@@ -8,6 +8,19 @@
 #include <stdlib.h>
 #include <string.h>
 
+static size_t
+str_to_size(const char *cp)
+{
+	char *ep;
+	errno = 0;
+	uintmax_t um = strtoumax(cp, &ep, 0);
+	if (ep == cp || *ep != 0 || errno != 0 || um > SIZE_MAX) {
+		fprintf(stderr, "invalid size: %s", cp);
+		exit(1);
+	}
+	return (size_t)um;
+}
+
 int
 main(int argc, char *argv[])
 {
@@ -28,17 +41,15 @@ main(int argc, char *argv[])
 		int ninval;
 		unsigned long addr;
 		size_t offset = 0;
+		size_t size = 4;
 		const char *name = strtok(*argv, "+");
-		const char *offstr = strtok(NULL, "+");
+		const char *offstr = strtok(NULL, ",");
+		const char *sizestr = strtok(NULL, ",");
 		if (offstr != NULL) {
-			char *ep;
-			errno = 0;
-			uintmax_t um = strtoumax(offstr, &ep, 0);
-			if (ep == offstr || *ep != 0 || errno != 0) {
-				fprintf(stderr, "invalid offset: %s", offstr);
-				exit(1);
-			}
-			offset = um;
+			offset = str_to_size(offstr);
+		}
+		if (sizestr != NULL) {
+			size = str_to_size(sizestr);
 		}
 		nl[0].n_name = name;
 		argv++;
@@ -57,12 +68,17 @@ main(int argc, char *argv[])
 		addr = nl[0].n_value;
 
 		{
-			uint32_t v;
+			static uint8_t *p = NULL;
 			ssize_t nread;
 			size_t want;
 
-			want = sizeof(v);
-			nread = kvm_read(kd, addr + offset, &v, want);
+			want = size;
+			p = realloc(p, size);
+			if (p == NULL) {
+				fprintf(stderr, "realloc failed\n");
+				exit(1);
+			}
+			nread = kvm_read(kd, addr + offset, p, want);
 			if (nread == -1) {
 				fprintf(stderr, "kvm_read: %s\n",
 				    kvm_geterr(kd));
@@ -72,8 +88,28 @@ main(int argc, char *argv[])
 				fprintf(stderr, "kvm_read: short read\n");
 				exit(1);
 			}
-			printf("%s+%zu, addr=0x%lx+%zu, val=0x%x (%d)\n",
-			    nl[0].n_name, offset, addr, offset, v, v);
+			printf("%s+%zu, addr=0x%lx+%zu\n",
+			    nl[0].n_name, offset, addr, offset);
+
+			const char *sep = "";
+			size_t i;
+			for (i = 0; i < size; i++) {
+				printf("%s%02x", sep, p[i]);
+				sep = " ";
+			}
+			printf("\n");
+			switch (size) {
+			case 4:
+				printf("uint32_t: %" PRIu32 " 0x%" PRIx32 "\n",
+				    *(uint32_t *)p,
+				    *(uint32_t *)p);
+				break;
+			case 8:
+				printf("uint64_t: %" PRIu64 " 0x%" PRIx64 "\n",
+				    *(uint64_t *)p,
+				    *(uint64_t *)p);
+				break;
+			}
 		}
 	}
 
