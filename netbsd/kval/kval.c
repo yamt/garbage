@@ -1,0 +1,70 @@
+
+#include <fcntl.h>
+#include <kvm.h>
+#include <limits.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+int
+main(int argc, char *argv[])
+{
+	kvm_t *kd;
+	char buf[_POSIX2_LINE_MAX];
+	struct nlist nl[2];
+
+	kd = kvm_openfiles(NULL, NULL, NULL, 0, buf);
+	if (kd == NULL) {
+		fprintf(stderr, "kvm_openfiles: %s\n", buf);
+		exit(1);
+	}
+
+	nl[1].n_name = NULL;
+	argv++;
+	argc--;
+	while (argc > 0) {
+		int ninval;
+		unsigned long addr;
+
+		nl[0].n_name = *argv;
+		argv++;
+		argc--;
+
+		ninval = kvm_nlist(kd, nl);
+		if (ninval == -1) {
+			fprintf(stderr, "kvm_nlist: %s\n", kvm_geterr(kd));
+			exit(1);
+		}
+		if (ninval != 0) {
+			fprintf(stderr, "kvm_nlist: returns %d\n", ninval);
+			exit(1);
+		}
+
+		addr = nl[0].n_value;
+
+		{
+			uint32_t v;
+			ssize_t nread;
+			size_t want;
+
+			want = sizeof(v);
+			nread = kvm_read(kd, addr, &v, want);
+			if (nread == -1) {
+				fprintf(stderr, "kvm_read: %s\n",
+				    kvm_geterr(kd));
+				exit(1);
+			}
+			if (nread != want) {
+				fprintf(stderr, "kvm_read: short read\n");
+				exit(1);
+			}
+			printf("%s, addr=0x%lx, val=0x%x (%d)\n",
+			    nl[0].n_name, addr, v, v);
+		}
+	}
+
+	if (kvm_close(kd)) {
+		fprintf(stderr, "kvm_close: %s\n", kvm_geterr(kd));
+		exit(1);
+	}
+	exit(0);
+}
