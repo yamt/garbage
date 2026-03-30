@@ -65,6 +65,14 @@ rng_rand_u32(struct rng *rng)
         return st[i];
 }
 
+uint64_t
+rng_rand_u64(struct rng *rng)
+{
+        uint32_t high = rng_rand_u32(rng);
+        uint32_t low = rng_rand_u32(rng);
+        return ((uint64_t)high << 32) | low;
+}
+
 int
 rng_rand(struct rng *rng, int min, int max)
 {

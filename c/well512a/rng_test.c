@@ -17,6 +17,11 @@ main(void)
         uint32_t x;
 
         rng_init(&rng, 0);
+        for (i = 0; i < 32; i++) {
+                printf("%016" PRIx64 "\n", rng_rand_u64(&rng));
+        }
+
+        rng_init(&rng, 0);
         for (i = 0; i < 16; i++) {
                 rng.state[i] = 0;
         }

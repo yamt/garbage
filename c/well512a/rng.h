@@ -7,5 +7,6 @@ struct rng {
 
 void rng_init(struct rng *rng, uint64_t seed);
 uint32_t rng_rand_u32(struct rng *rng);
+uint64_t rng_rand_u64(struct rng *rng);
 
 int rng_rand(struct rng *rng, int min, int max);
