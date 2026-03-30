@@ -6,6 +6,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "rng.h"
+
 int
 main(int argc, char **argv)
 {
@@ -32,9 +34,11 @@ main(int argc, char **argv)
                 exit(1);
         }
         printf("mmaped\n");
+        struct rng rng;
         uint8_t *p = vp;
+        rng_init(&rng, 0);
         while (1) {
-                p[random() % size]++;
+                p[rng_rand_u64(&rng) % size]++;
                 // msync(vp, st.st_size, MS_ASYNC);
                 // sleep(1);
         }
