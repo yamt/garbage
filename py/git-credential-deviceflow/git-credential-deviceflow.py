@@ -129,7 +129,8 @@ def get_token():
         print(f"unknown token type: {token_type}", file=f)
         exit(1)
 
-    # note: github doesn't give us refresh_token.
+    # note: github doesn't give us refresh_token. github oauth
+    # access tokens have no expirations.
     access_token = j["access_token"]
     return access_token
 
