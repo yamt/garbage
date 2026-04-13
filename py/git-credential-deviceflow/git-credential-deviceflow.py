@@ -48,7 +48,6 @@
 #     git-credential-cache(1)
 
 import requests
-import json
 import qrcode
 import sys
 import time
@@ -75,8 +74,7 @@ def get_token():
     resp = s.post(url, data=data, headers=headers)
     resp.raise_for_status()
 
-    j = json.loads(resp.content)
-
+    j = resp.json()
     device_code = j["device_code"]
     user_code = j["user_code"]
     verification_uri = j["verification_uri"]
@@ -106,9 +104,7 @@ def get_token():
         resp = s.post(token_url, data=data, headers=headers)
         resp.raise_for_status()
 
-        j = json.loads(resp.content)
-        # print(json.dumps(j, indent=4))
-
+        j = resp.json()
         # https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
         error = j.get("error")
         if error is None:
