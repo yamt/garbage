@@ -23,10 +23,13 @@ you may want to cache them by combining this with other helpers like
 
 ## git-credential-oauth2-webapp
 
-a git credential helper for oauth 2.0 web application flow (RFC 6749)
+a git credential helper for oauth 2.0 web application flow ([RFC 6749])
 
 ## git-credential-oauth2-device
 
-a git credential helper for oauth 2.0 device authorization grants (RFC 8628)
+a git credential helper for oauth 2.0 device authorization grants ([RFC 8628])
 
 aka "device flow"
+
+[RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
+[RFC 8628]: https://datatracker.ietf.org/doc/html/rfc8628
