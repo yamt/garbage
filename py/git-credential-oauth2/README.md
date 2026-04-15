@@ -17,6 +17,8 @@ you may want to cache them by combining this with other helpers like
     # empty helper overrides the system default (eg. osxkeychain)
     helper =
     helper = cache --timeout 21600
+    # if web application flow didn't work (eg. web browser is not available)
+    # fallback to device flow
     helper = oauth2-webapp
     helper = oauth2-device
 ```
