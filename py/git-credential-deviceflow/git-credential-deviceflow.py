@@ -48,7 +48,8 @@
 #     git-credential-cache(1)
 
 import webbrowser
-import requests
+import urllib.request
+import json
 import sys
 import time
 
@@ -68,18 +69,20 @@ scope = "repo"
 
 
 def get_token():
-    s = requests.Session()
     data = {
         "client_id": client_id,
         "scope": scope,
     }
     headers = {
+        "Content-Type": "application/json",
         "Accept": "application/json",
     }
-    resp = s.post(url, data=data, headers=headers)
-    resp.raise_for_status()
+    encoded_data = json.dumps(data).encode('utf-8')
+    req = urllib.request.Request(url=url, data=encoded_data, headers=headers)
+    with urllib.request.urlopen(req) as resp:
+        resp = resp.read()
+        j = json.loads(resp)
 
-    j = resp.json()
     device_code = j["device_code"]
     user_code = j["user_code"]
     verification_uri = j["verification_uri"]
@@ -109,11 +112,13 @@ def get_token():
         "device_code": device_code,
         "grant_type": grant_type,
     }
+    encoded_data = json.dumps(data).encode('utf-8')
     while True:
-        resp = s.post(token_url, data=data, headers=headers)
-        resp.raise_for_status()
+        req = urllib.request.Request(url=token_url, data=encoded_data, headers=headers)
+        with urllib.request.urlopen(req) as resp:
+            resp = resp.read()
+            j = json.loads(resp)
 
-        j = resp.json()
         # https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
         error = j.get("error")
         if error is None:
