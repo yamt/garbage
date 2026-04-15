@@ -89,7 +89,6 @@ def get_token():
     expires_in = j["expires_in"]
     interval = j["interval"]
 
-    webbrowser.open(verification_uri)
     f = sys.stderr
     if qrcode:
         print(f"scan the following QR code or ", end="", file=f)
@@ -105,6 +104,8 @@ def get_token():
         )
         qr.add_data(verification_uri)
         qr.print_ascii(out=f)
+
+    webbrowser.open_new_tab(verification_uri)
 
     # https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
     data = {
