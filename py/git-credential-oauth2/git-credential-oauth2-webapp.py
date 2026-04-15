@@ -58,7 +58,7 @@ client_secret = "55eaf54f333bf6eec0a12297af12679eff2ae4eb"
 
 auth_url = "https://github.com/login/oauth/authorize"
 token_url = "https://github.com/login/oauth/access_token"
-redirect_address = ('localhost', 0)
+redirect_address = ("localhost", 0)
 
 # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
 scope = "repo"
@@ -66,6 +66,7 @@ scope = "repo"
 state = None
 httpd = None
 code = None
+
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -78,7 +79,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header("Content-type", "text/html; charset=ascii")
         self.end_headers()
-        self.wfile.write(f"git-credential-oauth2-webapp: {result}".encode('ascii'))
+        self.wfile.write(f"git-credential-oauth2-webapp: {result}".encode("ascii"))
 
     # disable request logging as it contains the redirected code
     def log_message(self, *args):
@@ -102,9 +103,9 @@ def get_token():
 
     # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
     pkce_verifier = secrets.token_urlsafe(64)
-    pkce_hash = hashlib.sha256(pkce_verifier.encode('utf-8')).digest()
-    pkce_hash = base64.urlsafe_b64encode(pkce_hash).decode('utf-8')
-    pkce_hash = pkce_hash.replace('=', '')
+    pkce_hash = hashlib.sha256(pkce_verifier.encode("utf-8")).digest()
+    pkce_hash = base64.urlsafe_b64encode(pkce_hash).decode("utf-8")
+    pkce_hash = pkce_hash.replace("=", "")
     global state
     state = secrets.token_urlsafe(32)
     params = {
@@ -134,7 +135,7 @@ def get_token():
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",
     }
-    encoded_data = urllib.parse.urlencode(data).encode('utf-8')
+    encoded_data = urllib.parse.urlencode(data).encode("utf-8")
     req = urllib.request.Request(url=token_url, data=encoded_data, headers=headers)
     with urllib.request.urlopen(req) as resp:
         resp = resp.read()
@@ -142,7 +143,7 @@ def get_token():
 
     f = sys.stderr
 
-    error = j.get('error')
+    error = j.get("error")
     if error is not None:
         print(f"error {error}", file=f)
         print(f"full response:\n{json.dumps(j, indent=4)}", file=f)
