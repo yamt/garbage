@@ -88,7 +88,6 @@ class Handler(http.server.BaseHTTPRequestHandler):
 def start_local_httpd():
     global httpd
     httpd = http.server.HTTPServer(redirect_address, Handler)
-    httpd.timeout = 120
     return f"http://localhost:{httpd.server_port}/"
 
 
