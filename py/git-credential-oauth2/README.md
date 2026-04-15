@@ -1,13 +1,13 @@
 # git-credential-oauth2
 
-## what's this
+## What's this
 
-git credential helpers to implement oauth 2.0.
+Git credential helpers to implement OAuth 2.0.
 
-currently only implements github.
+Currently only implements github.
 
-these helpers only implement "get" and do never store credentials.
-you may want to cache them by combining this with other helpers like
+These helpers only implement "get" and do never store credentials.
+You may want to cache them by combining this with other helpers like
 `osxkeychain`.
 
 ## `~/.gitconfig` example
@@ -25,14 +25,13 @@ you may want to cache them by combining this with other helpers like
 
 ## git-credential-oauth2-webapp
 
-a git credential helper for oauth 2.0 web application flow ([RFC 6749])
+A git credential helper for OAuth 2.0 web application flow ([RFC 6749])
 with PKCE. ([RFC 7636])
 
 ## git-credential-oauth2-device
 
-a git credential helper for oauth 2.0 device authorization grants ([RFC 8628])
-
-aka "device flow"
+A git credential helper for OAuth 2.0 device authorization grants, ([RFC 8628])
+aka "device flow".
 
 [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
 [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
