@@ -6,6 +6,10 @@ git credential helpers to implement oauth 2.0.
 
 currently only implements github.
 
+these helpers only implement "get" and do never store credentials.
+you may want to cache them by combining this with other helpers like
+`osxkeychain`.
+
 ## `~/.gitconfig` example
 
 ```
