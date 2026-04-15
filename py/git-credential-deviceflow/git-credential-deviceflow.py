@@ -47,6 +47,7 @@
 #     git-credential(1)
 #     git-credential-cache(1)
 
+import webbrowser
 import requests
 import sys
 import time
@@ -85,6 +86,7 @@ def get_token():
     expires_in = j["expires_in"]
     interval = j["interval"]
 
+    webbrowser.open(verification_uri)
     f = sys.stderr
     if qrcode:
         print(f"scan the following QR code or ", end="", file=f)
