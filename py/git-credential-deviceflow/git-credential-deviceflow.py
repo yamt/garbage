@@ -48,9 +48,13 @@
 #     git-credential-cache(1)
 
 import requests
-import qrcode
 import sys
 import time
+
+try:
+    import qrcode
+except ModuleNotFoundError:
+    qrcode = None
 
 client_id = "Ov23liXxUEnSmBOA1hsz"  # git-credential-deviceflow
 
@@ -82,17 +86,20 @@ def get_token():
     interval = j["interval"]
 
     f = sys.stderr
-    print(f"scan the following QR code or visit:\n{verification_uri}\n", file=f)
-    print(f"and enter the code:\n{user_code}\n", file=f)
+    if qrcode:
+        print(f"scan the following QR code or ", end="", file=f)
+    print(f"visit:\n\t{verification_uri}", file=f)
+    print(f"and enter the code:\n\t{user_code}", file=f)
     print(f"the code expires in {expires_in} seconds", file=f)
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
-    qr.add_data(verification_uri)
-    qr.print_ascii(out=f)
+    if qrcode:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(verification_uri)
+        qr.print_ascii(out=f)
 
     # https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
     data = {
