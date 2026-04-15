@@ -54,6 +54,9 @@ import sys
 import time
 
 client_id = "Ov23li9YAYcNhPanUtBB"  # git-credential-oauth2-webapp
+
+# note: public applications can't hold the credential securely.
+# we simply hardcode it here.
 client_secret = "55eaf54f333bf6eec0a12297af12679eff2ae4eb"
 
 auth_url = "https://github.com/login/oauth/authorize"
