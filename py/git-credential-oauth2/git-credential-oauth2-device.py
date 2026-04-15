@@ -37,7 +37,7 @@
 #
 # [credential]
 #     helper = cache --timeout 21600
-#     helper = deviceflow
+#     helper = oauth2-device
 
 # references:
 #     https://datatracker.ietf.org/doc/html/rfc8628
