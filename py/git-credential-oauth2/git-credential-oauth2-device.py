@@ -77,7 +77,7 @@ def get_token():
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
-    encoded_data = json.dumps(data).encode('utf-8')
+    encoded_data = json.dumps(data).encode("utf-8")
     req = urllib.request.Request(url=url, data=encoded_data, headers=headers)
     with urllib.request.urlopen(req) as resp:
         resp = resp.read()
@@ -113,7 +113,7 @@ def get_token():
         "device_code": device_code,
         "grant_type": grant_type,
     }
-    encoded_data = json.dumps(data).encode('utf-8')
+    encoded_data = json.dumps(data).encode("utf-8")
     while True:
         req = urllib.request.Request(url=token_url, data=encoded_data, headers=headers)
         with urllib.request.urlopen(req) as resp:
