@@ -58,7 +58,7 @@ try:
 except ModuleNotFoundError:
     qrcode = None
 
-client_id = "Ov23liXxUEnSmBOA1hsz"  # git-credential-deviceflow
+client_id = "Ov23liXxUEnSmBOA1hsz"  # git-credential-oauth2-device
 
 url = "https://github.com/login/device/code"
 token_url = "https://github.com/login/oauth/access_token"
