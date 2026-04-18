@@ -99,3 +99,8 @@ You can override it as the following:
 See [Scopes for OAuth apps] for available scopes for github.
 
 [Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
+
+## Notes
+
+Github OAuth access tokens have no expirations. It might be a good idea to
+revoke them on https://github.com/settings/applications time to time.
