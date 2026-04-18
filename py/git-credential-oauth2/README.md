@@ -10,6 +10,20 @@ These helpers only implement "get" and do never store credentials.
 You may want to cache them by combining this with other helpers like
 `osxkeychain`.
 
+### git-credential-oauth2-webapp
+
+A git credential helper for OAuth 2.0 web application flow ([RFC 6749])
+with PKCE. ([RFC 7636])
+
+### git-credential-oauth2-device
+
+A git credential helper for OAuth 2.0 device authorization grants, ([RFC 8628])
+aka "device flow".
+
+[RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
+[RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
+[RFC 8628]: https://datatracker.ietf.org/doc/html/rfc8628
+
 ## install/uninstall
 
 Install destination is '~/.local/bin' by default.
@@ -60,17 +74,3 @@ You can override it as the following:
 See [Scopes for OAuth apps] for available scopes for github.
 
 [Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
-
-## git-credential-oauth2-webapp
-
-A git credential helper for OAuth 2.0 web application flow ([RFC 6749])
-with PKCE. ([RFC 7636])
-
-## git-credential-oauth2-device
-
-A git credential helper for OAuth 2.0 device authorization grants, ([RFC 8628])
-aka "device flow".
-
-[RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
-[RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
-[RFC 8628]: https://datatracker.ietf.org/doc/html/rfc8628
