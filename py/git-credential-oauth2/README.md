@@ -15,10 +15,16 @@ You may want to cache them by combining this with other helpers like
 A git credential helper for OAuth 2.0 web application flow ([RFC 6749])
 with PKCE. ([RFC 7636])
 
+You may use this for environments with a local web browser.
+
 ### git-credential-oauth2-device
 
 A git credential helper for OAuth 2.0 device authorization grants, ([RFC 8628])
 aka "device flow".
+
+You may use this for environments where you can read its `stderr` output,
+including the verification uri/qrcode and `user code`.
+You also needs a web browser, but it can be in a separate device.
 
 [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
 [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
