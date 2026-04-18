@@ -10,6 +10,31 @@ These helpers only implement "get" and do never store credentials.
 You may want to cache them by combining this with other helpers like
 `osxkeychain`.
 
+## install/uninstall
+
+Install destination is '~/.local/bin' by default.
+It can be overridden by setting `BINDIR` environment variable.
+
+### Install
+```shell
+./install.sh
+```
+
+### Install to a non-default location
+```shell
+BINDIR=~/bin ./install.sh
+```
+
+### Install with symlink (for developers)
+```shell
+./install.sh -l a
+```
+
+### Uninstall
+```shell
+./uninstall.sh
+```
+
 ## `~/.gitconfig` example
 
 ```
