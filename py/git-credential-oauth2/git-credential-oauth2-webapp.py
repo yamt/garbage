@@ -74,16 +74,26 @@ code = None
 
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        global code
+        # note: any local users can inject anything into this endpoint.
+        # verify state to ensure it's ours.
         result = "success"
+        response = 200
         q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
-        code = q.get("code")[0]
-        if state != q.get("state")[0]:
+        lcode = q.get("code", [None])[0]
+        if lcode is None:
+            result = "no code"
+            response = 403
+        elif state != q.get("state", [None])[0]:
+            # https://datatracker.ietf.org/doc/html/rfc6749#section-10.12
             result = "state missmatch"
-        self.send_response(200)
+            response = 403
+        self.send_response(response)
         self.send_header("Content-type", "text/html; charset=ascii")
         self.end_headers()
         self.wfile.write(f"git-credential-oauth2-webapp: {result}".encode("ascii"))
+        if response == 200:
+            global code
+            code = lcode
 
     # disable request logging as it contains the redirected code
     def log_message(self, *args):
@@ -103,15 +113,19 @@ def get_code():
 
 
 def get_token():
+    global state
+    state = secrets.token_urlsafe(128)
+
     local_httpd_url = start_local_httpd()
 
     # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#1-request-a-users-github-identity
-    pkce_verifier = secrets.token_urlsafe(64)
+    # note about verifier length:
+    #  - 43-128 characters according to RFC 7636.
+    #  - github token_url returns 400 Bad Request for >96 characters.
+    pkce_verifier = secrets.token_urlsafe(96)
     pkce_hash = hashlib.sha256(pkce_verifier.encode("utf-8")).digest()
     pkce_hash = base64.urlsafe_b64encode(pkce_hash).decode("utf-8")
     pkce_hash = pkce_hash.replace("=", "")
-    global state
-    state = secrets.token_urlsafe(32)
     params = {
         "client_id": client_id,
         "response_type": "code",
