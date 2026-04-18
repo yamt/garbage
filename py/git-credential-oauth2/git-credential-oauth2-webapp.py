@@ -62,7 +62,7 @@ client_secret = "55eaf54f333bf6eec0a12297af12679eff2ae4eb"
 
 auth_url = "https://github.com/login/oauth/authorize"
 token_url = "https://github.com/login/oauth/access_token"
-redirect_address = ("localhost", 0)
+redirect_address = ("127.0.0.1", 0)
 
 # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
 scope = None
@@ -103,7 +103,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 def start_local_httpd():
     global httpd
     httpd = http.server.HTTPServer(redirect_address, Handler)
-    return f"http://localhost:{httpd.server_port}/"
+    return f"http://{redirect_address[0]}:{httpd.server_port}/"
 
 
 def get_code():
