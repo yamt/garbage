@@ -24,7 +24,8 @@ aka "device flow".
 
 You may use this for environments where you can read its `stderr` output,
 including the verification uri/qrcode and `user code`.
-You also needs a web browser, but it can be in a separate device.
+Although you still need a web browser, it doesn't need to be in the same
+device as git cli.
 
 [RFC 6749]: https://datatracker.ietf.org/doc/html/rfc6749
 [RFC 7636]: https://datatracker.ietf.org/doc/html/rfc7636
