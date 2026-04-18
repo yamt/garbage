@@ -42,6 +42,7 @@
 #     https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
 #     https://datatracker.ietf.org/doc/html/rfc6749
 
+import argparse
 import webbrowser
 import http.server
 import base64
@@ -64,7 +65,7 @@ token_url = "https://github.com/login/oauth/access_token"
 redirect_address = ("localhost", 0)
 
 # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
-scope = "repo"
+scope = None
 
 state = None
 httpd = None
@@ -186,8 +187,12 @@ except:
     exit(0)
 
 
-cmd = sys.argv[1]
-if cmd != "get":
+parser = argparse.ArgumentParser()
+parser.add_argument("--scope", default="repo")
+parser.add_argument("command")
+args = parser.parse_args()
+scope = args.scope
+if args.command != "get":
     exit(1)
 
 d = recv_git_credential_parameters()

@@ -23,6 +23,19 @@ You may want to cache them by combining this with other helpers like
     helper = oauth2-device
 ```
 
+## scope
+
+The default scope is 'repo'.
+
+You can override it as the following:
+```
+    helper = oauth2-device --scope public_repo
+```
+
+See [Scopes for OAuth apps] for available scopes for github.
+
+[Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
+
 ## git-credential-oauth2-webapp
 
 A git credential helper for OAuth 2.0 web application flow ([RFC 6749])
