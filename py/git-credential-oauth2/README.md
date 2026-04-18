@@ -27,7 +27,7 @@ including the verification uri/qrcode and `user code`.
 Although you still need a web browser, it doesn't need to be in the same
 device as git cli.
 
-#### optional dependency
+#### Optional dependency
 
 If python [qrcode] module is available, this helper outputs the QR code
 of the verification uri as well.
@@ -81,7 +81,7 @@ BINDIR=~/bin ./install.sh
     helper = oauth2-device
 ```
 
-## scope
+## Scope
 
 The default scope is 'repo'.
 
