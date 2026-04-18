@@ -47,6 +47,7 @@
 #     git-credential(1)
 #     git-credential-cache(1)
 
+import argparse
 import webbrowser
 import urllib.request
 import json
@@ -65,7 +66,7 @@ token_url = "https://github.com/login/oauth/access_token"
 grant_type = "urn:ietf:params:oauth:grant-type:device_code"
 
 # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
-scope = "repo"
+scope = None
 
 
 def get_token():
@@ -166,8 +167,12 @@ def send_git_credentail_results(d):
         print(f"{k}={v}")
 
 
-cmd = sys.argv[1]
-if cmd != "get":
+parser = argparse.ArgumentParser()
+parser.add_argument("--scope", default="repo")
+parser.add_argument("command")
+args = parser.parse_args()
+scope = args.scope
+if args.command != "get":
     exit(1)
 
 d = recv_git_credential_parameters()
