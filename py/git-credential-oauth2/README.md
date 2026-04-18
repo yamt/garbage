@@ -23,7 +23,7 @@ A git credential helper for OAuth 2.0 device authorization grants, ([RFC 8628])
 aka "device flow".
 
 You may use this for environments where you can read its `stderr` output,
-including the verification uri/qrcode and `user code`.
+including the verification uri / QR code and `user code`.
 Although you still need a web browser, it doesn't need to be in the same
 device as git cli.
 
