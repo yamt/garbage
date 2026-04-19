@@ -103,6 +103,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
 def start_local_httpd():
     global httpd
     httpd = http.server.HTTPServer(redirect_address, Handler)
+    # note: github seems to allow port number differecnes from
+    # the uri registered in the application settings.
     return f"http://{redirect_address[0]}:{httpd.server_port}/"
 
 
