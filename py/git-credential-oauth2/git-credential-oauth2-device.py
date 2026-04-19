@@ -61,7 +61,7 @@ except ModuleNotFoundError:
 
 client_id = "Ov23liXxUEnSmBOA1hsz"  # git-credential-oauth2-device
 
-url = "https://github.com/login/device/code"
+auth_url = "https://github.com/login/device/code"
 token_url = "https://github.com/login/oauth/access_token"
 grant_type = "urn:ietf:params:oauth:grant-type:device_code"
 
@@ -79,7 +79,7 @@ def get_token():
         "Accept": "application/json",
     }
     encoded_data = json.dumps(data).encode("utf-8")
-    req = urllib.request.Request(url=url, data=encoded_data, headers=headers)
+    req = urllib.request.Request(url=auth_url, data=encoded_data, headers=headers)
     with urllib.request.urlopen(req) as resp:
         resp = resp.read()
         j = json.loads(resp)
