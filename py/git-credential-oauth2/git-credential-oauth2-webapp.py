@@ -137,6 +137,10 @@ def get_token():
         "code_challenge": pkce_hash,
         "code_challenge_method": "S256",
     }
+
+    # note: we assume that webbrowser.open_new_tab() below does not wait
+    # for the completion of page loading. otherwise, it can deadlock
+    # because get_code() below serves the redirected request.
     params = urllib.parse.urlencode(params)
     url = f"{auth_url}?{params}"
     webbrowser.open_new_tab(url)
