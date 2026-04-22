@@ -139,7 +139,7 @@ def get_token():
     }
     params = urllib.parse.urlencode(params)
     url = f"{auth_url}?{params}"
-    webbrowser.open(url)
+    webbrowser.open_new_tab(url)
 
     code = get_code()
 
