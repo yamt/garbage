@@ -1,5 +1,13 @@
 #! /bin/sh
 
+# this is meant to be used in crontab(5).
+# for example,
+#
+# 0  *  *  *  *       -n -s periodic-snapshot.sh x hourly- 60 24
+# 0  3  *  *  *       -n -s periodic-snapshot.sh x daily- 1440 7
+# 0  3  *  *  1       -n -s periodic-snapshot.sh x weekly- 10080 5
+# 0  3  1  *  *       -n -s periodic-snapshot.sh x monthly- 43200 -1
+
 set -e
 
 B=$(readlink "$0" || echo "$0")
