@@ -13,8 +13,9 @@ set -e
 B=$(readlink "$0" || echo "$0")
 D=$(cd ${B%/*} && pwd -P)
 
+PROG=$0
 debug() {
-    echo "# DEBUG: $@"
+    echo "# DEBUG(${PROG}): $@" >& 2
 }
 
 if [ $# -lt 4 ]; then
@@ -35,11 +36,4 @@ debug zfs snap -r ${DS}@${SNAPNAME}
 zfs snap -r ${DS}@${SNAPNAME}
 
 # remove old ones
-if [ "$NKEEP" -lt 0 ]; then
-    exit 0
-fi
-THRESH=$((NKEEP * PERIOD))
-${D}/list_victims.sh ${DS} "${PREFIX}.*" ${THRESH} ${NKEEP} | while read x; do
-    debug zfs destroy -r $x
-    zfs destroy -r $x
-done
+${D}/destroy-old-snapshot.sh ${DS} "${PREFIX}.*" ${PERIOD} ${NKEEP}

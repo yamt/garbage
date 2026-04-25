@@ -5,8 +5,9 @@
 
 set -e
 
+PROG=$0
 debug() {
-    #echo "# DEBUG: $@"
+    #echo "# DEBUG(${PROG}): $@" >& 2
 }
 
 if [ $# -lt 4 ]; then
