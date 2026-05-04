@@ -208,7 +208,7 @@ except:
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--scope", default="repo")
+parser.add_argument("--scope", default="repo,workflow")
 parser.add_argument("command")
 args = parser.parse_args()
 scope = args.scope

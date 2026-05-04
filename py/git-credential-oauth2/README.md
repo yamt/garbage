@@ -89,7 +89,7 @@ BINDIR=~/bin ./install.sh
 
 ## Scope
 
-The default scope is 'repo'.
+The default scope is 'repo,workflow'.
 
 You can override it as the following:
 ```
