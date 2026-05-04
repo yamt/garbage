@@ -26,7 +26,7 @@ thread_func(void *vp)
         int ret;
 
         if (++step > 16) {
-                return NULL;
+                exit(0);
         }
 
         ret = pthread_main_np();
