@@ -138,6 +138,11 @@ def get_token():
         "code_challenge_method": "S256",
     }
 
+    # for some reasons, the first request to the local web server
+    # occasionally times out on my environment. (firefox/macOS/amd64)
+    # the following sleep is an attempt to work it around.
+    time.sleep(.1)
+
     # note: we assume that webbrowser.open_new_tab() below does not wait
     # for the completion of page loading. otherwise, it can deadlock
     # because get_code() below serves the redirected request.
