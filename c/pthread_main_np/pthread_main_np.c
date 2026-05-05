@@ -7,6 +7,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define NSTEPS 10000
+
 static unsigned int step;
 static int ret_ctor_101;
 
@@ -25,7 +27,7 @@ thread_func(void *vp)
         pthread_t parent = vp;
         int ret;
 
-        if (++step > 16) {
+        if (++step > NSTEPS) {
                 exit(0);
         }
 
