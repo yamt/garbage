@@ -21,7 +21,9 @@ lock_thread(void *vp)
         unsigned int delay = 1;
         unsigned int i;
 
+#if defined(__NetBSD__)
         pthread_setname_np(pthread_self(), "lock", NULL);
+#endif
         for (i = 0;; i++) {
                 ret = clock_gettime(CLOCK_REALTIME, &abstime);
                 assert(ret == 0);
@@ -31,7 +33,11 @@ lock_thread(void *vp)
                         abstime.tv_sec++;
                         abstime.tv_nsec -= 1000000000;
                 }
+#if defined(__APPLE__)
+                ret = pthread_mutex_lock(cond->lock);
+#else
                 ret = pthread_mutex_timedlock(cond->lock, &abstime);
+#endif
                 assert(ret == 0 || ret == ETIMEDOUT);
                 if (ret == 0) {
                         ret = pthread_mutex_unlock(cond->lock);
@@ -57,8 +63,9 @@ block_thread(void *vp)
         unsigned int delay = 1;
         unsigned int i;
 
+#if defined(__NetBSD__)
         pthread_setname_np(pthread_self(), "block", NULL);
-
+#endif
         ret = pthread_mutex_lock(cond->lock);
         assert(ret == 0);
         for (i = 0;; i++) {
@@ -91,8 +98,9 @@ signal_thread(void *vp)
         struct cond *cond = vp;
         int ret;
 
+#if defined(__NetBSD__)
         pthread_setname_np(pthread_self(), "signal", NULL);
-
+#endif
         while (1) {
                 ret = pthread_cond_signal(&cond->cv);
                 // ret = pthread_cond_broadcast(&cond->cv);
@@ -107,8 +115,9 @@ signal_with_lock_thread(void *vp)
         struct cond *cond = vp;
         int ret;
 
+#if defined(__NetBSD__)
         pthread_setname_np(pthread_self(), "signal-lock", NULL);
-
+#endif
         while (1) {
                 ret = pthread_mutex_lock(cond->lock);
                 assert(ret == 0);
