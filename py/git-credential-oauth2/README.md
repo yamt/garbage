@@ -4,7 +4,7 @@
 
 Git credential helpers to implement OAuth 2.0, written in python.
 
-Currently only implements github.
+Currently only implements github.com and gitlab.com.
 
 These helpers only implement "get" and do never store credentials.
 You may want to cache them by combining this with other helpers like
@@ -89,7 +89,8 @@ BINDIR=~/bin ./install.sh
 
 ## Scope
 
-The default scope is 'repo,workflow'.
+The default scope is 'repo,workflow' for github.com and
+'write_repository' for gitlab.com.
 
 You can override it as the following:
 ```
@@ -98,7 +99,12 @@ You can override it as the following:
 
 See [Scopes for OAuth apps] for available scopes for github.
 
+See [GitLab as an OAuth 2.0 authentication identity provider]
+for available scopes for gitlab.
+
 [Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
+[GitLab as an OAuth 2.0 authentication identity provider]: https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-ap
+plications
 
 ## Notes
 

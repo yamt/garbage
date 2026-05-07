@@ -41,8 +41,6 @@
 
 # references:
 #     https://datatracker.ietf.org/doc/html/rfc8628
-#     https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
-#     https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/best-practices-for-creating-an-oauth-app#dont-enable-device-flow-without-reason
 #     gitcredentials(7)
 #     git-credential(1)
 #     git-credential-cache(1)
@@ -53,33 +51,66 @@ import urllib.request
 import json
 import sys
 import time
+from collections import namedtuple
 
 try:
     import qrcode
 except ModuleNotFoundError:
     qrcode = None
 
-client_id = "Ov23liXxUEnSmBOA1hsz"  # git-credential-oauth2-device
+Provider = namedtuple(
+    "OAuthProvider",
+    [
+        "client_id",
+        "auth_url",
+        "token_url",
+        "default_scope",
+    ],
+)
 
-auth_url = "https://github.com/login/device/code"
-token_url = "https://github.com/login/oauth/access_token"
+# github.com git-credential-oauth2-device
+# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
+# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
+# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/best-practices-for-creating-an-oauth-app#dont-enable-device-flow-without-reason
+github_com_provider = Provider(
+    client_id="Ov23liXxUEnSmBOA1hsz",
+    auth_url="https://github.com/login/device/code",
+    token_url="https://github.com/login/oauth/access_token",
+    # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
+    default_scope="repo,workflow",
+)
+
+# gitlab.com git-credential-oauth2-device
+# https://docs.gitlab.com/integration/oauth_provider/
+# https://docs.gitlab.com/api/oauth2/#device-authorization-grant-flow
+gitlab_com_provider = Provider(
+    client_id="d86de9e91bd399ab1a1e3a050859bb24e4ca996eb1a507da853201a59188594a",
+    auth_url="https://gitlab.com/oauth/authorize_device",
+    token_url="https://gitlab.com/oauth/token",
+    # https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications
+    default_scope="write_repository",
+)
+
 grant_type = "urn:ietf:params:oauth:grant-type:device_code"
 
-# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
+provider = None
+
 scope = None
 
 
 def get_token():
     data = {
-        "client_id": client_id,
+        "client_id": provider.client_id,
         "scope": scope,
     }
     headers = {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",
     }
-    encoded_data = json.dumps(data).encode("utf-8")
-    req = urllib.request.Request(url=auth_url, data=encoded_data, headers=headers)
+    encoded_data = urllib.parse.urlencode(data).encode("utf-8")
+    req = urllib.request.Request(
+        url=provider.auth_url, data=encoded_data, headers=headers
+    )
     with urllib.request.urlopen(req) as resp:
         resp = resp.read()
         j = json.loads(resp)
@@ -87,6 +118,9 @@ def get_token():
     device_code = j["device_code"]
     user_code = j["user_code"]
     verification_uri = j["verification_uri"]
+    verification_uri_complete = j.get("verification_uri_complete")
+    if verification_uri_complete is not None:
+        verification_uri = verification_uri_complete
     expires_in = j["expires_in"]
     interval = j["interval"]
 
@@ -94,7 +128,8 @@ def get_token():
     if qrcode:
         print(f"scan the following QR code or ", end="", file=f)
     print(f"visit:\n\t{verification_uri}", file=f)
-    print(f"and enter the code:\n\t{user_code}", file=f)
+    if verification_uri_complete is None:
+        print(f"and enter the code:\n\t{user_code}", file=f)
     print(f"the code expires in {expires_in} seconds", file=f)
     if qrcode:
         qr = qrcode.QRCode(
@@ -110,16 +145,28 @@ def get_token():
 
     # https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
     data = {
-        "client_id": client_id,
+        "client_id": provider.client_id,
         "device_code": device_code,
         "grant_type": grant_type,
     }
-    encoded_data = json.dumps(data).encode("utf-8")
+    encoded_data = urllib.parse.urlencode(data).encode("utf-8")
     while True:
-        req = urllib.request.Request(url=token_url, data=encoded_data, headers=headers)
-        with urllib.request.urlopen(req) as resp:
-            resp = resp.read()
-            j = json.loads(resp)
+        req = urllib.request.Request(
+            url=provider.token_url, data=encoded_data, headers=headers
+        )
+        try:
+            with urllib.request.urlopen(req) as resp:
+                resp = resp.read()
+        except urllib.error.HTTPError as e:
+            # 400 is expected for errors like "authorization_pending".
+            # for some reasons, github.com gives us 200 for them though.
+            # https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
+            # https://datatracker.ietf.org/doc/html/rfc6749#section-5.2
+            if e.code != 400:
+                raise
+            resp = e.fp.read()
+
+        j = json.loads(resp)
 
         # https://datatracker.ietf.org/doc/html/rfc8628#section-3.5
         error = j.get("error")
@@ -140,13 +187,17 @@ def get_token():
         print(f"error uri: {error_uri}", file=f)
         exit(1)
 
+    # note: type is case insensitive.
+    # https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2
     token_type = j["token_type"]
-    if token_type != "bearer":
+    if token_type.lower() != "bearer":
         print(f"unknown token type: {token_type}", file=f)
         exit(1)
 
     # note: github doesn't give us refresh_token. github oauth
     # access tokens have no expirations.
+    # note: gitlab gives us refresh_token. but we don't use it.
+    # expires_in is typically 7200.
     access_token = j["access_token"]
     return access_token
 
@@ -167,17 +218,32 @@ def send_git_credentail_results(d):
         print(f"{k}={v}")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--scope", default="repo,workflow")
-parser.add_argument("command")
-args = parser.parse_args()
-scope = args.scope
-if args.command != "get":
-    exit(1)
+def main():
+    global scope
+    global provider
 
-d = recv_git_credential_parameters()
-if d["host"] != "github.com":
-    exit(1)
-d["username"] = "x"  # any non-empty string is ok
-d["password"] = get_token()
-send_git_credentail_results(d)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scope")
+    parser.add_argument("command")
+    args = parser.parse_args()
+    scope = args.scope
+    if args.command != "get":
+        exit(1)
+
+    d = recv_git_credential_parameters()
+    if d["host"] == "github.com":
+        provider = github_com_provider
+    elif d["host"] == "gitlab.com":
+        provider = gitlab_com_provider
+    else:
+        exit(0)
+    if scope is None:
+        scope = provider.default_scope
+
+    d["username"] = "x"  # any non-empty string is ok
+    d["password"] = get_token()
+    send_git_credentail_results(d)
+
+
+if __name__ == "__main__":
+    main()

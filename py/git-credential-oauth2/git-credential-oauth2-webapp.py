@@ -39,7 +39,6 @@
 #     helper = oauth2-webapp
 
 # references:
-#     https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
 #     https://datatracker.ietf.org/doc/html/rfc6749
 
 import argparse
@@ -53,18 +52,52 @@ import json
 import secrets
 import sys
 import time
+from collections import namedtuple
 
-client_id = "Ov23li9YAYcNhPanUtBB"  # git-credential-oauth2-webapp
+Provider = namedtuple(
+    "OAuthProvider",
+    [
+        "client_id",
+        "client_secret",
+        "auth_url",
+        "token_url",
+        "default_scope",
+    ],
+)
 
 # note: public applications can't hold the credential securely.
 # we simply hardcode it here.
-client_secret = "55eaf54f333bf6eec0a12297af12679eff2ae4eb"
 
-auth_url = "https://github.com/login/oauth/authorize"
-token_url = "https://github.com/login/oauth/access_token"
+# github.com git-credential-oauth2-webapp
+# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps
+# note: github refuses requests without client_secret with
+# "incorrect_client_credentials" error.
+github_com_provider = Provider(
+    client_id="Ov23li9YAYcNhPanUtBB",
+    client_secret="55eaf54f333bf6eec0a12297af12679eff2ae4eb",
+    auth_url="https://github.com/login/oauth/authorize",
+    token_url="https://github.com/login/oauth/access_token",
+    # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
+    default_scope="repo,workflow",
+)
+
+# gitlab.com git-credential-oauth2-webapp
+# https://docs.gitlab.com/integration/oauth_provider/
+# https://docs.gitlab.com/api/oauth2/
+# note: gitlab accepts requests without client_secret.
+gitlab_com_provider = Provider(
+    client_id="c6a674bd1f57f0f5d6cd7efc93558f5d3c617cc1835d861f27b6d0b573bbb047",
+    client_secret=None,
+    auth_url="https://gitlab.com/oauth/authorize",
+    token_url="https://gitlab.com/oauth/token",
+    # https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications
+    default_scope="write_repository",
+)
+
+provider = None
+
 redirect_address = ("127.0.0.1", 0)
 
-# https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
 scope = None
 
 state = None
@@ -129,7 +162,7 @@ def get_token():
     pkce_hash = base64.urlsafe_b64encode(pkce_hash).decode("utf-8")
     pkce_hash = pkce_hash.replace("=", "")
     params = {
-        "client_id": client_id,
+        "client_id": provider.client_id,
         "response_type": "code",
         "state": state,
         "scope": scope,
@@ -141,31 +174,36 @@ def get_token():
     # for some reasons, the first request to the local web server
     # occasionally times out on my environment. (firefox/macOS/amd64)
     # the following sleep is an attempt to work it around.
-    time.sleep(.1)
+    time.sleep(0.1)
 
     # note: we assume that webbrowser.open_new_tab() below does not wait
     # for the completion of page loading. otherwise, it can deadlock
     # because get_code() below serves the redirected request.
     params = urllib.parse.urlencode(params)
-    url = f"{auth_url}?{params}"
+    url = f"{provider.auth_url}?{params}"
     webbrowser.open_new_tab(url)
 
     code = get_code()
 
     # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
     data = {
-        "client_id": client_id,
-        "client_secret": client_secret,
+        "client_id": provider.client_id,
         "code": code,
         "redirect_uri": local_httpd_url,
+        "grant_type": "authorization_code",
         "code_verifier": pkce_verifier,
     }
+    if provider.client_secret is not None:
+        data["client_secret"] = provider.client_secret
+
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",
     }
     encoded_data = urllib.parse.urlencode(data).encode("utf-8")
-    req = urllib.request.Request(url=token_url, data=encoded_data, headers=headers)
+    req = urllib.request.Request(
+        url=provider.token_url, data=encoded_data, headers=headers
+    )
     with urllib.request.urlopen(req) as resp:
         resp = resp.read()
         j = json.loads(resp)
@@ -178,13 +216,17 @@ def get_token():
         print(f"full response:\n{json.dumps(j, indent=4)}", file=f)
         exit(1)
 
+    # note: type is case insensitive.
+    # https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2
     token_type = j["token_type"]
-    if token_type != "bearer":
+    if token_type.lower() != "bearer":
         print(f"unknown token type: {token_type}", file=f)
         exit(1)
 
     # note: github doesn't give us refresh_token. github oauth
     # access tokens have no expirations.
+    # note: gitlab gives us refresh_token. but we don't use it.
+    # expires_in is typically 7200.
     access_token = j["access_token"]
     return access_token
 
@@ -205,24 +247,38 @@ def send_git_credentail_results(d):
         print(f"{k}={v}")
 
 
-# quick check
-try:
-    webbrowser.get()
-except:
-    exit(0)
+def main():
+    global scope
+    global provider
+
+    # quick check
+    try:
+        webbrowser.get()
+    except:
+        exit(0)
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--scope")
+    parser.add_argument("command")
+    args = parser.parse_args()
+    scope = args.scope
+    if args.command != "get":
+        exit(1)
+
+    d = recv_git_credential_parameters()
+    if d["host"] == "github.com":
+        provider = github_com_provider
+    elif d["host"] == "gitlab.com":
+        provider = gitlab_com_provider
+    else:
+        exit(0)
+    if scope is None:
+        scope = provider.default_scope
+
+    d["username"] = "x"  # any non-empty string is ok
+    d["password"] = get_token()
+    send_git_credentail_results(d)
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--scope", default="repo,workflow")
-parser.add_argument("command")
-args = parser.parse_args()
-scope = args.scope
-if args.command != "get":
-    exit(1)
-
-d = recv_git_credential_parameters()
-if d["host"] != "github.com":
-    exit(0)
-d["username"] = "x"  # any non-empty string is ok
-d["password"] = get_token()
-send_git_credentail_results(d)
+if __name__ == "__main__":
+    main()
