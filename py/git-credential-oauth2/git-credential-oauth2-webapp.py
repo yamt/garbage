@@ -177,6 +177,7 @@ def get_token():
     webbrowser.open_new_tab(url)
 
     code = get_code()
+    # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
     return get_access_token(
         {
             "grant_type": "authorization_code",
@@ -199,7 +200,6 @@ def get_token_with_refresh_token(refresh_token):
 
 
 def get_access_token(extra_data):
-    # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
     data = {
         "client_id": provider.client_id,
     }
