@@ -279,12 +279,16 @@ def main():
 
     d["username"] = "x"  # any non-empty string is ok
     refresh_token = d.get("oauth_refresh_token")
-    if refresh_token is not None:
-        access_token, expires_in, refresh_token = get_token_with_refresh_token(
-            refresh_token
-        )
-    else:
-        access_token, expires_in, refresh_token = get_token()
+    try:
+        if refresh_token is not None:
+            access_token, expires_in, refresh_token = get_token_with_refresh_token(
+                refresh_token
+            )
+        else:
+            access_token, expires_in, refresh_token = get_token()
+    except urllib.error.HTTPError as e:
+        print(f"HTTPError: {e.read().decode()}", file=sys.stderr)
+        exit(0)
     d["password"] = access_token
     d["password_expiry_utc"] = to_utc(expires_in)
     d["oauth_refresh_token"] = refresh_token
