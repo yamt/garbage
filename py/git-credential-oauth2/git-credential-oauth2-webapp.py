@@ -93,11 +93,8 @@ gitlab_com_provider = Provider(
 )
 
 provider = None
-
 redirect_address = ("127.0.0.1", 0)
-
 scope = None
-
 state = None
 httpd = None
 code = None

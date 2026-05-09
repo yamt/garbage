@@ -90,9 +90,7 @@ gitlab_com_provider = Provider(
 )
 
 grant_type = "urn:ietf:params:oauth:grant-type:device_code"
-
 provider = None
-
 scope = None
 
 
