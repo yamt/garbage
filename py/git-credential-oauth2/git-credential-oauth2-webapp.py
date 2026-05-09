@@ -223,7 +223,8 @@ def get_token():
     # note: gitlab gives us refresh_token. but we don't use it.
     # expires_in is typically 7200.
     access_token = j["access_token"]
-    return access_token
+    expires_in = j.get("expires_in")
+    return access_token, expires_in
 
 
 def recv_git_credential_parameters():
@@ -239,7 +240,16 @@ def recv_git_credential_parameters():
 
 def send_git_credentail_results(d):
     for k, v in d.items():
-        print(f"{k}={v}")
+        if v is not None:
+            print(f"{k}={v}")
+
+
+def to_utc(expires_in):
+    try:
+        expires_in_int = int(expires_in)
+    except (TypeError, ValueError):
+        return None
+    return int(time.time()) + expires_in_int
 
 
 def main():
@@ -271,7 +281,9 @@ def main():
         scope = provider.default_scope
 
     d["username"] = "x"  # any non-empty string is ok
-    d["password"] = get_token()
+    access_token, expires_in = get_token()
+    d["password"] = access_token
+    d["password_expiry_utc"] = to_utc(expires_in)
     send_git_credentail_results(d)
 
 
