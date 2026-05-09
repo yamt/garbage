@@ -144,11 +144,37 @@ def get_token():
     webbrowser.open_new_tab(verification_uri)
 
     # https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
+    return get_access_token(
+        {
+            "device_code": device_code,
+            "grant_type": grant_type,
+        },
+        interval,
+    )
+
+
+# https://datatracker.ietf.org/doc/html/rfc6749#section-6
+def get_token_with_refresh_token(refresh_token):
+    return get_access_token(
+        {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "scope": scope,
+        },
+        None,
+    )
+
+
+def get_access_token(extra_data, interval):
+    f = sys.stderr
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded",
+        "Accept": "application/json",
+    }
     data = {
         "client_id": provider.client_id,
-        "device_code": device_code,
-        "grant_type": grant_type,
     }
+    data.update(extra_data)
     encoded_data = urllib.parse.urlencode(data).encode("utf-8")
     while True:
         req = urllib.request.Request(
@@ -172,13 +198,14 @@ def get_token():
         error = j.get("error")
         if error is None:
             break
-        if error == "authorization_pending":
-            time.sleep(interval)
-            continue
-        if error == "slow_down":
-            interval += 5
-            time.sleep(interval)
-            continue
+        if interval is not None:
+            if error == "authorization_pending":
+                time.sleep(interval)
+                continue
+            if error == "slow_down":
+                interval += 5
+                time.sleep(interval)
+                continue
         # access_denied, expired_token, device_flow_disabled, etc
         error_description = j.get("error_description")
         error_uri = j.get("error_uri")
@@ -196,11 +223,11 @@ def get_token():
 
     # note: github doesn't give us refresh_token. github oauth
     # access tokens have no expirations.
-    # note: gitlab gives us refresh_token. but we don't use it.
-    # expires_in is typically 7200.
+    # note: gitlab gives us refresh_token. expires_in is typically 7200.
     access_token = j["access_token"]
     expires_in = j.get("expires_in")
-    return access_token, expires_in
+    refresh_token = j.get("refresh_token")
+    return access_token, expires_in, refresh_token
 
 
 def recv_git_credential_parameters():
@@ -251,9 +278,16 @@ def main():
         scope = provider.default_scope
 
     d["username"] = "x"  # any non-empty string is ok
-    access_token, expires_in = get_token()
+    refresh_token = d.get("oauth_refresh_token")
+    if refresh_token is not None:
+        access_token, expires_in, refresh_token = get_token_with_refresh_token(
+            refresh_token
+        )
+    else:
+        access_token, expires_in, refresh_token = get_token()
     d["password"] = access_token
     d["password_expiry_utc"] = to_utc(expires_in)
+    d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
 

@@ -179,17 +179,35 @@ def get_token():
     webbrowser.open_new_tab(url)
 
     code = get_code()
+    return get_access_token(
+        {
+            "grant_type": "authorization_code",
+            "code": code,
+            "code_verifier": pkce_verifier,
+            "redirect_uri": local_httpd_url,
+        }
+    )
 
+
+# https://datatracker.ietf.org/doc/html/rfc6749#section-6
+def get_token_with_refresh_token(refresh_token):
+    return get_access_token(
+        {
+            "grant_type": "refresh_token",
+            "refresh_token": refresh_token,
+            "scope": scope,
+        }
+    )
+
+
+def get_access_token(extra_data):
     # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/authorizing-oauth-apps#2-users-are-redirected-back-to-your-site-by-github
     data = {
         "client_id": provider.client_id,
-        "code": code,
-        "redirect_uri": local_httpd_url,
-        "grant_type": "authorization_code",
-        "code_verifier": pkce_verifier,
     }
     if provider.client_secret is not None:
         data["client_secret"] = provider.client_secret
+    data.update(extra_data)
 
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -220,11 +238,11 @@ def get_token():
 
     # note: github doesn't give us refresh_token. github oauth
     # access tokens have no expirations.
-    # note: gitlab gives us refresh_token. but we don't use it.
-    # expires_in is typically 7200.
+    # note: gitlab gives us refresh_token. expires_in is typically 7200.
     access_token = j["access_token"]
     expires_in = j.get("expires_in")
-    return access_token, expires_in
+    refresh_token = j.get("refresh_token")
+    return access_token, expires_in, refresh_token
 
 
 def recv_git_credential_parameters():
@@ -281,9 +299,16 @@ def main():
         scope = provider.default_scope
 
     d["username"] = "x"  # any non-empty string is ok
-    access_token, expires_in = get_token()
+    refresh_token = d.get("oauth_refresh_token")
+    if refresh_token is not None:
+        access_token, expires_in, refresh_token = get_token_with_refresh_token(
+            refresh_token
+        )
+    else:
+        access_token, expires_in, refresh_token = get_token()
     d["password"] = access_token
     d["password_expiry_utc"] = to_utc(expires_in)
+    d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
 
