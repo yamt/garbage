@@ -303,7 +303,7 @@ def main():
     d.pop("password_expiry_utc", None)
     try:
         if refresh_token is not None:
-            print(f"Refreshing oauth access token...", file=sys.stderr)
+            print(f"Refreshing OAuth access token...", file=sys.stderr)
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
