@@ -298,7 +298,7 @@ def main():
     if scope is None:
         scope = provider.default_scope
 
-    d["username"] = "x"  # any non-empty string is ok
+    d.setdefault("username", "x")  # any non-empty string is ok
     refresh_token = d.get("oauth_refresh_token")
     try:
         if refresh_token is not None:
