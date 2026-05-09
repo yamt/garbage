@@ -302,11 +302,11 @@ def main():
     refresh_token = d.get("oauth_refresh_token")
     try:
         if refresh_token is not None:
-            print(f"refreshing oauth access token...", file=sys.stderr)
+            print(f"Refreshing oauth access token...", file=sys.stderr)
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
-            print(f"sucessfully refreshed.", file=sys.stderr)
+            print(f"Sucessfully refreshed.", file=sys.stderr)
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
@@ -315,11 +315,11 @@ def main():
     d["password"] = access_token
     if expires_in is not None:
         print(
-            f"oauth access token will expire in {expires_in} seconds.", file=sys.stderr
+            f"OAuth access token will expire in {expires_in} seconds.", file=sys.stderr
         )
         d["password_expiry_utc"] = to_utc(expires_in)
     else:
-        print(f"oauth access token has no expiration", file=sys.stderr)
+        print(f"OAuth access token has no expiration", file=sys.stderr)
     d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
