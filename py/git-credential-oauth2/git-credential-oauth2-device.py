@@ -278,7 +278,8 @@ def main():
         scope = provider.default_scope
 
     d.setdefault("username", "x")  # any non-empty string is ok
-    refresh_token = d.get("oauth_refresh_token")
+    refresh_token = d.pop("oauth_refresh_token", None)
+    d.pop("password_expiry_utc", None)
     try:
         if refresh_token is not None:
             print(f"Refreshing oauth access token...", file=sys.stderr)
