@@ -26,8 +26,6 @@
 
 # a git credential helper for oauth 2.0 web application flow (RFC 6749)
 #
-# currently only implements github.
-#
 # this helper only implements "get" and does never store credentials.
 # you may want to cache them by combining this with other helpers like
 # osxkeychain.

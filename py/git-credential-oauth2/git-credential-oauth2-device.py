@@ -27,8 +27,6 @@
 # a git credential helper for oauth 2.0 device authorization grants (RFC 8628)
 # aka "device flow"
 #
-# currently only implements github.
-#
 # this helper only implements "get" and does never store credentials.
 # you may want to cache them by combining this with other helpers like
 # osxkeychain.
