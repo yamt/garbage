@@ -213,14 +213,14 @@ def get_access_token(extra_data, interval):
         msg(f"unhandled error: {error}")
         msg(f"error description: {error_description}")
         msg(f"error uri: {error_uri}")
-        exit(1)
+        exit(0)
 
     # note: type is case insensitive.
     # https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2
     token_type = j["token_type"]
     if token_type.lower() != "bearer":
         msg(f"unknown token type: {token_type}")
-        exit(1)
+        exit(0)
 
     # note: github doesn't give us refresh_token. github oauth
     # access tokens have no expirations.
@@ -266,7 +266,7 @@ def main():
     args = parser.parse_args()
     scope = args.scope
     if args.command != "get":
-        exit(1)
+        exit(0)
 
     d = recv_git_credential_parameters()
     if d["host"] == "github.com":
