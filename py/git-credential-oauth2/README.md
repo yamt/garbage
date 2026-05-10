@@ -108,5 +108,12 @@ for available scopes for gitlab.
 
 ## Notes
 
-Github OAuth access tokens have no expirations. It might be a good idea to
-revoke them on https://github.com/settings/applications time to time.
+GitHub access tokens have no expirations.
+
+While GitLab access tokens have expiration,
+its refresh tokens don't seem to have expiration.
+
+It might be a good idea to revoke the authorized applications time to time.
+
+* [GitHub Applications Settings](https://github.com/settings/applications)
+* [GitLab Applications Settings](https://gitlab.com/-/user_settings/applications)
