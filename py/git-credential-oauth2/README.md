@@ -89,8 +89,8 @@ BINDIR=~/bin ./install.sh
 
 ## Scope
 
-The default scope is 'repo,workflow' for github.com and
-'write_repository' for gitlab.com.
+The default scope is `repo,workflow` for github.com and
+`write_repository` for gitlab.com.
 
 You can override it as the following:
 ```
