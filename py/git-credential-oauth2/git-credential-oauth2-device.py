@@ -287,7 +287,7 @@ def main():
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
-            msg(f"Sucessfully refreshed.")
+            msg(f"Successfully refreshed.")
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
