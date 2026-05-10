@@ -48,9 +48,9 @@ pkgin in py313-qrcode
 Copy the helpers to a location git can find.
 See [Custom Helpers] in the git documentation.
 
-We prodide a simple installation scripts for convenience.
+We prodide a simple installation script for convenience.
 Install destination is '~/.local/bin' by default.
-It can be overridden by setting `BINDIR` environment variable.
+It can be overridden by setting the `BINDIR` environment variable.
 
 [Custom Helpers]: https://git-scm.com/docs/gitcredentials#_custom_helpers
 
