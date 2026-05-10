@@ -304,7 +304,7 @@ def main():
     d.pop("password_expiry_utc", None)
     try:
         if refresh_token is not None:
-            msg(f"Refreshing OAuth access token...")
+            msg(f"Refreshing access token...")
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
@@ -316,10 +316,10 @@ def main():
         exit(0)
     d["password"] = access_token
     if expires_in is not None:
-        msg(f"OAuth access token will expire in {expires_in} seconds.")
+        msg(f"Access token will expire in {expires_in} seconds.")
         d["password_expiry_utc"] = to_utc(expires_in)
     else:
-        msg(f"OAuth access token has no expiration.")
+        msg(f"Access token has no expiration.")
     d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
