@@ -117,3 +117,6 @@ It might be a good idea to revoke the authorized applications time to time.
 
 * [GitHub Applications Settings](https://github.com/settings/applications)
 * [GitLab Applications Settings](https://gitlab.com/-/user_settings/applications)
+
+Or, maybe it's better to use alternatives like Personal Access Tokens,
+which give you a better control on their permissions and expiration.
