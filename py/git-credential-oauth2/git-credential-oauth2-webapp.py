@@ -38,6 +38,7 @@
 
 # references:
 #     https://datatracker.ietf.org/doc/html/rfc6749
+#     https://datatracker.ietf.org/doc/html/rfc7636
 #     gitcredentials(7)
 #     git-credential(1)
 
