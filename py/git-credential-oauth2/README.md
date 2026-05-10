@@ -87,9 +87,9 @@ BINDIR=~/bin ./install.sh
     helper = oauth2-device
 ```
 
-## Scope
+## Access Token Scope
 
-The default scope is `repo,workflow` for github.com and
+The default [Access Token Scope] is `repo workflow` for github.com and
 `write_repository` for gitlab.com.
 
 You can override it as the following:
@@ -102,6 +102,7 @@ See [Scopes for OAuth apps] for available scopes for github.
 See [GitLab as an OAuth 2.0 authentication identity provider]
 for available scopes for gitlab.
 
+[Access Token Scope]: https://datatracker.ietf.org/doc/html/rfc6749#section-3.3
 [Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
 [GitLab as an OAuth 2.0 authentication identity provider]: https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications
 

@@ -78,7 +78,7 @@ github_com_provider = Provider(
     auth_url="https://github.com/login/oauth/authorize",
     token_url="https://github.com/login/oauth/access_token",
     # https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps#available-scopes
-    default_scope="repo,workflow",
+    default_scope="repo workflow",
 )
 
 # gitlab.com git-credential-oauth2-webapp
