@@ -103,8 +103,7 @@ See [GitLab as an OAuth 2.0 authentication identity provider]
 for available scopes for gitlab.
 
 [Scopes for OAuth apps]: https://docs.github.com/en/apps/oauth-apps/building-oauth-apps/scopes-for-oauth-apps
-[GitLab as an OAuth 2.0 authentication identity provider]: https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-ap
-plications
+[GitLab as an OAuth 2.0 authentication identity provider]: https://docs.gitlab.com/integration/oauth_provider/#view-all-authorized-applications
 
 ## Notes
 
