@@ -102,6 +102,13 @@ httpd = None
 code = None
 
 
+def msg(text, cont=False):
+    if cont:
+        print(f"{text}", file=sys.stderr)
+    else:
+        print(f"OAuth2 Web Application Flow: {text}", file=sys.stderr)
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
         # note: any local users can inject anything into this endpoint.
@@ -218,19 +225,16 @@ def get_access_token(extra_data):
         resp = resp.read()
         j = json.loads(resp)
 
-    f = sys.stderr
-
     error = j.get("error")
     if error is not None:
-        print(f"error {error}", file=f)
-        print(f"full response:\n{json.dumps(j, indent=4)}", file=f)
+        msg(f"error {error}\nfull response:\n{json.dumps(j, indent=4)}")
         exit(1)
 
     # note: type is case insensitive.
     # https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2
     token_type = j["token_type"]
     if token_type.lower() != "bearer":
-        print(f"unknown token type: {token_type}", file=f)
+        msg(f"unknown token type: {token_type}")
         exit(1)
 
     # note: github doesn't give us refresh_token. github oauth
@@ -300,24 +304,22 @@ def main():
     d.pop("password_expiry_utc", None)
     try:
         if refresh_token is not None:
-            print(f"Refreshing OAuth access token...", file=sys.stderr)
+            msg(f"Refreshing OAuth access token...")
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
-            print(f"Sucessfully refreshed.", file=sys.stderr)
+            msg(f"Sucessfully refreshed.")
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
-        print(f"HTTPError: {e.read().decode()}", file=sys.stderr)
+        msg(f"HTTPError: {e.read().decode()}")
         exit(0)
     d["password"] = access_token
     if expires_in is not None:
-        print(
-            f"OAuth access token will expire in {expires_in} seconds.", file=sys.stderr
-        )
+        msg(f"OAuth access token will expire in {expires_in} seconds.")
         d["password_expiry_utc"] = to_utc(expires_in)
     else:
-        print(f"OAuth access token has no expiration.", file=sys.stderr)
+        msg(f"OAuth access token has no expiration.")
     d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 

@@ -93,6 +93,13 @@ provider = None
 scope = None
 
 
+def msg(text, cont=False):
+    if cont:
+        print(f"{text}", file=sys.stderr)
+    else:
+        print(f"OAuth2 Device Flow: {text}", file=sys.stderr)
+
+
 def get_token():
     data = {
         "client_id": provider.client_id,
@@ -119,13 +126,13 @@ def get_token():
     expires_in = j["expires_in"]
     interval = j["interval"]
 
-    f = sys.stderr
     if qrcode:
-        print(f"scan the following QR code or ", end="", file=f)
-    print(f"Visit:\n\t{verification_uri}", file=f)
+        msg(f"Scan the following QR code or visit:\n\t{verification_uri}")
+    else:
+        msg(f"Visit:\n\t{verification_uri}")
     if verification_uri_complete is None:
-        print(f"and enter the code:\n\t{user_code}", file=f)
-    print(f"The code expires in {expires_in} seconds.", file=f)
+        msg(f"And enter the code:\n\t{user_code}", cont=True)
+    msg(f"The code expires in {expires_in} seconds.", cont=True)
     if qrcode:
         qr = qrcode.QRCode(
             version=1,
@@ -134,7 +141,7 @@ def get_token():
             border=4,
         )
         qr.add_data(verification_uri)
-        qr.print_ascii(out=f)
+        qr.print_ascii(out=sys.stderr)
 
     webbrowser.open_new_tab(verification_uri)
 
@@ -161,7 +168,6 @@ def get_token_with_refresh_token(refresh_token):
 
 
 def get_access_token(extra_data, interval):
-    f = sys.stderr
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
         "Accept": "application/json",
@@ -204,16 +210,16 @@ def get_access_token(extra_data, interval):
         # access_denied, expired_token, device_flow_disabled, etc
         error_description = j.get("error_description")
         error_uri = j.get("error_uri")
-        print(f"unhandled error: {error}", file=f)
-        print(f"error description: {error_description}", file=f)
-        print(f"error uri: {error_uri}", file=f)
+        msg(f"unhandled error: {error}")
+        msg(f"error description: {error_description}")
+        msg(f"error uri: {error_uri}")
         exit(1)
 
     # note: type is case insensitive.
     # https://datatracker.ietf.org/doc/html/rfc6749#section-4.2.2
     token_type = j["token_type"]
     if token_type.lower() != "bearer":
-        print(f"unknown token type: {token_type}", file=f)
+        msg(f"unknown token type: {token_type}")
         exit(1)
 
     # note: github doesn't give us refresh_token. github oauth
@@ -277,24 +283,22 @@ def main():
     d.pop("password_expiry_utc", None)
     try:
         if refresh_token is not None:
-            print(f"Refreshing OAuth access token...", file=sys.stderr)
+            msg(f"Refreshing OAuth access token...")
             access_token, expires_in, refresh_token = get_token_with_refresh_token(
                 refresh_token
             )
-            print(f"Sucessfully refreshed.", file=sys.stderr)
+            msg(f"Sucessfully refreshed.")
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
-        print(f"HTTPError: {e.read().decode()}", file=sys.stderr)
+        msg(f"HTTPError: {e.read().decode()}")
         exit(0)
     d["password"] = access_token
     if expires_in is not None:
-        print(
-            f"OAuth access token will expire in {expires_in} seconds.", file=sys.stderr
-        )
+        msg(f"OAuth access token will expire in {expires_in} seconds.")
         d["password_expiry_utc"] = to_utc(expires_in)
     else:
-        print(f"OAuth access token has no expiration.", file=sys.stderr)
+        msg(f"OAuth access token has no expiration.")
     d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
