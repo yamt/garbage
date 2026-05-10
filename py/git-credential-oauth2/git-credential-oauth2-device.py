@@ -41,7 +41,6 @@
 #     https://datatracker.ietf.org/doc/html/rfc8628
 #     gitcredentials(7)
 #     git-credential(1)
-#     git-credential-cache(1)
 
 import argparse
 import webbrowser

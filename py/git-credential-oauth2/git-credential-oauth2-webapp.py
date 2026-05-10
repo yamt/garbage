@@ -38,6 +38,8 @@
 
 # references:
 #     https://datatracker.ietf.org/doc/html/rfc6749
+#     gitcredentials(7)
+#     git-credential(1)
 
 import argparse
 import webbrowser
@@ -315,7 +317,7 @@ def main():
         )
         d["password_expiry_utc"] = to_utc(expires_in)
     else:
-        print(f"OAuth access token has no expiration", file=sys.stderr)
+        print(f"OAuth access token has no expiration.", file=sys.stderr)
     d["oauth_refresh_token"] = refresh_token
     send_git_credentail_results(d)
 
