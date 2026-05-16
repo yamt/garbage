@@ -243,13 +243,10 @@ def recv_git_credential_parameters():
             if v == "":
                 # empty means to clear
                 d[k] = []
-                # print(f"{k}=clear", file=sys.stderr)
             else:
                 d.setdefault(k, []).append(v)
-                # print(f"{k}={v}", file=sys.stderr)
         else:
             d[k] = v
-            # print(f"{k}={v}", file=sys.stderr)
     return d
 
 
@@ -258,10 +255,8 @@ def send_git_credentail_results(d):
         if isinstance(v, list):
             for i in v:
                 print(f"{k}={i}")
-                # print(f"  send: {k}={i}", file=sys.stderr)
         elif v is not None:
             print(f"{k}={v}")
-            # print(f"  send: {k}={v}", file=sys.stderr)
 
 
 def to_utc(expires_in):
