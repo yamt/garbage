@@ -116,8 +116,12 @@ its refresh tokens don't seem to have expiration.
 To mitigate the impact of token leaks, it might be a good idea to
 revoke authorized applications time to time.
 
-* [GitHub Applications Settings](https://github.com/settings/applications)
-* [GitLab Applications Settings](https://gitlab.com/-/user_settings/applications)
+* [Applications Settings (GitHub)](https://github.com/settings/applications)
+* [Applications Settings (GitLab)](https://gitlab.com/-/user_settings/applications)
 
 Or, maybe it's better to use alternatives like Personal Access Tokens,
 which give you better controls on their permissions and expiration.
+
+References:
+
+* [Token expiration and revocation (GitHub)](https://docs.github.com/en/authentication/keeping`your-account-and-data-secure/token-expiration-and-revocation)
