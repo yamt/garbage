@@ -124,4 +124,4 @@ which give you better controls on their permissions and expiration.
 
 References:
 
-* [Token expiration and revocation (GitHub)](https://docs.github.com/en/authentication/keeping`your-account-and-data-secure/token-expiration-and-revocation)
+* [Token expiration and revocation (GitHub)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/token-expiration-and-revocation)
