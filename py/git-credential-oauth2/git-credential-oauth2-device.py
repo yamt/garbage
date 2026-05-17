@@ -143,7 +143,13 @@ def get_token():
         qr.add_data(verification_uri)
         qr.print_ascii(out=sys.stderr)
 
-    webbrowser.open_new_tab(verification_uri)
+    try:
+        webbrowser.get()
+        msg("Trying to open the verification URI with a web browser.")
+        msg("If it doesn't work, follow the above instructions manually.")
+        webbrowser.open_new_tab(verification_uri)
+    except:
+        pass
 
     # https://datatracker.ietf.org/doc/html/rfc8628#section-3.4
     return get_access_token(

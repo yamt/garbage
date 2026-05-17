@@ -179,6 +179,8 @@ def get_token():
     # note: we assume that webbrowser.open_new_tab() below does not wait
     # for the completion of page loading. otherwise, it can deadlock
     # because get_code() below serves the redirected request.
+    msg("Opening the Authentication URI with a web browser.")
+    msg("Please follow the instructions on it.")
     params = urllib.parse.urlencode(params)
     url = f"{provider.auth_url}?{params}"
     webbrowser.open_new_tab(url)
