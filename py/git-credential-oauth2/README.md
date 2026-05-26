@@ -125,3 +125,5 @@ which give you better controls on their permissions and expiration.
 References:
 
 * [Token expiration and revocation (GitHub)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/token-expiration-and-revocation)
+* [Managing your personal access tokens (GitHub)](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens)
+* [Personal access tokens (GitLab)](https://docs.gitlab.com/user/profile/personal_access_tokens/)
