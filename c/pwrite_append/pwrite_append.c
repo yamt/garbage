@@ -8,7 +8,8 @@
 int
 main(void)
 {
-        int fd = open("test.txt", O_CREAT | O_TRUNC | O_WRONLY | O_APPEND);
+        int fd = open("test.txt", O_CREAT | O_TRUNC | O_WRONLY | O_APPEND,
+                      0666);
         if (fd == -1) {
                 fprintf(stderr, "open failed with %d (%s)\n", errno,
                         strerror(errno));
