@@ -1,7 +1,7 @@
 #! /bin/sh
 
 # eg.
-# ./list_victims.sh x 'test-.*' 60 2
+# ./list-victims.sh x 'test-.*' 60 2
 
 set -e
 

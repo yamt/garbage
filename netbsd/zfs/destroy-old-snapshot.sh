@@ -30,7 +30,7 @@ if [ "$NKEEP" -lt 0 ]; then
     exit 0
 fi
 THRESH=$((NKEEP * PERIOD))
-${D}/list_victims.sh ${DS} "${REGEX}" ${THRESH} ${NKEEP} | while read x; do
+${D}/list-victims.sh ${DS} "${REGEX}" ${THRESH} ${NKEEP} | while read x; do
     snapname=${x#*@}
     test -n "${snapname}"
     debug zfs destroy -r $x
