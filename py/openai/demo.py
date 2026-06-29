@@ -92,4 +92,6 @@ while True:
         print(f"forgot {olen - nlen} messages out of {olen} messages")
         continue
     messages.append({"role": "assistant", "content": resp})
+    if len(messages) > 1 and messages[-1]["content"] == messages[-2]["content"]:
+        print("REPEATING IDENTICAL MESSAGES!")
     flip_roles(messages)
