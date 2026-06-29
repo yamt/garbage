@@ -1,7 +1,12 @@
+import time
 import urllib.request
 import json
 
 url = "http://localhost:8000/v1/chat/completions"
+
+
+def ts():
+    return time.perf_counter()
 
 
 def query(messages):
@@ -13,9 +18,11 @@ def query(messages):
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
-    print("=" * 16)
     msg = ""
     data = json.dumps(data).encode("utf-8")
+    start = ts()
+    first = None
+    ntokens = 0
     req = urllib.request.Request(url=url, data=data, headers=headers)
     with urllib.request.urlopen(req) as resp:
         for line in resp:
@@ -24,6 +31,9 @@ def query(messages):
             if not line.startswith("data: "):
                 continue
             line = line[6:].strip()
+            ntokens += 1
+            if first is None:
+                first = ts()
             if line == "[DONE]":
                 print("")
                 break
@@ -33,6 +43,10 @@ def query(messages):
             if token:
                 print(token, end="", flush=True)
                 msg += token
+    if ntokens > 1:
+        ttft = first - start
+        tps = (ntokens - 1) / (ts() - first)
+        print(f"Got {ntokens} tokens, TTFT {ttft} TPS {tps}")
     return msg
 
 
@@ -61,8 +75,9 @@ messages.append(
     }
 )
 messages.append({"role": "user", "content": "Hi, please suggest a topic to chat."})
-print(f"MESSAGE: {messages[-1]["content"]}")
+print(f"{messages[-1]["content"]}")
 while True:
+    print("=" * 16)
     # print(f"context: {json.dumps(messages, indent=4)}")
     try:
         resp = query(messages)
