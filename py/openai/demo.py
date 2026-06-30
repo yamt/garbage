@@ -68,12 +68,12 @@ def forget(messages):
 
 
 messages = []
-messages.append(
-    {
-        "role": "system",
-        "content": "Suggest the next topic proactively instead of saying good bye.",
-    }
-)
+# messages.append(
+#    {
+#        "role": "system",
+#        "content": "",
+#    }
+# )
 messages.append({"role": "user", "content": "Hi, please suggest a topic to chat."})
 print(f"{messages[-1]["content"]}")
 while True:
