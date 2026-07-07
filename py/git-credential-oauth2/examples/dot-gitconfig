@@ -1,0 +1,11 @@
+[credential]
+	# empty helper overrides the system default (eg. osxkeychain)
+	helper =
+	# cache's default is --timeout 900
+	helper = cache --timeout 216000
+	helper = oauth2-webapp
+	helper = oauth2-device
+	#useHttpPath = true
+[user]
+	name = YAMAMOTO Takashi
+	email = imuwoto@gmail.com
