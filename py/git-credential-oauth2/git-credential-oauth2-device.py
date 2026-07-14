@@ -216,9 +216,10 @@ def get_access_token(extra_data, interval):
         # access_denied, expired_token, device_flow_disabled, etc
         error_description = j.get("error_description")
         error_uri = j.get("error_uri")
-        msg(f"unhandled error: {error}")
+        msg(f"unexpected error: {error}")
         msg(f"error description: {error_description}")
-        msg(f"error uri: {error_uri}")
+        if error_uri is not None:
+            msg(f"error uri: {error_uri}")
         exit(0)
 
     # note: type is case insensitive.
@@ -301,10 +302,14 @@ def main():
     try:
         if refresh_token is not None:
             msg("Refreshing access token...")
-            access_token, expires_in, refresh_token = get_token_with_refresh_token(
-                refresh_token
-            )
-            msg("Successfully refreshed.")
+            try:
+                access_token, expires_in, refresh_token = get_token_with_refresh_token(
+                    refresh_token
+                )
+                msg("Successfully refreshed.")
+            except:
+                msg("Refresh failed. Will attempt to get a brand-new token.")
+                access_token, expires_in, refresh_token = get_token()
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
