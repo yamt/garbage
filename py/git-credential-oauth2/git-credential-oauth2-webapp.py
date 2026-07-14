@@ -319,10 +319,14 @@ def main():
     try:
         if refresh_token is not None:
             msg("Refreshing access token...")
-            access_token, expires_in, refresh_token = get_token_with_refresh_token(
-                refresh_token
-            )
-            msg("Successfully refreshed.")
+            try:
+                access_token, expires_in, refresh_token = get_token_with_refresh_token(
+                    refresh_token
+                )
+                msg("Successfully refreshed.")
+            except:
+                msg("Refresh failed. Will attempt to get a brand-new token.")
+                access_token, expires_in, refresh_token = get_token()
         else:
             access_token, expires_in, refresh_token = get_token()
     except urllib.error.HTTPError as e:
