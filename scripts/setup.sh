@@ -1,5 +1,10 @@
 #! /bin/sh
 
+# a script to set up an typical working environment for me
+#
+# eg.
+# curl -fsSL https://raw.githubusercontent.com/yamt/garbage/refs/heads/master/scripts/setup.sh | sh
+
 set -e
 set -x
 
