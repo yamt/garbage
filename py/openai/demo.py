@@ -1,8 +1,12 @@
+import argparse
 import time
 import urllib.request
 import json
 
 url = "http://localhost:8000/v1/chat/completions"
+model = None
+streaming = True
+prompt = "Hi, please suggest a topic to chat."
 
 
 def ts():
@@ -12,43 +16,69 @@ def ts():
 def query(messages):
     data = {
         "messages": messages,
-        "stream": True,
+        "stream": streaming,
     }
+    if model is not None:
+        data["model"] = model
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
-    msg = ""
     data = json.dumps(data).encode("utf-8")
+    req = urllib.request.Request(url=url, data=data, headers=headers)
     start = ts()
+    with urllib.request.urlopen(req) as resp:
+        if streaming:
+            msg = do_stream(resp, start)
+        else:
+            msg = do_non_stream(resp, start)
+    return msg
+
+
+def do_non_stream(resp, start):
+    resp = resp.read().decode()
+    j = json.loads(resp)
+    try:
+        msg = j["choices"][0]["message"]["content"]
+    except KeyError:
+        print(f"unexpect response {j}")
+        exit(1)
+    # print(f"raw json response {j}")
+    print(f"{msg}")
+    return msg
+
+
+def do_stream(resp, start):
+    msg = ""
     first = None
     ntokens = 0
-    req = urllib.request.Request(url=url, data=data, headers=headers)
-    with urllib.request.urlopen(req) as resp:
-        for line in resp:
-            line = line.decode()
-            # print(line)
-            if not line.startswith("data: "):
-                continue
-            line = line[6:].strip()
-            ntokens += 1
-            if first is None:
-                first = ts()
-            if line == "[DONE]":
-                print("")
-                break
-            line = json.loads(line)
-            d = line["choices"][0]["delta"]
-            token = d.get("content")
-            if token:
-                print(token, end="", flush=True)
-                msg += token
+    for line in resp:
+        line = line.decode()
+        # print(line)
+        if not line.startswith("data: "):
+            continue
+        line = line[6:].strip()
+        ntokens += 1
+        if first is None:
+            first = ts()
+        if line == "[DONE]":
+            print("")
+            break
+        j = json.loads(line)
+        try:
+            d = j["choices"][0]["delta"]
+        except KeyError:
+            print(f"unexpect response {j}")
+            exit(1)
+        token = d.get("content")
+        if token:
+            print(token, end="", flush=True)
+            msg += token
     if ntokens > 1:
         ttft = first - start
         tps = (ntokens - 1) / (ts() - first)
         print(f"Got {ntokens} tokens, TTFT {ttft} TPS {tps}")
     return msg
-
 
 def flip_roles(messages):
     d = {
@@ -67,6 +97,21 @@ def forget(messages):
     return sys + messages[-keep:]
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--model")
+parser.add_argument("--url")
+parser.add_argument("--streaming", action='store_true')
+parser.add_argument("--prompt")
+args = parser.parse_args()
+if args.url is not None:
+    url = args.url
+model = args.model
+if args.streaming is not None:
+    streaming = args.streaming
+if args.prompt is not None:
+    prompt = args.prompt
+
+
 messages = []
 # messages.append(
 #    {
@@ -74,10 +119,13 @@ messages = []
 #        "content": "",
 #    }
 # )
-messages.append({"role": "user", "content": "Hi, please suggest a topic to chat."})
+messages.append({"role": "user", "content": prompt})
+sep = "=" * 16
+count = 1
 print(f"{messages[-1]["content"]}")
 while True:
-    print("=" * 16)
+    print(f"[{count}] {sep}")
+    count += 1
     # print(f"context: {json.dumps(messages, indent=4)}")
     try:
         resp = query(messages)
