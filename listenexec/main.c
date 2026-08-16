@@ -50,7 +50,7 @@ main(int argc, char **argv)
                 exit(2);
         }
 
-        int sock[1];
+        int sock[1]; /* one socket is enough for our purpose */
         int nsock = 0;
 
         struct addrinfo hints, *res, *res0;
