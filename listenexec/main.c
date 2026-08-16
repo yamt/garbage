@@ -111,7 +111,7 @@ main(int argc, char **argv)
         int listenfd = STDIN_FILENO;
         int ret;
         if (systemd_style) {
-                listenfd = 3;
+                listenfd = 3; /* SD_LISTEN_FDS_START */
                 ret = setenv("LISTEN_FDS", "1", 1);
                 if (ret != 0) {
                         fprintf(stderr, "setenv failed with %d\n", errno);
