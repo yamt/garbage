@@ -88,11 +88,13 @@ main(int argc, char **argv)
                 }
                 if (bind(s, res->ai_addr, res->ai_addrlen) < 0) {
                         fprintf(stderr, "bind failed: %s\n", strerror(errno));
+                        close(s);
                         continue;
                 }
                 if (listen(s, 32) < 0) {
                         fprintf(stderr, "listen failed: %s\n",
                                 strerror(errno));
+                        close(s);
                         continue;
                 }
                 sock[nsock] = s;
