@@ -48,10 +48,30 @@ def do_non_stream(resp, start):
     return msg
 
 
+# note: some implementations returns empty "choices" immediately
+# before "[DONE]". probably to report usage statistics?
+#
+# {
+#   "id": "chatcmpl-c4d0bd3d-b4f7-50b8-a15c-e5f5f25400fd",
+#   "model": "test-model",
+#   "object": "chat.completion.chunk",
+#   "created": 1786591160,
+#   "usage": {
+#     "prompt_tokens": 14,
+#     "completion_tokens": 64,
+#     "total_tokens": 78,
+#     "prompt_tokens_details": {
+#       "cached_tokens": 0
+#     }
+#   },
+#   "choices": []
+# }
+
 def do_stream(resp, start):
     msg = ""
     first = None
     ntokens = 0
+    got_empty = False
     for line in resp:
         line = line.decode()
         # print(line)
@@ -64,10 +84,14 @@ def do_stream(resp, start):
         if line == "[DONE]":
             print("")
             break
+        assert not got_empty
         j = json.loads(line)
         try:
+            if len(j["choices"]) == 0:
+                got_empty = True
+                continue
             d = j["choices"][0]["delta"]
-        except KeyError:
+        except (KeyError, IndexError):
             print(f"unexpect response {j}")
             exit(1)
         token = d.get("content")
@@ -130,10 +154,10 @@ while True:
     try:
         resp = query(messages)
     except urllib.error.HTTPError as e:
-        if e.code != 400:
-            raise
         resp = e.fp.read()
         print(f"HTTPError code={e.code} body={resp}")
+        if e.code != 400:
+            raise
         olen = len(messages)
         messages = forget(messages)
         nlen = len(messages)
