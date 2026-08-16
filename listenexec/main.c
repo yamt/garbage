@@ -1,3 +1,13 @@
+/*
+ * execute a program with a socket listening on the specified
+ * host(-h, "localhost" by default) and port(-p).
+ *
+ * by default, the socket is passed to the probram as STDIN_FILENO.
+ * with -s option, systemd-style socket activation is used instead.
+ * cf.
+ * https://www.freedesktop.org/software/systemd/man/latest/sd_listen_fds.html
+ */
+
 #include <sys/socket.h>
 #include <sys/types.h>
 
