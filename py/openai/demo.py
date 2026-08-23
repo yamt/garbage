@@ -7,6 +7,7 @@ url = "http://localhost:8000/v1/chat/completions"
 model = None
 streaming = True
 prompt = "Hi, please suggest a topic to chat."
+dump = False
 
 
 def ts():
@@ -25,9 +26,14 @@ def query(messages):
         "Accept": "application/json",
     }
     data = json.dumps(data).encode("utf-8")
+    if dump:
+        print(f"REQUEST: url={url}, data={data}, headers={headers}")
     req = urllib.request.Request(url=url, data=data, headers=headers)
     start = ts()
     with urllib.request.urlopen(req) as resp:
+        if dump:
+            for k, v in resp.headers.items():
+                 print(f"RESPONSE HEADER: {k}: {v}")
         if streaming:
             msg = do_stream(resp, start)
         else:
@@ -43,7 +49,7 @@ def do_non_stream(resp, start):
     except KeyError:
         print(f"unexpect response {j}")
         exit(1)
-    # print(f"raw json response {j}")
+    # print(f"dump json response {j}")
     print(f"{msg}")
     return msg
 
@@ -126,6 +132,7 @@ parser.add_argument("--model")
 parser.add_argument("--url")
 parser.add_argument("--streaming", action='store_true')
 parser.add_argument("--prompt")
+parser.add_argument("--dump", action='store_true')
 args = parser.parse_args()
 if args.url is not None:
     url = args.url
@@ -134,6 +141,8 @@ if args.streaming is not None:
     streaming = args.streaming
 if args.prompt is not None:
     prompt = args.prompt
+if args.dump is not None:
+    dump = args.dump
 
 
 messages = []
