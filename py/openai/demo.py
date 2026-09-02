@@ -44,6 +44,7 @@ def query(messages):
 def do_non_stream(resp, start):
     resp = resp.read().decode()
     j = json.loads(resp)
+    u = j.get('usage')
     try:
         msg = j["choices"][0]["message"]["content"]
     except KeyError:
@@ -51,6 +52,8 @@ def do_non_stream(resp, start):
         exit(1)
     # print(f"dump json response {j}")
     print(f"{msg}")
+    if u is not None and dump:
+        print(f"USAGE {u}")
     return msg
 
 
@@ -78,6 +81,7 @@ def do_stream(resp, start):
     first = None
     ntokens = 0
     got_empty = False
+    u = None
     for line in resp:
         line = line.decode()
         # print(line)
@@ -88,22 +92,31 @@ def do_stream(resp, start):
         if first is None:
             first = ts()
         if line == "[DONE]":
-            print("")
             break
         assert not got_empty
         j = json.loads(line)
+        d = None
         try:
             if len(j["choices"]) == 0:
                 got_empty = True
-                continue
-            d = j["choices"][0]["delta"]
+            else:
+                d = j["choices"][0]["delta"]
         except (KeyError, IndexError):
             print(f"unexpect response {j}")
             exit(1)
-        token = d.get("content")
-        if token:
-            print(token, end="", flush=True)
-            msg += token
+        if d is not None:
+            token = d.get("content")
+            if token:
+                print(token, end="", flush=True)
+                msg += token
+        nu = j.get('usage')
+        if nu is not None and u is not None:
+            print("Get multiple usage. is this possible?")
+            exit(1) # XXX
+        u = nu
+    print("")
+    if u is not None and dump:
+        print(f"USAGE {u}")
     if ntokens > 1:
         ttft = first - start
         tps = (ntokens - 1) / (ts() - first)
@@ -165,9 +178,13 @@ while True:
     except urllib.error.HTTPError as e:
         resp = e.fp.read()
         print(f"HTTPError code={e.code} body={resp}")
+        for k, v in e.headers.items():
+            print(f"RESPONSE HEADER {k} = {v}")
         if e.code != 400:
             raise
         olen = len(messages)
+        if olen <= 8:
+            raise
         messages = forget(messages)
         nlen = len(messages)
         print(f"forgot {olen - nlen} messages out of {olen} messages")
