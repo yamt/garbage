@@ -168,7 +168,7 @@ messages = []
 messages.append({"role": "user", "content": prompt})
 sep = "=" * 16
 count = 1
-print(f"{messages[-1]["content"]}")
+print(f"{messages[-1]['content']}")
 while True:
     print(f"[{count}] {sep}")
     count += 1
