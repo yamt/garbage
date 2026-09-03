@@ -8,6 +8,7 @@ url = "http://localhost:8000/v1/chat/completions"
 model = None
 streaming = True
 prompt = "Hi, please suggest a topic to chat."
+temperature = None
 dump = False
 show_usage = True
 state_prefix = None
@@ -25,6 +26,8 @@ def query(messages):
     }
     if model is not None:
         data["model"] = model
+    if temperature is not None:
+        data["temperature"] = temperature
     headers = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -167,6 +170,7 @@ parser.add_argument("--model")
 parser.add_argument("--url")
 parser.add_argument("--streaming", action='store_true')
 parser.add_argument("--prompt")
+parser.add_argument("--temperature", type=float)
 parser.add_argument("--dump", action='store_true')
 parser.add_argument("--save-state-prefix")
 parser.add_argument("--load-state")
@@ -178,6 +182,8 @@ if args.streaming is not None:
     streaming = args.streaming
 if args.prompt is not None:
     prompt = args.prompt
+if args.temperature is not None:
+    temperature = args.temperature
 if args.dump is not None:
     dump = args.dump
 if args.save_state_prefix is not None:
