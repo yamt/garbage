@@ -165,6 +165,14 @@ def load_state(filename):
     count = j['count']
 
 
+def add_to_hash(i, msg):
+    j = message_hash.get(msg)
+    if j is None:
+        message_hash[msg] = i
+        return
+    print(f"MESSAGE {i} (len = {len(msg)}) is identical to MESSAGE {j}")
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model")
 parser.add_argument("--url")
@@ -199,21 +207,25 @@ messages = []
 #        "content": "",
 #    }
 # )
-messages.append({"role": "user", "content": prompt})
+messages.append({"role": "user", "content": prompt})  # message 0
+message_hash = dict()
 count = 1
 
 if load_state_filename is not None:
     load_state(load_state_filename)
 
-sep = "=" * 16
 print(f"{messages[-1]['content']}")
+assert count == len(messages)
+for i, m in enumerate(messages):
+    add_to_hash(i, m["content"])
+
+sep = "=" * 16
 while True:
     if state_prefix is not None:
         save_state()
     now = datetime.datetime.now()
     nowstr = now.strftime("%Y-%m-%d %H:%M:%S.%f")
     print(f"{sep} [{count}] ({nowstr}) {sep}")
-    count += 1
     # print(f"context: {json.dumps(messages, indent=4)}")
     try:
         resp = query(messages)
@@ -232,6 +244,6 @@ while True:
         print(f"forgot {olen - nlen} messages out of {olen} messages")
         continue
     messages.append({"role": "assistant", "content": resp})
-    if len(messages) > 1 and messages[-1]["content"] == messages[-2]["content"]:
-        print("REPEATING IDENTICAL MESSAGES!")
+    add_to_hash(count, resp)
+    count += 1
     flip_roles(messages)
