@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import time
 import urllib.request
 import json
@@ -170,7 +171,9 @@ sep = "=" * 16
 count = 1
 print(f"{messages[-1]['content']}")
 while True:
-    print(f"[{count}] {sep}")
+    now = datetime.datetime.now()
+    nowstr = now.strftime("%Y-%m-%d %H:%M:%S.%f")
+    print(f"{sep} [{count}] ({nowstr}) {sep}")
     count += 1
     # print(f"context: {json.dumps(messages, indent=4)}")
     try:
