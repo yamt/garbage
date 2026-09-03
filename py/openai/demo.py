@@ -10,6 +10,8 @@ streaming = True
 prompt = "Hi, please suggest a topic to chat."
 dump = False
 show_usage = True
+state_prefix = None
+load_state_filename = None
 
 
 def ts():
@@ -142,12 +144,32 @@ def forget(messages):
     return sys + messages[-keep:]
 
 
+def save_state():
+    state = {
+        "messages": messages,
+        "count": count,
+    }
+    with open(f"{state_prefix}-{count:08d}.json", "wt") as fp:
+        json.dump(state, fp, indent=4)
+
+
+def load_state(filename):
+    global messages
+    global count
+    with open(filename, "rt") as fp:
+        j = json.load(fp)
+    messages = j['messages']
+    count = j['count']
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("--model")
 parser.add_argument("--url")
 parser.add_argument("--streaming", action='store_true')
 parser.add_argument("--prompt")
 parser.add_argument("--dump", action='store_true')
+parser.add_argument("--save-state-prefix")
+parser.add_argument("--load-state")
 args = parser.parse_args()
 if args.url is not None:
     url = args.url
@@ -158,6 +180,10 @@ if args.prompt is not None:
     prompt = args.prompt
 if args.dump is not None:
     dump = args.dump
+if args.save_state_prefix is not None:
+    state_prefix = args.save_state_prefix
+if args.load_state is not None:
+    load_state_filename = args.load_state
 
 
 messages = []
@@ -168,10 +194,16 @@ messages = []
 #    }
 # )
 messages.append({"role": "user", "content": prompt})
-sep = "=" * 16
 count = 1
+
+if load_state_filename is not None:
+    load_state(load_state_filename)
+
+sep = "=" * 16
 print(f"{messages[-1]['content']}")
 while True:
+    if state_prefix is not None:
+        save_state()
     now = datetime.datetime.now()
     nowstr = now.strftime("%Y-%m-%d %H:%M:%S.%f")
     print(f"{sep} [{count}] ({nowstr}) {sep}")
