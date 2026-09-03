@@ -9,6 +9,7 @@ model = None
 streaming = True
 prompt = "Hi, please suggest a topic to chat."
 dump = False
+show_usage = True
 
 
 def ts():
@@ -53,7 +54,7 @@ def do_non_stream(resp, start):
         exit(1)
     # print(f"dump json response {j}")
     print(f"{msg}")
-    if u is not None and dump:
+    if u is not None and show_usage:
         print(f"USAGE {u}")
     return msg
 
@@ -116,7 +117,7 @@ def do_stream(resp, start):
             exit(1) # XXX
         u = nu
     print("")
-    if u is not None and dump:
+    if u is not None and show_usage:
         print(f"USAGE {u}")
     if ntokens > 1:
         ttft = first - start
