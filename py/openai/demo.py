@@ -215,7 +215,7 @@ if load_state_filename is not None:
     load_state(load_state_filename)
 
 print(f"{messages[-1]['content']}")
-assert count == len(messages)
+assert count >= len(messages) # Note: >= because it may have fogotton messages
 for i, m in enumerate(messages):
     add_to_hash(i, m["content"])
 
