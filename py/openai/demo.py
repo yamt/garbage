@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import random
 import time
 import urllib.request
 import json
@@ -10,6 +11,7 @@ streaming = True
 prompt = "Hi, please suggest a topic to chat."
 temperature = 0.0
 dump = False
+sort = None
 show_usage = True
 state_prefix = None
 load_state_filename = None
@@ -32,9 +34,25 @@ def query(messages):
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+    # note: python dict is ordered these days.
+    # json.dumps/loads preserves the ordering as well.
+    # https://docs.python.org/3/library/json.html
+    # > This module's encoders and decoders preserve input and output order
+    # > by default. Order is only lost if the underlying containers are unordered.
+    def shuffle(x):
+        l = list(x)
+        random.shuffle(l)
+        return l
+    sorters = {
+        "asc": sorted,
+        "desc": lambda x: sorted(x, reverse=True),
+        "rand": shuffle,
+    }
+    if sort is not None:
+        data = dict(sorters[sort](data.items()))
     data = json.dumps(data).encode("utf-8")
     if dump:
-        print(f"REQUEST: url={url}, data={data}, headers={headers}")
+        print(f"REQUEST: url={url}, data={data} ({len(data)} bytes), headers={headers}")
     req = urllib.request.Request(url=url, data=data, headers=headers)
     start = ts()
     with urllib.request.urlopen(req) as resp:
@@ -180,6 +198,7 @@ parser.add_argument("--streaming", action='store_true')
 parser.add_argument("--prompt")
 parser.add_argument("--temperature", type=float)
 parser.add_argument("--dump", action='store_true')
+parser.add_argument("--sort")
 parser.add_argument("--save-state-prefix")
 parser.add_argument("--load-state")
 args = parser.parse_args()
@@ -194,6 +213,8 @@ if args.temperature is not None:
     temperature = args.temperature
 if args.dump is not None:
     dump = args.dump
+if args.sort is not None:
+    sort = args.sort
 if args.save_state_prefix is not None:
     state_prefix = args.save_state_prefix
 if args.load_state is not None:
