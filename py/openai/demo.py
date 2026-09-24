@@ -53,6 +53,8 @@ def query(messages):
     data = json.dumps(data).encode("utf-8")
     if dump:
         print(f"REQUEST: url={url}, data={data} ({len(data)} bytes), headers={headers}")
+    else:
+        print(f"REQUEST: data {len(data)} bytes")
     req = urllib.request.Request(url=url, data=data, headers=headers)
     start = ts()
     with urllib.request.urlopen(req) as resp:
