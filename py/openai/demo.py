@@ -15,6 +15,7 @@ sort = None
 show_usage = True
 state_prefix = None
 load_state_filename = None
+extra_headers = None
 
 
 def ts():
@@ -34,6 +35,8 @@ def query(messages):
         "Content-Type": "application/json",
         "Accept": "application/json",
     }
+    if extra_headers is not None:
+        headers.update(extra_headers)
     # note: python dict is ordered these days.
     # json.dumps/loads preserves the ordering as well.
     # https://docs.python.org/3/library/json.html
@@ -199,6 +202,7 @@ parser.add_argument("--url")
 parser.add_argument("--streaming", action='store_true')
 parser.add_argument("--prompt")
 parser.add_argument("--temperature", type=float)
+parser.add_argument("--header", action='append', default=[])
 parser.add_argument("--dump", action='store_true')
 parser.add_argument("--sort")
 parser.add_argument("--save-state-prefix")
@@ -221,6 +225,11 @@ if args.save_state_prefix is not None:
     state_prefix = args.save_state_prefix
 if args.load_state is not None:
     load_state_filename = args.load_state
+if args.header:
+    def parse_kv(kv):
+        k, v = kv.split(":")
+        return k.strip(), v.strip()
+    extra_headers = dict({parse_kv(kv) for kv in args.header})
 
 
 messages = []
