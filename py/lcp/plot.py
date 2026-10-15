@@ -29,10 +29,10 @@ r_rectlinear = f * np.tan(w_rectlinear)
 
 plt.figure(figsize=(8, 6))
 
-plt.axhline(diag/2, label='diag', color='gray', linewidth=2)
-plt.axhline(long_side/2, label='long side', color='gray', linewidth=2)
-plt.axhline(short_side/2, label='short side', color='gray', linewidth=2)
-plt.axvline(np.pi / 2, label='pi / 2', color='gray', linewidth=2)
+plt.axhline(diag/2, color='gray', linewidth=2)
+plt.axhline(long_side/2, color='gray', linewidth=2)
+plt.axhline(short_side/2, color='gray', linewidth=2)
+plt.axvline(np.pi / 2, color='gray', linewidth=2)
 
 plt.plot(w_rectlinear, r_rectlinear, label='rectlinear 10mm', linewidth=2)
 plt.plot(w, r_equidistance, label='equidistance 14mm', linewidth=2)
