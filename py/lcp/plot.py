@@ -6,6 +6,9 @@
 # https://www.ttartisan.com/?LensProfile/
 # /Library/Application\ Support/Adobe/CameraRaw/LensProfiles/
 
+import re
+import sys
+import xml.etree.ElementTree as ET
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import namedtuple
@@ -50,12 +53,40 @@ Lens = namedtuple(
 )
 
 lenses = {
-    "7artisans 6mm F2": Lens(0.343383, -0.001042, -0.004391),
-    "7Artisans 7.5mm 2.8 II": Lens(0.365239, 0.008585, 0),
-    "7artisans 10mm F2.5": Lens(0.326861, 0.020230, 0.012446),
-    "TTARTISAN MF 7.5mm F2 Fisheye": Lens(0.437334, -0.051090, 0),
+#    "7artisans 6mm F2": Lens(0.343383, -0.001042, -0.004391),
+#    "7Artisans 7.5mm 2.8 II": Lens(0.365239, 0.008585, 0),
+#    "7artisans 10mm F2.5": Lens(0.326861, 0.020230, 0.012446),
+#    "TTARTISAN MF 7.5mm F2 Fisheye": Lens(0.437334, -0.051090, 0),
     "TTARTISAN MF 11mm F2.8 Fisheye": Lens(0.448150, -0.024293, -0.010949),
 }
+
+for x in sys.argv[1:]:
+    print(f"reading {x}...")
+    # some lcp files from 7artisans contains //-style comments.
+    # we preprocess to remove them before feeding into ET.
+    with open(x, 'r', encoding='utf-8') as fp:
+        text = fp.read()
+    text = re.sub(r'^\s*//.*$', '', text, flags=re.MULTILINE)
+    root = ET.fromstring(text)
+    name = root.find('.//{*}LensPrettyName')
+    if name is not None:
+        name = name.text
+    else:
+        name = x
+    f = root.find('.//{*}FocalLengthX')
+    f = float(f.text)
+    k1 = root.find('.//{*}RadialDistortParam1')
+    k2 = root.find('.//{*}RadialDistortParam2')
+    if k1 is not None:
+        k1 = float(k1.text)
+    else:
+        k1 = 0.0
+    if k2 is not None:
+        k2 = float(k2.text)
+    else:
+        k2 = 0.0
+    lenses[name] = Lens(f, k1, k2)
+
 
 for k, v in lenses.items():
     f = v.f * long_side
