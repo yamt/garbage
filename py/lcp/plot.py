@@ -32,16 +32,16 @@ r_rectlinear = f * np.tan(w_rectlinear)
 
 plt.figure(figsize=(8, 6))
 
-plt.axhline(diag/2, color='gray', linewidth=2)
-plt.axhline(long_side/2, color='gray', linewidth=2)
-plt.axhline(short_side/2, color='gray', linewidth=2)
-plt.axvline(np.pi / 2, color='gray', linewidth=2)
+plt.axhline(diag/2, color='gray', linewidth=2, linestyle=':')
+plt.axhline(long_side/2, color='gray', linewidth=2, linestyle=':')
+plt.axhline(short_side/2, color='gray', linewidth=2, linestyle=':')
+plt.axvline(np.pi / 2, color='gray', linewidth=2, linestyle=':')
 
-plt.plot(w_rectlinear, r_rectlinear, label='rectlinear 10mm', linewidth=2)
-plt.plot(w, r_equidistance, label='equidistance 14mm', linewidth=2)
-plt.plot(w, r_equisolid, label='equisolid 14mm', linewidth=2)
-plt.plot(w, r_orthographic, label='orthographic 10mm', linewidth=2)  # eg. OP fisheye nikkor 10mm F5.6
-plt.plot(w, r_stereograhic, label='stereographic 11mm', linewidth=2)
+plt.plot(w_rectlinear, r_rectlinear, label='rectlinear 10mm', linewidth=1, linestyle='--')
+plt.plot(w, r_equidistance, label='equidistance 14mm', linewidth=1, linestyle='--')
+plt.plot(w, r_equisolid, label='equisolid 14mm', linewidth=1, linestyle='--')
+plt.plot(w, r_orthographic, label='orthographic 10mm', linewidth=1, linestyle='--')  # eg. OP fisheye nikkor 10mm F5.6
+plt.plot(w, r_stereograhic, label='stereographic 11mm', linewidth=1, linestyle='--')
 
 Lens = namedtuple(
 	"LensProfile",
@@ -98,7 +98,7 @@ for k, v in lenses.items():
     # lensprofile_creator_cameramodel.pdf
     # p5. "Geometric Distortion Model for Fisheye Lenses"
     r = f * (w + k1 * np.pow(w, 3) + k2 * np.pow(w, 5))
-    plt.plot(w, r, label=k, linewidth=2)
+    plt.plot(w, r, label=k, linewidth=3)
 
 plt.title('fisheye lens projection', fontsize=14)
 plt.xlabel('angle', fontsize=12)
