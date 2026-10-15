@@ -1,4 +1,4 @@
-## What's this
+## fisheye lens projections
 
 a script to plot a graph to compare fisheye lens projections.
 
