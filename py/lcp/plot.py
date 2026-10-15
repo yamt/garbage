@@ -57,6 +57,9 @@ lenses = {
 #    "7Artisans 7.5mm 2.8 II": Lens(0.365239, 0.008585, 0),
 #    "7artisans 10mm F2.5": Lens(0.326861, 0.020230, 0.012446),
 #    "TTARTISAN MF 7.5mm F2 Fisheye": Lens(0.437334, -0.051090, 0),
+
+    # the vendor-provided lcp file (TTARTISAN MF 11mm F2.8 Fisheye.lcp)
+    # seems broken. this entry is manually parsed.
     "TTARTISAN MF 11mm F2.8 Fisheye": Lens(0.448150, -0.024293, -0.010949),
 }
 
