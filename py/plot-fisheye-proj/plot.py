@@ -4,6 +4,7 @@
 # lens profiles
 # https://7artisans.store/pages/calibration-profiles
 # https://www.ttartisan.com/?LensProfile/
+# https://www.astrhori.cn/pages/calibration-file
 # /Library/Application\ Support/Adobe/CameraRaw/LensProfiles/
 
 import re
