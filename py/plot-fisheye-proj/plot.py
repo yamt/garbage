@@ -14,10 +14,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import namedtuple
 
-
 long_side = 36.0
 short_side = 24.0
-diag = np.sqrt(long_side ** 2 + short_side ** 2)
+diag = np.sqrt(long_side**2 + short_side**2)
 
 w = np.linspace(0, 220 / 2 * np.pi / 180, 100)
 
@@ -33,62 +32,102 @@ r_rectlinear = f * np.tan(w_rectlinear)
 
 plt.figure(figsize=(8, 6))
 
-plt.axhline(diag/2, color='gray', linewidth=2, linestyle=':')
-plt.axhline(long_side/2, color='gray', linewidth=2, linestyle=':')
-plt.axhline(short_side/2, color='gray', linewidth=2, linestyle=':')
-plt.axvline(np.pi / 2, color='gray', linewidth=2, linestyle=':')
+plt.axhline(diag / 2, color="gray", linewidth=2, linestyle=":")
+plt.axhline(long_side / 2, color="gray", linewidth=2, linestyle=":")
+plt.axhline(short_side / 2, color="gray", linewidth=2, linestyle=":")
+plt.axvline(np.pi / 2, color="gray", linewidth=2, linestyle=":")
 
-plt.plot(w_rectlinear, r_rectlinear, label='rectlinear 10mm', linewidth=1, linestyle='--')
-plt.plot(w, r_equidistance, label='equidistance 14mm', linewidth=1, linestyle='--')
-plt.plot(w, r_equisolid, label='equisolid 14mm', linewidth=1, linestyle='--')
-plt.plot(w, r_orthographic, label='orthographic 10mm', linewidth=1, linestyle='--')  # eg. OP fisheye nikkor 10mm F5.6
-plt.plot(w, r_stereograhic, label='stereographic 11mm', linewidth=1, linestyle='--')
+plt.plot(
+    w_rectlinear, r_rectlinear, label="rectlinear 10mm", linewidth=1, linestyle="--"
+)
+plt.plot(w, r_equidistance, label="equidistance 14mm", linewidth=1, linestyle="--")
+plt.plot(w, r_equisolid, label="equisolid 14mm", linewidth=1, linestyle="--")
+plt.plot(
+    w, r_orthographic, label="orthographic 10mm", linewidth=1, linestyle="--"
+)  # eg. OP fisheye nikkor 10mm F5.6
+plt.plot(w, r_stereograhic, label="stereographic 11mm", linewidth=1, linestyle="--")
 
 Lens = namedtuple(
-	"LensProfile",
+    "LensProfile",
     [
         "f",  # FocalLengthX/FocalLengthY (if absent, FocalLength / long_side)
         "k1",  # RadialDistortParam1
         "k2",  # RadialDistortParam2
-    ]
+    ],
 )
 
 lenses = {
-#    "7artisans 6mm F2": Lens(0.343383, -0.001042, -0.004391),
-#    "7Artisans 7.5mm 2.8 II": Lens(0.365239, 0.008585, 0),
-#    "7artisans 10mm F2.5": Lens(0.326861, 0.020230, 0.012446),
-#    "TTARTISAN MF 7.5mm F2 Fisheye": Lens(0.437334, -0.051090, 0),
-
+    #    "7artisans 6mm F2": Lens(0.343383, -0.001042, -0.004391),
+    #    "7Artisans 7.5mm 2.8 II": Lens(0.365239, 0.008585, 0),
+    #    "7artisans 10mm F2.5": Lens(0.326861, 0.020230, 0.012446),
+    #    "TTARTISAN MF 7.5mm F2 Fisheye": Lens(0.437334, -0.051090, 0),
     # the vendor-provided lcp file (TTARTISAN MF 11mm F2.8 Fisheye.lcp)
     # seems broken. this entry is manually parsed.
     "TTARTISAN MF 11mm F2.8 Fisheye": Lens(0.448150, -0.024293, -0.010949),
 }
 
+namespaces = {
+    "photoshop": "http://ns.adobe.com/photoshop/1.0/",
+    "stCamera": "http://ns.adobe.com/photoshop/1.0/camera-profile",
+    "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+}
+
+
+def get_stcamera_attr(e, name):
+    f = e.find(f"./stCamera:{name}", namespaces)
+    if f is None:
+        f = e.attrib.get(f"{{{namespaces['stCamera']}}}{name}")
+    else:
+        f = f.text
+    return f
+
+
 for x in sys.argv[1:]:
     print(f"reading {x}...")
     # some lcp files from 7artisans contains //-style comments.
     # we preprocess to remove them before feeding into ET.
-    with open(x, 'r', encoding='utf-8') as fp:
+    with open(x, "r", encoding="utf-8") as fp:
         text = fp.read()
-    text = re.sub(r'^\s*//.*$', '', text, flags=re.MULTILINE)
+    text = re.sub(r"^\s*//.*$", "", text, flags=re.MULTILINE)
     root = ET.fromstring(text)
-    name = root.find('.//{*}LensPrettyName')
-    if name is not None:
-        name = name.text
+
+    profiles = root.find(".//photoshop:CameraProfiles", namespaces)
+    # XXX is it enough to use the first one?
+    profile = profiles.find(".//rdf:li", namespaces)
+    fisheye = profile.find(".//stCamera:FisheyeModel", namespaces)
+    if fisheye is None:
+        # XXX some vendor-provided lcp files use PerspectiveModel
+        # eg. 7artisans-10mm F2.8.lcp
+        raise Exception(f"no FisheyeModel found in {x}")
+    desc = profile.find(".//rdf:Description", namespaces)
+    # extract parameters
+    #
+    # what we care:
+    #   LensPrettyName
+    #   FocalLengthX
+    #   RadialDistortParam1
+    #   RadialDistortParam2
+    #
+    # FocalLengthY is assmued to be same as X. (square pixels)
+    if desc is not None:
+        name = get_stcamera_attr(desc, "LensPrettyName")
     else:
-        name = x
-    f = root.find('.//{*}FocalLengthX')
-    f = float(f.text)
-    k1 = root.find('.//{*}RadialDistortParam1')
-    k2 = root.find('.//{*}RadialDistortParam2')
+        name = get_stcamera_attr(profile, "LensPrettyName")
+    f = get_stcamera_attr(fisheye, "FocalLengthX")
+    f = float(f)
+    k1 = get_stcamera_attr(fisheye, "RadialDistortParam1")
+    k2 = get_stcamera_attr(fisheye, "RadialDistortParam2")
     if k1 is not None:
-        k1 = float(k1.text)
+        k1 = float(k1)
     else:
         k1 = 0.0
     if k2 is not None:
-        k2 = float(k2.text)
+        k2 = float(k2)
     else:
         k2 = 0.0
+    if name is None:
+        name = x
+
     lenses[name] = Lens(f, k1, k2)
 
 
@@ -101,11 +140,11 @@ for k, v in lenses.items():
     r = f * (w + k1 * np.pow(w, 3) + k2 * np.pow(w, 5))
     plt.plot(w, r, label=k, linewidth=3)
 
-plt.title('fisheye lens projection', fontsize=14)
-plt.xlabel('angle', fontsize=12)
-plt.ylabel('radius', fontsize=12)
+plt.title("fisheye lens projection", fontsize=14)
+plt.xlabel("angle", fontsize=12)
+plt.ylabel("radius", fontsize=12)
 
 plt.legend()
 plt.grid(True)
 plt.show()
-#plt.savefig("graph.png")
+# plt.savefig("graph.png")
